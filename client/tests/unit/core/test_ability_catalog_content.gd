@@ -38,6 +38,10 @@ func test_three_spirits_with_their_unlock_stages_and_passives() -> void:
 	assert_eq(CATALOG.spirits[1].passive_kind, StatModifier.Kind.FLAT, "crit chance grows by points")
 
 
+func test_wisp_orb_uses_the_palette_turquoise_not_green() -> void:
+	assert_eq(CATALOG.spirits[0].color.to_html(false), "13ccbd", "paleta_juego.gpl Turquesa")
+
+
 func test_game_state_session_uses_the_catalog() -> void:
 	assert_eq(GameState.session.skills.slots.size(), 5)
 	assert_eq(GameState.session.spirits.slots.size(), 3)

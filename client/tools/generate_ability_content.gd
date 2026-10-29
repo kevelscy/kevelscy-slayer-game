@@ -16,7 +16,7 @@ func _init() -> void:
 		_skill(&"shield", "Shield", SkillDefinition.Effect.SHIELD, 12, 25.0, 0.5, 8.0, Color(1.0, 0.85, 0.3)),
 	]
 	catalog.spirits = [
-		_spirit(&"wisp", "Wisp", 2, StatBlock.ATTACK, StatModifier.Kind.PERCENT, 0.1, 3.0, 1.0, Color(0.6, 1.0, 0.6)),
+		_spirit(&"wisp", "Wisp", 2, StatBlock.ATTACK, StatModifier.Kind.PERCENT, 0.1, 3.0, 1.0, Color("#13ccbd")),
 		_spirit(&"ember_fox", "Ember Fox", 6, StatBlock.CRIT_CHANCE, StatModifier.Kind.FLAT, 0.05, 4.0, 2.0, Color(1.0, 0.55, 0.2)),
 		_spirit(&"frost_owl", "Frost Owl", 10, StatBlock.HEALTH, StatModifier.Kind.PERCENT, 0.2, 5.0, 3.0, Color(0.7, 0.85, 1.0)),
 	]

@@ -60,7 +60,7 @@ script = ExtResource("3_l2ac6")
 id = &"wisp"
 display_name = "Wisp"
 unlock_stage = 2
-color = Color(0.6, 1, 0.6, 1)
+color = Color(0.07450981, 0.8, 0.7411765, 1)
 
 [sub_resource type="Resource" id="Resource_y45cc"]
 script = ExtResource("3_l2ac6")
