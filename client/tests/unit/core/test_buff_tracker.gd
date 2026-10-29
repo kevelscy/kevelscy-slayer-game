@@ -55,3 +55,11 @@ func test_clear_removes_every_buff() -> void:
 func test_unknown_buff_is_inactive() -> void:
 	assert_false(buffs.is_active(&"nothing"))
 	assert_eq(buffs.remaining(&"nothing"), 0.0)
+
+
+func test_is_empty_tracks_active_buffs() -> void:
+	assert_true(buffs.is_empty())
+	buffs.apply(&"fury", _fury(), 6.0)
+	assert_false(buffs.is_empty())
+	buffs.tick(6.0)
+	assert_true(buffs.is_empty())

@@ -8,6 +8,7 @@ signal despawn_requested(enemy: Enemy)
 
 const DEATH_FADE_SECONDS: float = 0.35
 const HIT_FLASH_SECONDS: float = 0.08
+const FROZEN_TINT: Color = Color(0.55, 0.85, 1.6)
 
 static var _frames_cache: Dictionary[StringName, SpriteFrames] = {}
 
@@ -15,6 +16,8 @@ var definition: EnemyDefinition
 var is_boss: bool = false
 var is_alive: bool = false
 var damage: BigNumber = BigNumber.zero()
+## While above zero the enemy neither walks nor attacks.
+var frozen_seconds: float = 0.0
 
 var _fade_tween: Tween
 
@@ -26,6 +29,10 @@ var _fade_tween: Tween
 func _ready() -> void:
 	health.died.connect(_on_died)
 	health.damaged.connect(_on_damaged)
+
+
+func _process(delta: float) -> void:
+	tick_freeze(delta)
 
 
 func spawn(
@@ -41,6 +48,8 @@ func spawn(
 	modulate = definition.tint
 	if _fade_tween != null:
 		_fade_tween.kill()
+	frozen_seconds = 0.0
+	sprite.self_modulate = Color.WHITE
 	auto_attack.attacks_per_second = definition.attacks_per_second
 	health.setup(max_health)
 	sprite.sprite_frames = _frames_for(definition)
@@ -52,22 +61,51 @@ func body_half_width() -> float:
 	return definition.animation.frame_size.x * definition.sprite_scale * 0.3
 
 
-## Moves left with the world, never past min_x. Dead (fading) enemies only scroll.
+## Moves left with the world, never past min_x. Dead (fading) enemies only scroll;
+## frozen ones scroll too but still stop at min_x.
 func advance(delta: float, world_speed: float, min_x: float) -> void:
 	if not is_alive:
 		position.x -= world_speed * delta
 		return
-	position.x = maxf(position.x - (definition.move_speed + world_speed) * delta, min_x)
+	var speed: float = world_speed if is_frozen() else definition.move_speed + world_speed
+	position.x = maxf(position.x - speed * delta, min_x)
 
 
 func try_attack(delta: float, target_in_range: bool) -> bool:
-	return is_alive and auto_attack.tick(delta, target_in_range)
+	return is_alive and not is_frozen() and auto_attack.tick(delta, target_in_range)
+
+
+## A longer freeze extends a shorter one; it never shortens it.
+func freeze(seconds: float) -> void:
+	if not is_alive:
+		return
+	frozen_seconds = maxf(frozen_seconds, seconds)
+	sprite.self_modulate = FROZEN_TINT
+	sprite.pause()
+
+
+func is_frozen() -> bool:
+	return frozen_seconds > 0.0
+
+
+func tick_freeze(delta: float) -> void:
+	if not is_frozen():
+		return
+	frozen_seconds -= delta
+	if frozen_seconds <= 1e-6:
+		_thaw()
 
 
 ## Removes the enemy without a kill (boss timeout, hero death).
 func vanish() -> void:
 	is_alive = false
 	despawn_requested.emit(self)
+
+
+func _thaw() -> void:
+	frozen_seconds = 0.0
+	sprite.self_modulate = Color.WHITE
+	sprite.play(definition.animation.animation_name)
 
 
 func _on_damaged(_result: DamageResult) -> void:

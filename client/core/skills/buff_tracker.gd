@@ -38,6 +38,10 @@ func is_active(id: StringName) -> bool:
 	return _active.has(id)
 
 
+func is_empty() -> bool:
+	return _active.is_empty()
+
+
 func remaining(id: StringName) -> float:
 	return _active[id].remaining if _active.has(id) else 0.0
 

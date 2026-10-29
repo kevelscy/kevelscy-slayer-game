@@ -2,12 +2,14 @@ class_name BattleWorld
 extends Node2D
 ## The battle lane rendered in the 360x192 SubViewport. Each frame it spawns enemies,
 ## picks the hero's target, scrolls the world while the hero runs and resolves contact.
+## It also resolves skill casts and spirit attacks against the living enemies.
 
 const GROUND_Y: float = 172.0
 const SPAWN_X: float = 400.0
 const RUN_SPEED: float = 60.0
 const ENEMY_SPACING: float = 4.0
 const LAYER_SPEED_FACTORS: Array[float] = [0.1, 0.3, 0.6, 1.0]
+const BUFF_TINT: Color = Color(1.4, 0.75, 0.7)
 
 @export var roster: EnemyRoster
 
@@ -15,11 +17,20 @@ var session: GameSession
 var scheduler: SpawnScheduler = SpawnScheduler.new(GameSession.SPAWN_INTERVAL_SECONDS, 4)
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
+var effects: AbilityEffects = AbilityEffects.new()
+
 var _world_speed: float = -1.0
+var _spirit_orbs: Dictionary[int, SpiritOrb] = {}
 
 @onready var hero: Hero = $Hero
 @onready var enemy_pool: NodePool = $EnemyPool
 @onready var background: Node2D = $Background
+
+
+func _ready() -> void:
+	effects.z_index = 10
+	effects.hero = hero
+	add_child(effects)
 
 
 func start(game_session: GameSession) -> void:
@@ -32,6 +43,12 @@ func start(game_session: GameSession) -> void:
 	session.health_track.leveled_up.connect(
 		func(_level: int) -> void: hero.set_max_health(session.hero_max_health())
 	)
+	session.skills.cast.connect(func(_slot: int, skill: SkillDefinition) -> void: resolve_skill(skill))
+	session.spirits.attacked.connect(resolve_spirit_attack)
+	session.spirits.unlocked.connect(
+		func(_slot: int, _spirit: SpiritDefinition) -> void: _sync_spirit_orbs()
+	)
+	_sync_spirit_orbs()
 
 
 func _process(delta: float) -> void:
@@ -41,9 +58,60 @@ func _process(delta: float) -> void:
 	var enemies: Array[Enemy] = _alive_enemies_by_distance()
 	_spawn_if_due(delta, enemies)
 	hero.target = null if enemies.is_empty() or hero.health.is_dead() else enemies[0]
+	session.tick_combat(delta, hero.target != null)
+	hero.sprite.self_modulate = Color.WHITE if session.buffs.is_empty() else BUFF_TINT
 	_set_world_speed(RUN_SPEED if hero.is_running() else 0.0)
 	_move_enemies(delta, enemies)
 	_resolve_enemy_attacks(delta, enemies)
+
+
+func resolve_skill(skill: SkillDefinition) -> void:
+	var enemies: Array[Enemy] = _alive_enemies_by_distance()
+	var targets: Array[Enemy] = []
+	match skill.effect:
+		SkillDefinition.Effect.DAMAGE_ALL, SkillDefinition.Effect.FREEZE_ALL:
+			targets = enemies
+		SkillDefinition.Effect.DAMAGE_FRONT:
+			if not enemies.is_empty():
+				targets = [enemies[0]]
+		SkillDefinition.Effect.BUFF:
+			session.activate_buff(skill)
+		SkillDefinition.Effect.SHIELD:
+			hero.health.set_shield(session.shield_amount(skill), skill.duration_seconds)
+	var damage: BigNumber = session.skill_damage(skill)
+	var positions: Array[Vector2] = []
+	for enemy: Enemy in targets:
+		positions.append(enemy.position)
+		enemy.health.take_damage(DamageResult.new(damage, false))
+		if skill.effect == SkillDefinition.Effect.FREEZE_ALL:
+			enemy.freeze(skill.duration_seconds)
+	effects.play_skill(skill, positions)
+
+
+func resolve_spirit_attack(slot_index: int, spirit: SpiritDefinition) -> void:
+	var enemies: Array[Enemy] = _alive_enemies_by_distance()
+	if enemies.is_empty():
+		return
+	var front: Enemy = enemies[0]
+	front.health.take_damage(DamageResult.new(session.spirit_damage(spirit), false))
+	var from: Vector2 = _spirit_orbs[slot_index].position if _spirit_orbs.has(slot_index) else hero.position
+	effects.play_spirit_shot(from, front.position + Vector2(0.0, -10.0), spirit.color)
+
+
+func spirit_orb_count() -> int:
+	return _spirit_orbs.size()
+
+
+## One orb per unlocked spirit, floating behind the hero.
+func _sync_spirit_orbs() -> void:
+	for index: int in session.spirits.slots.size():
+		if _spirit_orbs.has(index) or not session.spirits.slots[index].unlocked:
+			continue
+		var orb: SpiritOrb = SpiritOrb.new()
+		var anchor: Vector2 = hero.position + Vector2(-22.0 - 14.0 * index, -46.0 + 8.0 * (index % 2))
+		orb.setup(session.spirits.slots[index].definition, anchor, index * 1.3)
+		add_child(orb)
+		_spirit_orbs[index] = orb
 
 
 func _alive_enemies_by_distance() -> Array[Enemy]:
