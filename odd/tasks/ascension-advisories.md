@@ -26,7 +26,7 @@ recorded at the reviewed commit cab903f.
 - [x] T3 S3 inline, refactor under existing tests — commit: 37493b9
 - [x] T4 S4 inline, docs only — commit: 9f31e01
 - [x] T5 S5 inline, test — commit: b2944ac
-- T6 native review, push to main — commit:
+- [x] T6 native assess, push to main — commit: this log entry (L4)
 
 ## Log
 
@@ -38,3 +38,5 @@ recorded at the reviewed commit cab903f.
   clamp, unknown-id and Greed tests cover it, and their calls now pass String keys. T5 passes on
   arrival; removing the button connection and forcing the panel open each fail one test.
   Full suite 377/377.
+- L4 Native assess (base fe4e7cc, committed-only): risk medium, no reviewDue and no independent
+  verifier, so no native review was started. Pushed to origin/main.
