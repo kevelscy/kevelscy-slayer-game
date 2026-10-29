@@ -1,0 +1,41 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/hud/hud.gd" id="1_hud"]
+
+[node name="Hud" type="VBoxContainer"]
+script = ExtResource("1_hud")
+
+[node name="TopRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="StageLabel" type="Label" parent="TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Stage 1"
+
+[node name="GoldLabel" type="Label" parent="TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gold 0"
+horizontal_alignment = 2
+
+[node name="ProgressRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="ProgressRow"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+show_percentage = false
+
+[node name="ProgressLabel" type="Label" parent="ProgressRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+horizontal_alignment = 2
+
+[node name="HeroHealth" type="ProgressBar" parent="."]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+value = 100.0
+show_percentage = false

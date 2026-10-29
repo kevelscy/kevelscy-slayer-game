@@ -1,0 +1,117 @@
+class_name Main
+extends Control
+## Root screen: moves the battle view, HUD and upgrade panel between the portrait
+## stack (mobile) and the three-column landscape layout (PC) as the window changes.
+
+const DEV_REPORT_ARG: String = "--dev-report"
+const SCREENSHOT_ARG_PREFIX: String = "--screenshot="
+const SCREENSHOT_DELAY_FRAMES: int = 120
+const DEV_REPORT_SECONDS: float = 5.0
+
+var _landscape: bool = false
+var _layout_applied: bool = false
+var _dev_report: bool = false
+var _screenshot_path: String = ""
+var _frames: int = 0
+var _report_elapsed: float = 0.0
+
+@onready var safe_area: MarginContainer = $SafeArea
+@onready var portrait: VBoxContainer = $SafeArea/Portrait
+@onready var landscape_root: HBoxContainer = $SafeArea/Landscape
+@onready var left_column: VBoxContainer = $SafeArea/Landscape/LeftColumn
+@onready var center_column: VBoxContainer = $SafeArea/Landscape/CenterColumn
+@onready var battle_view: SubViewportContainer = $SafeArea/Portrait/BattleView
+@onready var battle_world: BattleWorld = $SafeArea/Portrait/BattleView/SubViewport/BattleWorld
+@onready var hud: Hud = $SafeArea/Portrait/Hud
+@onready var upgrade_panel: UpgradePanel = $SafeArea/Portrait/UpgradePanel
+
+
+func _ready() -> void:
+	_read_dev_args()
+	var session: GameSession = GameState.session
+	battle_world.start(session)
+	hud.bind(session, battle_world.hero)
+	upgrade_panel.bind(session)
+	get_viewport().size_changed.connect(_apply_layout)
+	_apply_layout()
+
+
+func _process(delta: float) -> void:
+	_frames += 1
+	if _dev_report:
+		_report_elapsed += delta
+		if _report_elapsed >= DEV_REPORT_SECONDS:
+			_report_elapsed = 0.0
+			_print_report()
+	if not _screenshot_path.is_empty() and _frames == SCREENSHOT_DELAY_FRAMES:
+		_save_screenshot()
+
+
+func _apply_layout() -> void:
+	var screen_size: Vector2 = get_viewport_rect().size
+	_apply_safe_area(screen_size)
+	var landscape: bool = LayoutRules.is_landscape(screen_size)
+	if not _layout_applied or landscape != _landscape:
+		_landscape = landscape
+		_layout_applied = true
+		_reparent_panels()
+	var factor: int = LayoutRules.battle_scale(screen_size, _landscape)
+	battle_view.stretch_shrink = factor
+	battle_view.custom_minimum_size = Vector2(LayoutRules.BATTLE_SIZE * factor)
+
+
+func _reparent_panels() -> void:
+	portrait.visible = not _landscape
+	landscape_root.visible = _landscape
+	if _landscape:
+		hud.reparent(center_column, false)
+		battle_view.reparent(center_column, false)
+		upgrade_panel.reparent(left_column, false)
+	else:
+		hud.reparent(portrait, false)
+		battle_view.reparent(portrait, false)
+		upgrade_panel.reparent(portrait, false)
+
+
+## Mobile notches: convert the display safe area from window pixels to canvas units.
+func _apply_safe_area(screen_size: Vector2) -> void:
+	if not OS.has_feature("mobile"):
+		return
+	var window_size: Vector2 = Vector2(DisplayServer.window_get_size())
+	if window_size.x <= 0.0 or window_size.y <= 0.0:
+		return
+	var to_canvas: Vector2 = screen_size / window_size
+	var safe: Rect2 = Rect2(DisplayServer.get_display_safe_area())
+	safe_area.add_theme_constant_override("margin_left", int(safe.position.x * to_canvas.x))
+	safe_area.add_theme_constant_override("margin_top", int(safe.position.y * to_canvas.y))
+	safe_area.add_theme_constant_override("margin_right", int((window_size.x - safe.end.x) * to_canvas.x))
+	safe_area.add_theme_constant_override("margin_bottom", int((window_size.y - safe.end.y) * to_canvas.y))
+
+
+## Dev hooks read only from user args after `--`, so a normal launch never enables them.
+func _read_dev_args() -> void:
+	for arg: String in OS.get_cmdline_user_args():
+		if arg == DEV_REPORT_ARG:
+			_dev_report = true
+		elif arg.begins_with(SCREENSHOT_ARG_PREFIX):
+			_screenshot_path = arg.trim_prefix(SCREENSHOT_ARG_PREFIX)
+
+
+func _print_report() -> void:
+	var session: GameSession = GameState.session
+	print("[dev] stage=%d kills=%d gold=%s boss=%s" % [
+		session.progression.stage,
+		session.progression.kills,
+		NumberFormat.format(session.wallet.get_amount(GameSession.GOLD)),
+		session.progression.is_boss_active,
+	])
+
+
+func _save_screenshot() -> void:
+	var image: Image = get_viewport().get_texture().get_image()
+	var error: Error = image.save_png(_screenshot_path)
+	if error != OK:
+		push_error("Main: could not save screenshot to '%s' (%s)" % [_screenshot_path, error_string(error)])
+	else:
+		print("[dev] screenshot saved to %s" % _screenshot_path)
+	get_tree().quit()

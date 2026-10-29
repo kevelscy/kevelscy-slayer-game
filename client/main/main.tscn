@@ -1,0 +1,82 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://main/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://world/battle_world.tscn" id="2_world"]
+[ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://ui/panels/upgrade_panel.tscn" id="4_upgrades"]
+
+[sub_resource type="Theme" id="Theme_main"]
+default_font_size = 26
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_main")
+script = ExtResource("1_main")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.09, 0.12, 1)
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Portrait" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+
+[node name="Hud" parent="SafeArea/Portrait" instance=ExtResource("3_hud")]
+layout_mode = 2
+
+[node name="BattleView" type="SubViewportContainer" parent="SafeArea/Portrait"]
+layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(720, 384)
+stretch = true
+stretch_shrink = 2
+
+[node name="SubViewport" type="SubViewport" parent="SafeArea/Portrait/BattleView"]
+handle_input_locally = false
+size = Vector2i(360, 192)
+render_target_update_mode = 4
+
+[node name="BattleWorld" parent="SafeArea/Portrait/BattleView/SubViewport" instance=ExtResource("2_world")]
+
+[node name="UpgradePanel" parent="SafeArea/Portrait" instance=ExtResource("4_upgrades")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Landscape" type="HBoxContainer" parent="SafeArea"]
+visible = false
+layout_mode = 2
+
+[node name="LeftColumn" type="VBoxContainer" parent="SafeArea/Landscape"]
+custom_minimum_size = Vector2(460, 0)
+layout_mode = 2
+
+[node name="CenterColumn" type="VBoxContainer" parent="SafeArea/Landscape"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightColumn" type="PanelContainer" parent="SafeArea/Landscape"]
+custom_minimum_size = Vector2(460, 0)
+layout_mode = 2
+
+[node name="Placeholder" type="Label" parent="SafeArea/Landscape/RightColumn"]
+layout_mode = 2
+text = "Skills & Spirits (phase 2)"
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/panels/upgrade_panel.gd" id="1_panel"]
+
+[node name="UpgradePanel" type="VBoxContainer"]
+size_flags_vertical = 3
+script = ExtResource("1_panel")
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 2
+text = "Upgrades"

@@ -13,9 +13,12 @@ config_version=5
 config/name="Slayer Idle"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+run/main_scene="res://main/main.tscn"
 
 [autoload]
 
+EventBus="*res://autoload/event_bus.gd"
+GameState="*res://autoload/game_state.gd"
 MCPRuntimeServer="*res://addons/godot_mcp_toolkit/runtime/mcp_runtime_server.gd"
 
 [debug]
