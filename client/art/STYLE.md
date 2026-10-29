@@ -8,11 +8,11 @@ characters or assets.
 
 - Art: Pixelorama through the `pixelorama` MCP. Sound: SoundCraft (`soundcraft-cli mcp`).
   No AI image generators, no PhotoCraft.
-- Palette: `art/palettes/paleta_juego.gpl` (35 colors; swatch sheet `paleta_juego.png`), also
+- Palette: `client/art/palettes/paleta_juego.gpl` (35 colors; swatch sheet `paleta_juego.png`), also
   installed in Pixelorama's `Palettes/` folder.
-- Sources: `art/source/*.pxo`. Exports: transparent PNG; animations as horizontal
-  spritesheets in `art/sprites/`, tiles in `art/tiles/`. Audio: `.ogg` in `audio/sfx/` or
-  `audio/music/`.
+- Sources: `client/art/source/*.pxo`. Exports: transparent PNG; animations as horizontal
+  spritesheets in `client/art/sprites/`, tiles in `client/art/tiles/`. Audio: `.ogg` in `client/audio/sfx/` or
+  `client/audio/music/`.
 - Before each asset: state what it is and its size. Review it with `get_image` before
   exporting. When done: list the files created and their dimensions.
 - Godot import: Nearest filter, no mipmaps.
