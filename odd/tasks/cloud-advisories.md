@@ -25,8 +25,9 @@ migration), the 7 ascension advisory findings.
 - [x] T1 S1 mid-play tie keeps the session — inline — fix(cloud) commit
 - [x] T2 S2 concurrent sync returns the reward in flight — inline — fix(cloud) commit
 - [x] T3 S3 scratch save clearing — inline — fix(save) commit
-- [ ] T4 S4 docs, suite, review — inline
+- [x] T4 S4 docs, suite, review — inline — docs commit
 
 ## Log
 
 - L1 (user, verbatim selection): "(a) Hallazgos de cloud-hardening" — "Los 3 advisory: game_state.gd:47-50, cloud_sync.gd:69-72, cloud_sync.gd:117-119. Recomendado."
+- L2 Evidence. T1 10da9af: RED (a timer retry and a resume before the first sync applied an exact tie and emitted `save_applied`), GREEN; the boot exact tie still goes to the cloud (pinned). T2 2f76fc5: RED (a resume during the held timer retry returned an empty reward at once), GREEN (it waits, returns the 3600 s reward, one pull, one `offline_reward_granted`). T3 5d0b746: RED (`clears_scratch_save`/`clear_save` missing), GREEN; an explicit `--save-path=user://tool_run/save.json` is not cleared; a save in a read-only folder returns an error and is left as it was. Full scripts/test.sh 366/366, exit 0; the real `save.json` and `auth.json` kept the same mtime and SHA-1. Independent verify not run (subagents unavailable in this environment, see earlier features); S1-S4 checked by the tests above.
