@@ -491,6 +491,26 @@ func test_boot_after_the_app_was_killed_pays_from_the_saved_marker() -> void:
 	assert_true(_gold().is_equal_approx(BigNumber.from_float(900.0).add(reward.amounts[GameSession.GOLD])))
 
 
+func test_another_devices_save_pays_only_the_time_after_this_device_stopped_playing() -> void:
+	await _boot_synced(_save(3))
+	sync.tick(25.0)
+	sync.suspend()
+	var relaunched: CloudSync = CloudSync.new(session, controller, client, dir_path.path_join("cloud_sync.json"))
+	_queue_pull(_save(9), T0 + 10, T0 + HOUR)
+	transport.queue(200, {"server_now_unix": T0 + HOUR})
+	var reward: OfflineReward = await relaunched.boot()
+	assert_eq(session.progression.stage, 9, "the other device's save wins")
+	assert_eq(reward.elapsed_seconds, HOUR - 25, "play here until T0 + 25 is not time away")
+
+
+func test_another_devices_save_pays_from_its_last_seen_on_a_device_that_never_pushed() -> void:
+	_boot_local(_save(3))
+	_queue_pull(_save(9), T0 + 10, T0 + HOUR)
+	transport.queue(200, {"server_now_unix": T0 + HOUR})
+	var reward: OfflineReward = await sync.boot()
+	assert_eq(reward.elapsed_seconds, HOUR - 10)
+
+
 func test_resume_pays_nothing_when_another_push_replaced_the_cloud_row() -> void:
 	await _boot_synced(_save(6))
 	_queue_pull(_save(5), T0 + 60, T0 + HOUR)

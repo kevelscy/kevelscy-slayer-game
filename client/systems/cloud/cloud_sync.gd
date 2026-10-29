@@ -180,13 +180,18 @@ func _owns(pulled: CloudPullResult) -> bool:
 	return pulled.data != null and _acked_unix > 0 and pulled.last_seen_unix == _acked_unix
 
 
-## An owned row pays from its last_seen plus the play before the pull was sent,
-## then counts the time up to the server's now as accounted so a later resume pays
-## only the next absence. Play while the pull was in flight happened after that
-## now, so it is not subtracted here and still counts as play afterwards.
+## Pays from when play stopped: the row's last_seen, but never before this
+## device's last acknowledged push plus the play before the pull was sent, so play
+## here is never paid as time away (an owned row's last_seen is that push).
+## An owned row then counts the time up to the server's now as accounted so a
+## later resume pays only the next absence. Play while the pull was in flight
+## happened after that now, so it is not subtracted here and still counts as play
+## afterwards.
 func _grant(pulled: CloudPullResult, owned: bool, played_at_pull: float) -> OfflineReward:
-	var played: int = int(played_at_pull) if owned else 0
-	var reward: OfflineReward = _session.grant_offline(pulled.last_seen_unix + played, pulled.server_now_unix)
+	var stopped_unix: int = pulled.last_seen_unix
+	if _acked_unix > 0:
+		stopped_unix = maxi(stopped_unix, _acked_unix + int(played_at_pull))
+	var reward: OfflineReward = _session.grant_offline(stopped_unix, pulled.server_now_unix)
 	if owned:
 		var played_during_pull: float = _played_since_ack - played_at_pull
 		var accounted: float = maxf(played_at_pull, float(pulled.server_now_unix - _acked_unix))
