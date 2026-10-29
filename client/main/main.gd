@@ -111,13 +111,13 @@ func _reparent_panels() -> void:
 	if _landscape:
 		hud.reparent(center_column, false)
 		battle_view.reparent(center_column, false)
-		upgrade_panel.reparent(left_column, false)
-		ability_panel.reparent(right_column, false)
+		ability_panel.reparent(left_column, false)
+		upgrade_panel.reparent(right_column, false)
 	else:
 		hud.reparent(portrait, false)
 		battle_view.reparent(portrait, false)
-		upgrade_panel.reparent(portrait, false)
 		ability_panel.reparent(portrait, false)
+		upgrade_panel.reparent(portrait, false)
 
 
 ## Mobile notches: convert the display safe area from window pixels to canvas units.

@@ -65,13 +65,13 @@ render_target_update_mode = 4
 
 [node name="BattleWorld" parent="SafeArea/Portrait/BattleView/SubViewport" instance=ExtResource("2_world")]
 
-[node name="UpgradePanel" parent="SafeArea/Portrait" instance=ExtResource("4_upgrades")]
-layout_mode = 2
-size_flags_vertical = 3
-
 [node name="AbilityPanel" type="VBoxContainer" parent="SafeArea/Portrait"]
 layout_mode = 2
 script = ExtResource("5_abilities")
+
+[node name="UpgradePanel" parent="SafeArea/Portrait" instance=ExtResource("4_upgrades")]
+layout_mode = 2
+size_flags_vertical = 3
 
 [node name="Landscape" type="HBoxContainer" parent="SafeArea"]
 visible = false
