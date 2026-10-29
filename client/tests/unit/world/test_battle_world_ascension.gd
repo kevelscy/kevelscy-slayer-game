@@ -49,3 +49,14 @@ func test_vitality_raises_the_hero_max_health() -> void:
 	assert_true(session.talents.try_buy(&"vitality"))
 	assert_true(world.hero.health.max_health.gt(before))
 	assert_true(world.hero.health.max_health.is_equal_approx(session.hero_max_health()))
+
+
+func test_applying_a_save_restarts_the_lane_with_the_saved_stage_orbs() -> void:
+	world.hero.health.take_damage(DamageResult.new(BigNumber.from_float(30.0), false))
+	var data: SaveData = session.to_save(0)
+	data.stage = 2
+	data.ascension_count = 1
+	session.apply_save(data)
+	assert_eq(_alive_enemies(), 0)
+	assert_eq(world.spirit_orb_count(), 1)
+	assert_true(world.hero.health.current.is_equal_approx(world.hero.health.max_health))

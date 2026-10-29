@@ -6,6 +6,8 @@ extends RefCounted
 ## trades the run for shards that buy permanent talents.
 
 signal ascended(shards_gained: int)
+## A loaded save (local or cloud) replaced the run state.
+signal save_applied
 
 const GOLD: StringName = &"gold"
 const BOSS_DAMAGE_MULTIPLIER: float = 2.0
@@ -166,7 +168,12 @@ func to_save(now_unix: int) -> SaveData:
 
 
 ## Restores a decoded save in place, so views bound to the wallet keep working.
+## It replaces the running game: buffs and cooldowns reset and spirits relock,
+## then unlock again for the saved stage.
 func apply_save(data: SaveData) -> void:
+	buffs.clear()
+	spirits.relock()
+	skills.reset_cooldowns()
 	progression.restore_stage(data.stage)
 	wallet.restore(GOLD, data.gold)
 	attack_track.set_level(data.attack_level)
@@ -180,6 +187,7 @@ func apply_save(data: SaveData) -> void:
 	# Unknown talent ids are ignored and levels clamp to each talent's max.
 	talents.set_levels(data.talents)
 	_refresh_hero_stats()
+	save_applied.emit()
 
 
 ## Gold per second while away: regular kills the hero and its spirits sustain on

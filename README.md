@@ -10,7 +10,7 @@
 | `client/` | Godot 4 project (one project for every platform, split by export presets and feature tags) |
 | `client/core/` | Pure game logic (`RefCounted`, no Nodes) — unit tested headless with GUT |
 | `client/tests/` | GUT test suite |
-| `server/` | Backend (phase 2: Supabase) |
+| `server/` | Supabase project: cloud save tables, RPCs and pgTAP tests (see `server/README.md`) |
 | `scripts/` | CLI helpers (`godot.sh`, `test.sh`) |
 | `odd/tasks/` | Feature specs and task tracking |
 
@@ -37,7 +37,24 @@ scripts/test.sh -gselect=test_damage # extra args are forwarded to GUT
   file as `user://save.rejected.json`.
 - Offline gold = sustainable kills per second × gold per kill × time away (capped at 8 h). It is
   paid on boot and when a mobile app returns from the background; nothing runs while suspended.
-  The device clock is used until the server validates timestamps.
+  With the cloud on, the time away comes from the server clock only (see Cloud save).
+
+## Cloud save
+
+The game signs in an anonymous Supabase player on first boot (refresh token in `auth.json`
+next to the save) and keeps the save in the cloud. Start the local stack first (see
+`server/README.md`); without it the game simply plays on the local save.
+
+- The local save loads first, so the game never waits on the network. Then the cloud save is
+  pulled: if it has at least the local progress (ascensions, then stage, then the sum of the
+  five upgrade levels; ties go to the cloud) it replaces the run, and the battle restarts.
+- Offline gold uses only server times: the server stamps `last_seen` on every push. It is paid
+  only when the cloud save holds the same progress as the game, so a save played without network
+  pays nothing that boot, and an unreachable server pays nothing.
+- The game pushes after each sync, every 60 s, on suspend and focus loss, and when the window is
+  closed (waiting at most 3 s).
+- A hosted project is set with the project settings `cloud/url` and `cloud/api_key`
+  (publishable key); the defaults point at the local stack.
 
 ## Stat upgrades
 
@@ -102,7 +119,8 @@ scripts/godot.sh --path client --resolution 720x1280 -- --screenshot=$PWD/.tmp/p
 | `--dev-report` | prints stage, kills, gold and boss state every 5 s, plus any offline reward |
 | `--screenshot=<abs png>` | saves a screenshot after 120 frames and quits |
 | `--ascension-panel` | opens the ascension panel on start (for screenshots) |
-| `--save-path=<path>` | uses a scratch save file instead of `user://save.json` |
+| `--save-path=<path>` | uses a scratch save file instead of `user://save.json` (and its own `auth.json` next to it) |
+| `--no-cloud` | local save only, offline gold from the device clock (GUT runs are always local) |
 
 ## MCP (Godot MCP Toolkit)
 

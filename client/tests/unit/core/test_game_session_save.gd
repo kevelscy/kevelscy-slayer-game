@@ -142,3 +142,29 @@ func test_apply_save_ignores_unknown_talents_and_clamps_levels() -> void:
 	target.apply_save(data)
 	assert_eq(target.talents.level(&"might"), 10)
 	assert_false(target.talents.levels().has(&"removed_talent"))
+
+
+func test_apply_save_restarts_the_run_and_announces_it() -> void:
+	var full: GameSession = GameSession.new(
+		StageBalance.new(), 10, 30.0,
+		preload("res://data/content/abilities/ability_catalog.tres"),
+		preload("res://data/content/talents/talent_catalog.tres")
+	)
+	full.progression.restore_stage(20)
+	assert_eq(full.spirits.slots.filter(func(slot: Variant) -> bool: return slot.unlocked).size(), 3, "precondition")
+	watch_signals(full)
+	var data: SaveData = _saved(2, BigNumber.from_float(10.0), 0, 0)
+	data.ascension_count = 1
+	full.apply_save(data)
+	assert_eq(full.spirits.slots.filter(func(slot: Variant) -> bool: return slot.unlocked).size(), 1)
+	var fresh: GameSession = GameSession.new(
+		StageBalance.new(), 10, 30.0,
+		preload("res://data/content/abilities/ability_catalog.tres"),
+		preload("res://data/content/talents/talent_catalog.tres")
+	)
+	fresh.progression.restore_stage(2)
+	assert_true(full.hero_max_health().is_equal_approx(fresh.hero_max_health()), "no passives from relocked spirits")
+	assert_true(
+		full.hero_stats.get_big(StatBlock.ATTACK).is_equal_approx(fresh.hero_stats.get_big(StatBlock.ATTACK))
+	)
+	assert_signal_emitted(full, "save_applied")
