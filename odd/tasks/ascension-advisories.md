@@ -21,14 +21,20 @@ recorded at the reviewed commit cab903f.
 
 ## Tasks
 
-- T1 S1 inline, test-first — commit:
-- T2 S2 inline, test-first — commit:
-- T3 S3 inline, test-first — commit:
-- T4 S4 inline, docs only — commit:
-- T5 S5 inline, test — commit:
+- [x] T1 S1 inline, test-first — commit: f1cc4c3
+- [x] T2 S2 inline, test-first — commit: 12108aa
+- [x] T3 S3 inline, refactor under existing tests — commit: 37493b9
+- [x] T4 S4 inline, docs only — commit: 9f31e01
+- [x] T5 S5 inline, test — commit: b2944ac
 - T6 native review, push to main — commit:
 
 ## Log
 
 - L1 User (verbatim): "vamos con todos los pendientes, dejas de ultimo las features neuvas"
 - L2 User (verbatim, 2026-10-29 resume): "retomá la última sesión"
+- L3 Evidence: T1 RED `[0, 0, 0, 0] != [9, 1, 9, 1]` then GREEN. T2 RED hero state `Dead`
+  expected `Run` then GREEN (Hero.restart replaces the dead/alive branch). T3 has no meaningful
+  RED: the save always hands String ids (SaveData.talents is Dictionary[String, int]); existing
+  clamp, unknown-id and Greed tests cover it, and their calls now pass String keys. T5 passes on
+  arrival; removing the button connection and forcing the panel open each fail one test.
+  Full suite 377/377.
