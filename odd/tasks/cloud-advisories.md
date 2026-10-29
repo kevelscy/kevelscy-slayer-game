@@ -23,7 +23,7 @@ migration), the 7 ascension advisory findings.
 ## Tasks
 
 - [x] T1 S1 mid-play tie keeps the session — inline — fix(cloud) commit
-- [ ] T2 S2 concurrent sync returns the reward in flight — inline
+- [x] T2 S2 concurrent sync returns the reward in flight — inline — fix(cloud) commit
 - [ ] T3 S3 scratch save clearing — inline
 - [ ] T4 S4 docs, suite, review — inline
 

@@ -271,6 +271,29 @@ func test_a_resume_before_the_first_sync_keeps_the_running_session_on_a_tie() ->
 	assert_eq(_rpc_requests("push_save").size(), 1, "the kept session is pushed")
 
 
+func test_a_sync_requested_while_one_is_in_flight_returns_its_reward() -> void:
+	_boot_local(_save(4))
+	await sync.boot()
+	_queue_pull(_save(9), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	transport.hold()
+	watch_signals(sync)
+	sync.tick(60.0)
+	var rewards: Array[OfflineReward] = []
+	var resume_then_keep: Callable = func() -> void:
+		rewards.append(await sync.resume())
+	resume_then_keep.call()
+	await wait_process_frames(1)
+	assert_eq(rewards.size(), 0, "the resume waits for the sync in flight")
+	transport.release()
+	await wait_process_frames(2)
+	assert_eq(rewards.size(), 1)
+	assert_eq(rewards[0].elapsed_seconds, HOUR, "the reward of the sync in flight")
+	assert_signal_emit_count(sync, "offline_reward_granted", 1, "paid once")
+	assert_eq(_rpc_requests("pull_save").size(), 2, "no second pull")
+	assert_eq(session.progression.stage, 9)
+
+
 func test_a_resume_before_the_first_sync_runs_the_boot_sync() -> void:
 	_boot_local(_save(4))
 	await sync.boot()

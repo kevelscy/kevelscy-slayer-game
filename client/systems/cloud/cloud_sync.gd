@@ -16,6 +16,7 @@ extends RefCounted
 
 signal offline_reward_granted(reward: OfflineReward)
 signal _push_finished
+signal _sync_finished(reward: OfflineReward)
 
 const PUSH_SECONDS: float = 60.0
 
@@ -70,10 +71,19 @@ func boot() -> OfflineReward:
 ## running game (buffs, spirits and the battle) for no progress.
 func _sync(cloud_wins_ties: bool) -> OfflineReward:
 	if _syncing:
-		return _nothing()
+		# A resume during the timer retry shares that sync: one pull, one reward.
+		return await _sync_finished
 	_syncing = true
-	var pulled: CloudPullResult = await _client.pull()
+	var reward: OfflineReward = await _pull_and_reconcile(cloud_wins_ties)
 	_syncing = false
+	_sync_finished.emit(reward)
+	if _synced:
+		await push()
+	return reward
+
+
+func _pull_and_reconcile(cloud_wins_ties: bool) -> OfflineReward:
+	var pulled: CloudPullResult = await _client.pull()
 	if not pulled.ok:
 		push_warning("CloudSync: sync skipped (%s)" % pulled.error)
 		return _nothing()
@@ -88,7 +98,6 @@ func _sync(cloud_wins_ties: bool) -> OfflineReward:
 	elif owned:
 		# The local save is ahead only by the play after this device's last push.
 		reward = _grant(pulled, true)
-	await push()
 	return reward
 
 
