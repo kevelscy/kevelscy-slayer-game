@@ -113,7 +113,12 @@ func refresh() -> void:
 	for index: int in spirit_labels.size():
 		var slot: SpiritTeam.SpiritSlot = _session.spirits.slots[index]
 		spirit_labels[index].text = "%s\n%s" % [slot.definition.display_name, _spirit_status(slot)]
-		spirit_icon_rects[index].texture = spirit_icons[index][GOLD if slot.unlocked else SILVER]
+		var icon_rect: TextureRect = spirit_icon_rects[index]
+		icon_rect.texture = spirit_icons[index][GOLD if slot.unlocked else SILVER]
+		# Locked spirits dim like the icons of disabled skill buttons.
+		icon_rect.self_modulate = Color.WHITE if slot.unlocked else (
+			skill_buttons[0].get_theme_color("icon_disabled_color") if not skill_buttons.is_empty() else Color.WHITE
+		)
 
 
 static func _spirit_status(slot: SpiritTeam.SpiritSlot) -> String:

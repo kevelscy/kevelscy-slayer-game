@@ -141,6 +141,18 @@ func test_locked_spirits_show_the_silver_frame_and_unlocked_ones_the_gold_frame(
 	assert_eq(panel.spirit_icon_rects[2].texture, panel.spirit_icons[2][AbilityPanel.SILVER])
 
 
+func test_locked_spirit_icons_are_dimmed_like_disabled_skill_icons() -> void:
+	var dimmed: Color = panel.skill_buttons[0].get_theme_color("icon_disabled_color")
+	assert_ne(dimmed, Color.WHITE, "disabled skill icons are dimmed")
+	for index: int in 3:
+		assert_eq(panel.spirit_icon_rects[index].self_modulate, dimmed)
+	session.progression.restore_stage(6)
+	panel.refresh()
+	assert_eq(panel.spirit_icon_rects[0].self_modulate, Color.WHITE)
+	assert_eq(panel.spirit_icon_rects[1].self_modulate, Color.WHITE)
+	assert_eq(panel.spirit_icon_rects[2].self_modulate, dimmed)
+
+
 func test_spirit_icons_sit_centered_above_the_text_at_their_own_size() -> void:
 	for index: int in panel.spirit_icon_rects.size():
 		var rect: TextureRect = panel.spirit_icon_rects[index]
