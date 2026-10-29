@@ -14,7 +14,7 @@ follows `client/art/STYLE.md`, then wire each one into the game. One enemy per t
 
 ## Tasks
 
-- [x] T1 S1-S6 slime: idle 4 frames + move 6 frames, 32x32 → `slime_idle.png` 128x32, `slime_move.png` 192x32; EnemyDefinition idle sheet + Enemy idle/move switch; wire, tests, screenshot — inline — commit: -
+- [x] T1 S1-S6 slime: idle 4 frames + move 6 frames, 32x32 → `slime_idle.png` 128x32, `slime_move.png` 192x32; EnemyDefinition idle sheet + Enemy idle/move switch; wire, tests, screenshot — inline — commit: 3ef6371
 - [ ] T2 S1-S5 bat (size announced before drawing) — inline — commit: -
 - [ ] T3 S1-S5 skeleton (size announced before drawing) — inline — commit: -
 - [ ] T4 S1-S5 boss 128px+ (size announced before drawing) — inline — commit: -
