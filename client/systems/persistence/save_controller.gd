@@ -26,12 +26,13 @@ func _init(game_session: GameSession, save_store: SaveStore, clock: Callable) ->
 	_clock = clock
 
 
-## Without `load_existing` the save on disk is ignored and replaced by a new game.
-func boot(load_existing: bool = true) -> OfflineReward:
+## Ignores the save on disk and replaces it with the new game in the session.
+func start_new_game() -> void:
+	save_now()
+
+
+func boot() -> OfflineReward:
 	var reward: OfflineReward = OfflineReward.new(0, {})
-	if not load_existing:
-		save_now()
-		return reward
 	var loaded: SaveLoadResult = store.load_save()
 	match loaded.status:
 		SaveLoadResult.Status.LOADED:

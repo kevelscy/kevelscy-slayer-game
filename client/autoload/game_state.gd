@@ -50,7 +50,10 @@ func _ready() -> void:
 	saves.offline_reward_granted.connect(offline_reward_granted.emit)
 	var cloud_on: bool = cloud_enabled(OS.get_cmdline_args(), OS.get_cmdline_user_args())
 	saves.device_clock_offline = not cloud_on
-	boot_reward = saves.boot(load_existing)
+	if load_existing:
+		boot_reward = saves.boot()
+	else:
+		saves.start_new_game()
 	if cloud_on:
 		cloud = _make_cloud(save_path)
 		cloud.offline_reward_granted.connect(offline_reward_granted.emit)
