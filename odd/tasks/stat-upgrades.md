@@ -12,10 +12,10 @@ Agent decisions D9–D11 are open to user override. Save format moves to version
 
 ## Tasks
 
-- [ ] T1 UpgradeTrack max level + RateUpgradeTrack (TDD) — S1 — inline — commit:
-- [ ] T2 GameSession rate tracks + SaveCodec v2 with v1 migration (TDD, high risk: own commit) — S1,S2,S3 — inline — commit:
-- [ ] T3 UpgradePanel rows, Max state, README — S4 — inline — commit:
-- [ ] T4 Verify: suite, real v1 save migration, screenshots, soak — S1–S4 — inline — commit: n/a
+- [x] T1 UpgradeTrack max level + RateUpgradeTrack (TDD) — S1 — inline — commit: 41a4120
+- [x] T2 GameSession rate tracks + SaveCodec v2 with v1 migration (TDD, high risk: own commit) — S1,S2,S3 — inline — commit: 6a445b2
+- [x] T3 UpgradePanel rows, Max state, README — S4 — inline — commit: 607aed0
+- [x] T4 Verify: suite, real v1 save migration, screenshots, soak — S1–S4 — inline — commit: n/a (evidence L5–L8)
 
 ## Log
 
@@ -23,3 +23,7 @@ Agent decisions D9–D11 are open to user override. Save format moves to version
 - L2 (user, verbatim): "sigo tu recomendacion, y seguimos en modo auto" — after the agent recommended stat upgrades first, then prestige/ascension, then the server (backend choice open).
 - L3 Decisions by the agent (open to user override): D9 the S1 numbers; D10 gems and experience deferred (no sink exists yet; ascension is the natural place); D11 save v2 with v1 migration instead of a separate migration file.
 - L4 Routing: gentle-ai-worker/verify subagents failed in this environment (save-offline L7), tasks run inline; independent verify for the high-risk save change is reported unavailable and replaced by inline migration tests plus a real v1 save load.
+- L5 T1 evidence: RED (RateUpgradeTrack missing), GREEN 259/259. UpgradeTrack gained max_level (0 = unlimited) and is_maxed(); scaling tracks keep no cap (pinned by a test). Costs chosen (D9 addendum): Crit Chance 50 x 1.25^level, Crit Damage 40 x 1.2^level, Attack Speed 60 x 1.28^level.
+- L6 T2 evidence: RED 15 failing (new SaveData fields and tracks missing), GREEN 267/267. Native review assess (base 41a4120): medium, reviewDue false; independent verifier not run (native tier wins; subagents unavailable per L4).
+- L7 T3 evidence: RED (UpgradePanel.rows missing), GREEN 270/270. Screenshots .tmp/su-portrait.png and .tmp/su-landscape.png: five rows "5.0%", "150%", "1.50/s", buttons "Up 50/40/60"; fits both layouts.
+- L8 T4 verdict: S1 pass (tracks, caps, Max), S2 pass (real v1 save at stage 12 booted with 0 ERROR/WARNING and was rewritten as version 2 with the three levels at 0 and every other field kept; codec tests cover v0/v3/v99 rejection, v2 missing field, negatives), S3 pass (offline rate test with crit damage and speed levels), S4 pass (screenshots). Soak 7200 frames from a v2 save with crit 90, crit damage 60, speed 75: stage 12 -> 20, 0 ERROR/WARNING, levels preserved on save. Suite 270/270.
