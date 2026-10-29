@@ -10,4 +10,8 @@ var health_level: int = 0
 var crit_chance_level: int = 0
 var crit_damage_level: int = 0
 var attack_speed_level: int = 0
+var ascension_shards: int = 0
+var ascension_count: int = 0
+## Talent id to level.
+var talents: Dictionary[String, int] = {}
 var last_seen_unix: int = 0

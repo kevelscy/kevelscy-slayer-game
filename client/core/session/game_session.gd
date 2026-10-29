@@ -156,6 +156,11 @@ func to_save(now_unix: int) -> SaveData:
 	data.crit_chance_level = crit_chance_track.level
 	data.crit_damage_level = crit_damage_track.level
 	data.attack_speed_level = attack_speed_track.level
+	data.ascension_shards = talents.shards
+	data.ascension_count = ascension_count
+	var talent_levels: Dictionary[StringName, int] = talents.levels()
+	for talent_id: StringName in talent_levels:
+		data.talents[String(talent_id)] = talent_levels[talent_id]
 	data.last_seen_unix = now_unix
 	return data
 
@@ -170,6 +175,10 @@ func apply_save(data: SaveData) -> void:
 	crit_chance_track.set_level(data.crit_chance_level)
 	crit_damage_track.set_level(data.crit_damage_level)
 	attack_speed_track.set_level(data.attack_speed_level)
+	talents.shards = data.ascension_shards
+	ascension_count = data.ascension_count
+	# Unknown talent ids are ignored and levels clamp to each talent's max.
+	talents.set_levels(data.talents)
 	_refresh_hero_stats()
 
 

@@ -113,3 +113,32 @@ func test_apply_save_clamps_rate_levels_above_the_cap() -> void:
 	assert_eq(session.attack_speed_track.level, 75)
 	assert_almost_eq(session.hero_stats.get_rate(StatBlock.CRIT_CHANCE), 0.5, 1e-9)
 	assert_almost_eq(session.hero_stats.get_rate(StatBlock.ATTACK_SPEED), 3.0, 1e-9)
+
+
+func test_save_round_trip_keeps_ascension_progress() -> void:
+	var talents: TalentCatalog = preload("res://data/content/talents/talent_catalog.tres")
+	var source: GameSession = GameSession.new(StageBalance.new(), 10, 30.0, AbilityCatalog.new(), talents)
+	source.talents.shards = 7
+	source.ascension_count = 3
+	source.talents.set_levels({&"might": 4, &"greed": 2})
+	var data: SaveData = source.to_save(1_700_000_123)
+	assert_eq(data.ascension_shards, 7)
+	assert_eq(data.ascension_count, 3)
+	assert_eq(data.talents, {"might": 4, "vitality": 0, "greed": 2, "precision": 0, "ferocity": 0, "haste": 0})
+	var restored: GameSession = GameSession.new(StageBalance.new(), 10, 30.0, AbilityCatalog.new(), talents)
+	restored.apply_save(data)
+	assert_eq(restored.talents.shards, 7)
+	assert_eq(restored.ascension_count, 3)
+	assert_eq(restored.talents.level(&"might"), 4)
+	assert_almost_eq(restored.talents.gold_multiplier(), 1.2, 1e-9)
+	assert_true(restored.hero_stats.get_big(StatBlock.ATTACK).is_equal_approx(restored.attack_track.value().mul_float(1.4)))
+
+
+func test_apply_save_ignores_unknown_talents_and_clamps_levels() -> void:
+	var talents: TalentCatalog = preload("res://data/content/talents/talent_catalog.tres")
+	var target: GameSession = GameSession.new(StageBalance.new(), 10, 30.0, AbilityCatalog.new(), talents)
+	var data: SaveData = _saved(1, BigNumber.zero(), 0, 0)
+	data.talents = {"might": 99, "removed_talent": 4}
+	target.apply_save(data)
+	assert_eq(target.talents.level(&"might"), 10)
+	assert_false(target.talents.levels().has(&"removed_talent"))
