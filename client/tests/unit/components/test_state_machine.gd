@@ -4,20 +4,20 @@ extends GutTest
 class RecordingState:
 	extends State
 
-	var log: Array[String]
+	var entries: Array[String]
 
-	func _init(state_name: String, shared_log: Array[String]) -> void:
+	func _init(state_name: String, shared_entries: Array[String]) -> void:
 		name = state_name
-		log = shared_log
+		entries = shared_entries
 
 	func enter() -> void:
-		log.append("enter:" + name)
+		entries.append("enter:" + name)
 
 	func exit() -> void:
-		log.append("exit:" + name)
+		entries.append("exit:" + name)
 
 	func update(_delta: float) -> void:
-		log.append("update:" + name)
+		entries.append("update:" + name)
 
 
 var machine: StateMachine
