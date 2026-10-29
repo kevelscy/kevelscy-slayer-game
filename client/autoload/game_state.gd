@@ -45,9 +45,10 @@ func _init() -> void:
 
 func _ready() -> void:
 	var save_path: String = save_path_for(OS.get_cmdline_args(), OS.get_cmdline_user_args())
-	if save_path == TOOL_RUN_SAVE_PATH:
-		DirAccess.make_dir_recursive_absolute(TOOL_RUN_SAVE_PATH.get_base_dir())
-		DirAccess.remove_absolute(TOOL_RUN_SAVE_PATH)
+	if clears_scratch_save(OS.get_cmdline_args(), OS.get_cmdline_user_args()):
+		var cleared: Error = clear_save(save_path)
+		if cleared != OK:
+			push_error("GameState: could not clear the scratch save '%s' (%s)" % [save_path, error_string(cleared)])
 	saves = SaveController.new(session, SaveStore.new(save_path), _device_clock)
 	saves.offline_reward_granted.connect(offline_reward_granted.emit)
 	var cloud_on: bool = cloud_enabled(OS.get_cmdline_args(), OS.get_cmdline_user_args())
@@ -155,7 +156,31 @@ static func _device_clock() -> int:
 ## Dev hook: `-- --save-path=<path>` points soak and playtest runs at a scratch
 ## save. Tool runs without it get their own scratch save.
 static func save_path_for(args: PackedStringArray, user_args: PackedStringArray) -> String:
+	var explicit_path: String = _explicit_save_path(user_args)
+	if not explicit_path.is_empty():
+		return explicit_path
+	return TOOL_RUN_SAVE_PATH if _is_tool_run(args) else SaveStore.DEFAULT_PATH
+
+
+## Only the scratch save a tool run falls back to is cleared at boot; a path
+## given with `--save-path` belongs to the caller and is never deleted.
+static func clears_scratch_save(args: PackedStringArray, user_args: PackedStringArray) -> bool:
+	return _is_tool_run(args) and _explicit_save_path(user_args).is_empty()
+
+
+## Deletes the save at `path` (creating its folder), so the run starts a new
+## game. A failure is returned rather than silently loading an earlier run.
+static func clear_save(path: String) -> Error:
+	var made: Error = DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	if made != OK:
+		return made
+	if not FileAccess.file_exists(path):
+		return OK
+	return DirAccess.remove_absolute(path)
+
+
+static func _explicit_save_path(user_args: PackedStringArray) -> String:
 	for arg: String in user_args:
 		if arg.begins_with(SAVE_PATH_ARG_PREFIX):
 			return arg.trim_prefix(SAVE_PATH_ARG_PREFIX)
-	return TOOL_RUN_SAVE_PATH if _is_tool_run(args) else SaveStore.DEFAULT_PATH
+	return ""

@@ -112,6 +112,46 @@ func test_test_and_import_runs_use_a_scratch_save_unless_a_save_path_is_given() 
 	assert_eq(GameStateScript.save_path_for(none, scratch), "/tmp/soak/save.json")
 
 
+func test_only_a_tool_run_without_a_save_path_clears_the_scratch_save() -> void:
+	var none: PackedStringArray = PackedStringArray()
+	var gut: PackedStringArray = PackedStringArray(["-s", "addons/gut/gut_cmdln.gd"])
+	var explicit_scratch: PackedStringArray = PackedStringArray(["--save-path=user://tool_run/save.json"])
+	assert_true(GameStateScript.clears_scratch_save(gut, none))
+	assert_true(GameStateScript.clears_scratch_save(PackedStringArray(["--headless", "--import"]), none))
+	assert_false(GameStateScript.clears_scratch_save(gut, explicit_scratch), "an explicit save path is never deleted")
+	assert_false(GameStateScript.clears_scratch_save(none, none), "a play session keeps its save")
+
+
+func test_clear_save_removes_the_save_and_creates_its_folder() -> void:
+	var dir_path: String = "user://test_game_state/%d" % randi()
+	var save_path: String = dir_path.path_join("run/save.json")
+	assert_eq(GameStateScript.clear_save(save_path), OK, "a missing save and folder are fine")
+	assert_true(DirAccess.dir_exists_absolute(save_path.get_base_dir()))
+	FileAccess.open(save_path, FileAccess.WRITE).store_string("{}")
+	assert_eq(GameStateScript.clear_save(save_path), OK)
+	assert_false(FileAccess.file_exists(save_path))
+	DirAccess.remove_absolute(save_path.get_base_dir())
+	DirAccess.remove_absolute(dir_path)
+
+
+func test_clear_save_reports_a_save_it_cannot_remove() -> void:
+	if OS.get_name() == "Windows":
+		pending("needs chmod")
+		return
+	var dir_path: String = "user://test_game_state/%d" % randi()
+	DirAccess.make_dir_recursive_absolute(dir_path)
+	var save_path: String = dir_path.path_join("save.json")
+	FileAccess.open(save_path, FileAccess.WRITE).store_string("{}")
+	var folder: String = ProjectSettings.globalize_path(dir_path)
+	OS.execute("chmod", ["555", folder])
+	var cleared: Error = GameStateScript.clear_save(save_path)
+	OS.execute("chmod", ["755", folder])
+	assert_ne(cleared, OK)
+	assert_eq(FileAccess.get_file_as_string(save_path), "{}", "the save is left as it was")
+	DirAccess.remove_absolute(save_path)
+	DirAccess.remove_absolute(dir_path)
+
+
 func test_cloud_config_defaults_to_the_local_stack() -> void:
 	var config: CloudConfig = GameStateScript.cloud_config()
 	assert_eq(config.url, "http://127.0.0.1:54321")
