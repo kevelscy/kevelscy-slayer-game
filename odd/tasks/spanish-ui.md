@@ -25,10 +25,12 @@ Translate every player-facing text of the game to Spanish; code, docs and dev lo
 
 ## Tasks
 
-- [ ] T1 S1-S3 translate texts + decimal comma, tests RED then GREEN — inline — commit:
-- [ ] T2 S4 portrait + landscape screenshots, fix overflows — inline — commit:
+- [x] T1 S1-S3 translate texts + decimal comma, tests RED then GREEN — inline — commit: f3ea07c
+- [x] T2 S4 portrait + landscape screenshots, fix overflows — inline — commit: f3ea07c
 
 ## Log
 
 - L1 (user, verbatim): "hagamos 2 cosas\n\n1. traduce todo a espanol, el publico objetivo es espanoil\n2. yo ya tengo soundcraft descargado, necesitas un mcp activo dentro del programa? dime como hacerlo para avisarte"
 - L2 Decisions (auto mode, reversible): direct translation, no `tr()`/CSV localization layer (single Spanish audience; migrate later if English is wanted); neutral "tú" Spanish; decimal comma; dev report/log prints stay English.
+- L3 T1: tests changed to the Spanish strings first (27 RED), new tests/unit/main/test_spanish_texts.gd (HUD, JEFE timer with decimal comma, offline toast, section titles, catalog names) and dialog tests in test_ascension_panel.gd; then the code: NumberFormat comma + NumberFormat.decimal, panels, HUD (.gd/.tscn), Main tab titles and toast, catalog .tres hand-edited with their generators kept in sync. Bug caught by the dialog test: `"a" + "b" % x` formats only "b"; fixed with parentheses order. Saves and cloud use ids, never display names, so the save format is unchanged. Suite 455/455.
+- L4 T2 screenshots (scratch save, --no-cloud): 720x1280 Mejoras and Espíritus tabs, ascension overlay, 1600x900 landscape: every text fits, accents and ¿¡ render. The confirmation dialog (client/.tmp/dialog_shot.gd) ran off screen with the longer Spanish text, hiding the "Ascender" button: now dialog_autowrap + popup_centered(640, 0) and a deferred reset_size so it hugs its 3 lines; test RED (no autowrap) then GREEN. Landscape "Prob. crítico  Nv 0" reaches the buy button edge but is not clipped. Assess (base ac1fc08, committedOnly): medium, no verifier, no review due. S1-S4 covered. Feature closed.
