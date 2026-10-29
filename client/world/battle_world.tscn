@@ -5,10 +5,10 @@
 [ext_resource type="PackedScene" path="res://entities/hero/hero.tscn" id="3_hero"]
 [ext_resource type="Script" path="res://systems/spawning/node_pool.gd" id="4_pool"]
 [ext_resource type="PackedScene" path="res://entities/enemies/enemy.tscn" id="5_enemy"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/forest/forest_back_trees.png" id="6_back"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/forest/forest_lights.png" id="7_lights"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/forest/forest_middle_trees.png" id="8_middle"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/forest/forest_front_trees.png" id="9_front"]
+[ext_resource type="Texture2D" path="res://art/tiles/bg_far.png" id="6_far"]
+[ext_resource type="Texture2D" path="res://art/tiles/bg_middle.png" id="7_middle"]
+[ext_resource type="Texture2D" path="res://art/tiles/bg_front.png" id="8_front"]
+[ext_resource type="Texture2D" path="res://art/tiles/bg_ground.png" id="9_ground"]
 
 [node name="BattleWorld" type="Node2D"]
 script = ExtResource("1_world")
@@ -16,43 +16,38 @@ roster = ExtResource("2_roster")
 
 [node name="Background" type="Node2D" parent="."]
 
-[node name="BackTrees" type="Parallax2D" parent="Background"]
+[node name="Far" type="Parallax2D" parent="Background"]
 repeat_size = Vector2(272, 0)
 repeat_times = 3
 
-[node name="Sprite" type="Sprite2D" parent="Background/BackTrees"]
-texture = ExtResource("6_back")
+[node name="Sprite" type="Sprite2D" parent="Background/Far"]
+texture = ExtResource("6_far")
 centered = false
 
-[node name="Lights" type="Parallax2D" parent="Background"]
+[node name="Middle" type="Parallax2D" parent="Background"]
 repeat_size = Vector2(272, 0)
 repeat_times = 3
 
-[node name="Sprite" type="Sprite2D" parent="Background/Lights"]
-texture = ExtResource("7_lights")
+[node name="Sprite" type="Sprite2D" parent="Background/Middle"]
+texture = ExtResource("7_middle")
 centered = false
 
-[node name="MiddleTrees" type="Parallax2D" parent="Background"]
+[node name="Front" type="Parallax2D" parent="Background"]
 repeat_size = Vector2(272, 0)
 repeat_times = 3
 
-[node name="Sprite" type="Sprite2D" parent="Background/MiddleTrees"]
-texture = ExtResource("8_middle")
+[node name="Sprite" type="Sprite2D" parent="Background/Front"]
+texture = ExtResource("8_front")
 centered = false
 
-[node name="FrontTrees" type="Parallax2D" parent="Background"]
+[node name="Ground" type="Parallax2D" parent="Background"]
 repeat_size = Vector2(272, 0)
 repeat_times = 3
 
-[node name="Sprite" type="Sprite2D" parent="Background/FrontTrees"]
-texture = ExtResource("9_front")
+[node name="Sprite" type="Sprite2D" parent="Background/Ground"]
+position = Vector2(0, 160)
+texture = ExtResource("9_ground")
 centered = false
-
-[node name="Ground" type="ColorRect" parent="."]
-offset_top = 160.0
-offset_right = 360.0
-offset_bottom = 192.0
-color = Color(0.16, 0.12, 0.1, 1)
 
 [node name="EnemyPool" type="Node" parent="."]
 script = ExtResource("4_pool")
