@@ -52,6 +52,25 @@ func try_upgrade(track: UpgradeTrack) -> bool:
 	return true
 
 
+func to_save(now_unix: int) -> SaveData:
+	var data: SaveData = SaveData.new()
+	data.stage = progression.stage
+	data.gold = wallet.get_amount(GOLD)
+	data.attack_level = attack_track.level
+	data.health_level = health_track.level
+	data.last_seen_unix = now_unix
+	return data
+
+
+## Restores a decoded save in place, so views bound to the wallet keep working.
+func apply_save(data: SaveData) -> void:
+	progression.restore_stage(data.stage)
+	wallet.restore(GOLD, data.gold)
+	attack_track.set_level(data.attack_level)
+	health_track.set_level(data.health_level)
+	_refresh_hero_stats()
+
+
 func enemy_health(is_boss: bool) -> BigNumber:
 	var stage: int = progression.stage
 	return balance.boss_health(stage) if is_boss else balance.enemy_health(stage)

@@ -50,6 +50,15 @@ func fail_boss() -> void:
 	boss_failed.emit()
 
 
+## Jumps to a saved stage with fresh progress: no kills and no active boss.
+func restore_stage(saved_stage: int) -> void:
+	stage = maxi(saved_stage, 1)
+	kills = 0
+	is_boss_active = false
+	boss_time_left = 0.0
+	stage_changed.emit(stage)
+
+
 func tick(delta: float) -> void:
 	if not is_boss_active:
 		return

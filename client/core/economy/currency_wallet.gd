@@ -18,6 +18,14 @@ func add(currency: StringName, amount: BigNumber) -> void:
 	_set_amount(currency, get_amount(currency).add(amount))
 
 
+## Sets a balance directly, e.g. when loading a save; negative amounts are refused.
+func restore(currency: StringName, amount: BigNumber) -> void:
+	if amount.is_negative():
+		push_error("CurrencyWallet.restore: negative amount %s for %s" % [amount.serialize(), currency])
+		return
+	_set_amount(currency, amount)
+
+
 func can_afford(currency: StringName, amount: BigNumber) -> bool:
 	return get_amount(currency).gte(amount)
 
