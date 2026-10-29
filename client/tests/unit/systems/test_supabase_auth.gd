@@ -115,6 +115,20 @@ func test_a_server_error_on_refresh_keeps_the_stored_player() -> void:
 	assert_eq(_saved_tokens(), {"refresh_token": "r1", "user_id": "user-1"})
 
 
+func test_a_rate_limited_or_timed_out_refresh_keeps_the_stored_player() -> void:
+	transport.queue(200, _session("a1", "r1"))
+	await auth.ensure_session()
+	for code: int in [408, 429]:
+		var next_boot: SupabaseAuth = _new_auth()
+		var sent: int = transport.requests.size()
+		transport.queue(code, {"error_code": "over_request_rate_limit"})
+		assert_false(await next_boot.ensure_session(), "status %d" % code)
+		assert_eq(transport.requests.size(), sent + 1, "no sign-up after status %d" % code)
+		assert_eq(next_boot.access_token, "")
+		assert_eq(next_boot.user_id, "user-1")
+		assert_eq(_saved_tokens(), {"refresh_token": "r1", "user_id": "user-1"})
+
+
 func test_a_failed_sign_up_writes_no_token_file() -> void:
 	transport.queue(422, {"msg": "Anonymous sign-ins are disabled"})
 	assert_false(await auth.ensure_session())

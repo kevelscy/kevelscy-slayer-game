@@ -3,10 +3,13 @@ extends RefCounted
 ## Anonymous Supabase session. The first boot signs up an anonymous player; the
 ## refresh token is kept in a file so later boots resume the same player. Only a
 ## refresh token the server refuses (4xx) leads to a new sign-up: a network or
-## server failure keeps the stored player for the next attempt.
+## server failure, a timeout (408) or a rate limit (429) keeps the stored player
+## for the next attempt.
 
 ## Refresh this many seconds before the access token expires.
 const EXPIRY_MARGIN_SECONDS: int = 60
+## 4xx answers that say "try later", not "this token is dead".
+const TRANSIENT_CODES: Array[int] = [408, 429]
 
 var access_token: String = ""
 var user_id: String = ""
@@ -36,7 +39,7 @@ func ensure_session() -> bool:
 		)
 		if refreshed.is_success():
 			return _accept(refreshed)
-		if not refreshed.is_rejected():
+		if not refreshed.is_rejected() or TRANSIENT_CODES.has(refreshed.status_code):
 			_drop_access_token()
 			return false
 	return _accept(await _post("/auth/v1/signup", {}))
