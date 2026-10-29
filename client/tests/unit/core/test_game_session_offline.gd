@@ -57,3 +57,13 @@ func test_grant_does_not_advance_stage_or_kills() -> void:
 	session.grant_offline(LAST_SEEN, LAST_SEEN + HOUR)
 	assert_eq(session.progression.stage, 1)
 	assert_eq(session.progression.kills, 0)
+
+
+func test_offline_rate_counts_crit_and_attack_speed_upgrades() -> void:
+	var before: BigNumber = session.offline_gold_rate()
+	var saved: SaveData = SaveData.new()
+	saved.crit_damage_level = 40
+	saved.attack_speed_level = 50
+	session.apply_save(saved)
+	assert_true(session.offline_gold_rate().gt(before))
+	assert_true(session.offline_gold_rate().is_equal_approx(_expected_rate()))

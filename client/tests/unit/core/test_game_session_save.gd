@@ -62,3 +62,54 @@ func test_wallet_restore_rejects_negative_and_keeps_balance() -> void:
 	session.wallet.restore(GameSession.GOLD, BigNumber.from_float(-1.0))
 	assert_push_error("CurrencyWallet.restore")
 	assert_true(session.wallet.get_amount(GameSession.GOLD).is_equal_approx(BigNumber.from_float(40.0)))
+
+
+func test_rate_stats_start_at_their_base_values() -> void:
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.CRIT_CHANCE), 0.05, 1e-9)
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.CRIT_DAMAGE), 1.5, 1e-9)
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.ATTACK_SPEED), 1.5, 1e-9)
+
+
+func test_buying_rate_upgrades_raises_the_hero_rates() -> void:
+	session.wallet.add(GameSession.GOLD, BigNumber.from_float(1_000_000.0))
+	assert_true(session.try_upgrade(session.crit_chance_track))
+	assert_true(session.try_upgrade(session.crit_damage_track))
+	assert_true(session.try_upgrade(session.attack_speed_track))
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.CRIT_CHANCE), 0.055, 1e-9)
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.CRIT_DAMAGE), 1.55, 1e-9)
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.ATTACK_SPEED), 1.52, 1e-9)
+
+
+func test_rate_track_caps() -> void:
+	assert_eq(session.crit_chance_track.max_level, 90)
+	assert_eq(session.crit_damage_track.max_level, 0)
+	assert_eq(session.attack_speed_track.max_level, 75)
+
+
+func test_save_round_trip_keeps_rate_levels() -> void:
+	session.crit_chance_track.set_level(9)
+	session.crit_damage_track.set_level(41)
+	session.attack_speed_track.set_level(20)
+	var data: SaveData = session.to_save(1_700_000_123)
+	assert_eq(data.crit_chance_level, 9)
+	assert_eq(data.crit_damage_level, 41)
+	assert_eq(data.attack_speed_level, 20)
+	var restored: GameSession = GameSession.new()
+	restored.apply_save(data)
+	assert_eq(restored.crit_chance_track.level, 9)
+	assert_eq(restored.crit_damage_track.level, 41)
+	assert_eq(restored.attack_speed_track.level, 20)
+	assert_almost_eq(restored.hero_stats.get_rate(StatBlock.CRIT_CHANCE), 0.095, 1e-9)
+	assert_almost_eq(restored.hero_stats.get_rate(StatBlock.CRIT_DAMAGE), 3.55, 1e-9)
+	assert_almost_eq(restored.hero_stats.get_rate(StatBlock.ATTACK_SPEED), 1.9, 1e-9)
+
+
+func test_apply_save_clamps_rate_levels_above_the_cap() -> void:
+	var data: SaveData = _saved(1, BigNumber.zero(), 0, 0)
+	data.crit_chance_level = 500
+	data.attack_speed_level = 500
+	session.apply_save(data)
+	assert_eq(session.crit_chance_track.level, 90)
+	assert_eq(session.attack_speed_track.level, 75)
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.CRIT_CHANCE), 0.5, 1e-9)
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.ATTACK_SPEED), 3.0, 1e-9)

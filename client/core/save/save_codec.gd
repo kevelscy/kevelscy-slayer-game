@@ -2,14 +2,18 @@ class_name SaveCodec
 extends RefCounted
 ## Versioned JSON format of SaveData. Decoding validates every field and rejects
 ## the whole save on the first problem, so a damaged file never half-applies.
+## Version 1 saves (before rate upgrades) still load, with those levels at 0.
 
-const VERSION: int = 1
+const VERSION: int = 2
+const VERSION_WITHOUT_RATE_LEVELS: int = 1
 const INTEGER_FIELDS: Dictionary[String, int] = {
 	"stage": 1,
 	"attack_level": 0,
 	"health_level": 0,
 	"last_seen_unix": 0,
 }
+## Added in version 2; required from that version on, each >= 0.
+const RATE_LEVEL_FIELDS: Array[String] = ["crit_chance_level", "crit_damage_level", "attack_speed_level"]
 const NUMBER_PATTERN: String = "^-?\\d+(\\.\\d+)?(e-?\\d+)?$"
 
 
@@ -20,6 +24,9 @@ static func encode(data: SaveData) -> String:
 		"gold": data.gold.serialize(),
 		"attack_level": data.attack_level,
 		"health_level": data.health_level,
+		"crit_chance_level": data.crit_chance_level,
+		"crit_damage_level": data.crit_damage_level,
+		"attack_speed_level": data.attack_speed_level,
 		"last_seen_unix": data.last_seen_unix,
 	}, "\t")
 
@@ -32,15 +39,19 @@ static func decode(text: String) -> SaveDecodeResult:
 		return SaveDecodeResult.new(null, "save is not a JSON object")
 	var fields: Dictionary = parsed
 	var version: Variant = fields.get("version")
-	if not _is_integer(version) or int(version) != VERSION:
+	if not _is_integer(version) or int(version) not in [VERSION_WITHOUT_RATE_LEVELS, VERSION]:
 		return SaveDecodeResult.new(null, "unsupported save version %s" % _describe(version))
 
+	var required: Dictionary[String, int] = INTEGER_FIELDS.duplicate()
+	if int(version) >= VERSION:
+		for field: String in RATE_LEVEL_FIELDS:
+			required[field] = 0
 	var integers: Dictionary[String, int] = {}
-	for field: String in INTEGER_FIELDS:
+	for field: String in required:
 		var value: Variant = fields.get(field)
 		if not _is_integer(value):
 			return SaveDecodeResult.new(null, "save field '%s' is missing or not an integer" % field)
-		var minimum: int = INTEGER_FIELDS[field]
+		var minimum: int = required[field]
 		if int(value) < minimum:
 			return SaveDecodeResult.new(
 				null, "save field '%s' must be >= %d, got %d" % [field, minimum, int(value)]
@@ -60,6 +71,9 @@ static func decode(text: String) -> SaveDecodeResult:
 	data.gold = gold
 	data.attack_level = integers["attack_level"]
 	data.health_level = integers["health_level"]
+	data.crit_chance_level = integers.get("crit_chance_level", 0)
+	data.crit_damage_level = integers.get("crit_damage_level", 0)
+	data.attack_speed_level = integers.get("attack_speed_level", 0)
 	data.last_seen_unix = integers["last_seen_unix"]
 	return SaveDecodeResult.new(data)
 

@@ -20,6 +20,15 @@ var attack_track: UpgradeTrack = UpgradeTrack.new(
 var health_track: UpgradeTrack = UpgradeTrack.new(
 	BigNumber.from_float(100.0), 1.12, CostCurve.new(BigNumber.from_float(15.0), 1.2)
 )
+var crit_chance_track: RateUpgradeTrack = RateUpgradeTrack.new(
+	0.05, 0.005, 90, CostCurve.new(BigNumber.from_float(50.0), 1.25)
+)
+var crit_damage_track: RateUpgradeTrack = RateUpgradeTrack.new(
+	1.5, 0.05, 0, CostCurve.new(BigNumber.from_float(40.0), 1.2)
+)
+var attack_speed_track: RateUpgradeTrack = RateUpgradeTrack.new(
+	1.5, 0.02, 75, CostCurve.new(BigNumber.from_float(60.0), 1.28)
+)
 var skills: SkillBar
 var spirits: SpiritTeam
 var buffs: BuffTracker = BuffTracker.new(hero_stats)
@@ -35,9 +44,6 @@ func _init(
 ) -> void:
 	balance = stage_balance
 	progression = StageProgression.new(kills_per_stage, boss_seconds)
-	hero_stats.set_base_rate(StatBlock.CRIT_CHANCE, 0.05)
-	hero_stats.set_base_rate(StatBlock.CRIT_DAMAGE, 1.5)
-	hero_stats.set_base_rate(StatBlock.ATTACK_SPEED, 1.5)
 	_refresh_hero_stats()
 	skills = SkillBar.new(abilities.skills)
 	spirits = SpiritTeam.new(abilities.spirits, hero_stats)
@@ -108,6 +114,9 @@ func to_save(now_unix: int) -> SaveData:
 	data.gold = wallet.get_amount(GOLD)
 	data.attack_level = attack_track.level
 	data.health_level = health_track.level
+	data.crit_chance_level = crit_chance_track.level
+	data.crit_damage_level = crit_damage_track.level
+	data.attack_speed_level = attack_speed_track.level
 	data.last_seen_unix = now_unix
 	return data
 
@@ -118,6 +127,10 @@ func apply_save(data: SaveData) -> void:
 	wallet.restore(GOLD, data.gold)
 	attack_track.set_level(data.attack_level)
 	health_track.set_level(data.health_level)
+	# Rate tracks clamp a level above their cap.
+	crit_chance_track.set_level(data.crit_chance_level)
+	crit_damage_track.set_level(data.crit_damage_level)
+	attack_speed_track.set_level(data.attack_speed_level)
 	_refresh_hero_stats()
 
 
@@ -162,3 +175,6 @@ func hero_max_health() -> BigNumber:
 func _refresh_hero_stats() -> void:
 	hero_stats.set_base(StatBlock.ATTACK, attack_track.value())
 	hero_stats.set_base(StatBlock.HEALTH, health_track.value())
+	hero_stats.set_base_rate(StatBlock.CRIT_CHANCE, crit_chance_track.rate())
+	hero_stats.set_base_rate(StatBlock.CRIT_DAMAGE, crit_damage_track.rate())
+	hero_stats.set_base_rate(StatBlock.ATTACK_SPEED, attack_speed_track.rate())

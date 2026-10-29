@@ -7,6 +7,9 @@ func _sample() -> SaveData:
 	data.gold = BigNumber.of(1.5, 400)
 	data.attack_level = 12
 	data.health_level = 3
+	data.crit_chance_level = 9
+	data.crit_damage_level = 41
+	data.attack_speed_level = 75
 	data.last_seen_unix = 1_800_000_000
 	return data
 
@@ -26,11 +29,44 @@ func test_round_trip_keeps_every_field_beyond_float_range() -> void:
 	assert_true(result.data.gold.is_equal_approx(BigNumber.of(1.5, 400)))
 	assert_eq(result.data.attack_level, 12)
 	assert_eq(result.data.health_level, 3)
+	assert_eq(result.data.crit_chance_level, 9)
+	assert_eq(result.data.crit_damage_level, 41)
+	assert_eq(result.data.attack_speed_level, 75)
 	assert_eq(result.data.last_seen_unix, 1_800_000_000)
 
 
 func test_encode_writes_current_version() -> void:
-	assert_eq(int(_valid_dict()["version"]), SaveCodec.VERSION)
+	assert_eq(SaveCodec.VERSION, 2)
+	assert_eq(int(_valid_dict()["version"]), 2)
+
+
+func test_version_one_save_loads_with_rate_levels_at_zero() -> void:
+	var result: SaveDecodeResult = SaveCodec.decode(JSON.stringify({
+		"version": 1,
+		"stage": 7,
+		"gold": "1.5e400",
+		"attack_level": 12,
+		"health_level": 3,
+		"last_seen_unix": 1_800_000_000,
+	}))
+	assert_true(result.is_ok(), result.error)
+	assert_eq(result.data.stage, 7)
+	assert_true(result.data.gold.is_equal_approx(BigNumber.of(1.5, 400)))
+	assert_eq(result.data.attack_level, 12)
+	assert_eq(result.data.health_level, 3)
+	assert_eq(result.data.crit_chance_level, 0)
+	assert_eq(result.data.crit_damage_level, 0)
+	assert_eq(result.data.attack_speed_level, 0)
+	assert_eq(result.data.last_seen_unix, 1_800_000_000)
+
+
+func test_version_two_save_missing_a_rate_level_is_rejected() -> void:
+	for field: String in ["crit_chance_level", "crit_damage_level", "attack_speed_level"]:
+		var fields: Dictionary = _valid_dict()
+		fields.erase(field)
+		var result: SaveDecodeResult = _decode_dict(fields)
+		assert_null(result.data, field)
+		assert_eq(result.error, "save field '%s' is missing or not an integer" % field)
 
 
 func test_rejects_text_that_is_not_json() -> void:
@@ -46,10 +82,11 @@ func test_rejects_json_that_is_not_an_object() -> void:
 
 func test_rejects_unsupported_version() -> void:
 	var fields: Dictionary = _valid_dict()
-	fields["version"] = 99
-	var result: SaveDecodeResult = _decode_dict(fields)
-	assert_null(result.data)
-	assert_eq(result.error, "unsupported save version 99")
+	for version: int in [0, 3, 99]:
+		fields["version"] = version
+		var result: SaveDecodeResult = _decode_dict(fields)
+		assert_null(result.data)
+		assert_eq(result.error, "unsupported save version %d" % version)
 
 
 func test_rejects_missing_field() -> void:
@@ -69,6 +106,9 @@ func test_rejects_out_of_range_values() -> void:
 		"stage": [0, "save field 'stage' must be >= 1, got 0"],
 		"attack_level": [-1, "save field 'attack_level' must be >= 0, got -1"],
 		"health_level": [-4, "save field 'health_level' must be >= 0, got -4"],
+		"crit_chance_level": [-1, "save field 'crit_chance_level' must be >= 0, got -1"],
+		"crit_damage_level": [-2, "save field 'crit_damage_level' must be >= 0, got -2"],
+		"attack_speed_level": [-3, "save field 'attack_speed_level' must be >= 0, got -3"],
 		"last_seen_unix": [-10, "save field 'last_seen_unix' must be >= 0, got -10"],
 	}
 	for field: String in cases:
