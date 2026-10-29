@@ -327,6 +327,24 @@ func test_a_sync_requested_while_one_is_in_flight_returns_its_reward() -> void:
 	assert_eq(session.progression.stage, 9)
 
 
+func test_a_waiting_sync_returns_once_the_shared_sync_has_pushed() -> void:
+	_boot_local(_save(4))
+	await sync.boot()
+	_queue_pull(_save(9), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	transport.hold()
+	sync.tick(60.0)
+	var pushes_at_return: Array[int] = []
+	var resume_then_count: Callable = func() -> void:
+		await sync.resume()
+		pushes_at_return.append(_rpc_requests("push_save").size())
+	resume_then_count.call()
+	await wait_process_frames(1)
+	transport.release()
+	await wait_process_frames(2)
+	assert_eq(pushes_at_return, [1], "the waiter returns after the sync's push")
+
+
 func test_a_waiting_sync_gets_its_own_copy_of_the_reward() -> void:
 	_boot_local(_save(4))
 	await sync.boot()

@@ -72,7 +72,8 @@ func boot() -> OfflineReward:
 ## cloud: a retry runs mid-play, where applying an equal save would restart the
 ## running game (buffs, spirits and the battle) for no progress.
 ## The returned reward reports what the sync paid; it is paid and announced
-## through offline_reward_granted once, whoever asked.
+## through offline_reward_granted once, whoever asked. Every caller returns once
+## the sync has finished, its push included.
 func _sync(cloud_wins_ties: bool) -> OfflineReward:
 	if _syncing:
 		# A resume during the timer retry shares that sync: one pull, one reward,
@@ -82,10 +83,10 @@ func _sync(cloud_wins_ties: bool) -> OfflineReward:
 		return OfflineReward.new(shared.elapsed_seconds, shared.amounts.duplicate())
 	_syncing = true
 	var reward: OfflineReward = await _pull_and_reconcile(cloud_wins_ties)
-	_syncing = false
-	_sync_finished.emit(reward)
 	if _synced:
 		await push()
+	_syncing = false
+	_sync_finished.emit(reward)
 	return reward
 
 
