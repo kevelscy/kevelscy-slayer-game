@@ -2,30 +2,32 @@ extends SceneTree
 ## One-shot generator for the MVP content resources (.tres). Run it after changing the
 ## tables below, then tune the generated files in the editor:
 ##   scripts/godot.sh --headless --path client -s res://tools/generate_mvp_content.gd
-## Enemy frame data comes from assets/ASSETS.md; the hero is original art from art/sprites/
-## (art/STYLE.md): 48 px tall frames, the attack is 96 px wide so the swing fits.
+## Pack enemy frame data comes from assets/ASSETS.md; the hero and the slime are original art
+## from art/sprites/ (art/STYLE.md): hero frames are 48 px tall (the attack is 96 px wide so the
+## swing fits), slime frames are 32x32 and it idles while it stands at the hero.
 
-const HERO_DIR: String = "res://art/sprites/"
+const ART_DIR: String = "res://art/sprites/"
 const ENEMY_DIR: String = "res://assets/sprites/enemies/"
 const CONTENT_DIR: String = "res://data/content/"
 
 
 func _init() -> void:
 	var hero_sheets: Array[AnimationSheet] = [
-		_sheet(&"idle", HERO_DIR + "hero_idle.png", Vector2i(48, 48), 0, 4, 10.0, true),
-		_sheet(&"run", HERO_DIR + "hero_run.png", Vector2i(48, 48), 0, 6, 12.0, true),
-		_sheet(&"attack", HERO_DIR + "hero_attack.png", Vector2i(96, 48), 0, 6, 12.0, false),
-		_sheet(&"hurt", HERO_DIR + "hero_hurt.png", Vector2i(48, 48), 0, 2, 10.0, false),
-		_sheet(&"die", HERO_DIR + "hero_die.png", Vector2i(48, 48), 0, 4, 10.0, false),
+		_sheet(&"idle", ART_DIR + "hero_idle.png", Vector2i(48, 48), 0, 4, 10.0, true),
+		_sheet(&"run", ART_DIR + "hero_run.png", Vector2i(48, 48), 0, 6, 12.0, true),
+		_sheet(&"attack", ART_DIR + "hero_attack.png", Vector2i(96, 48), 0, 6, 12.0, false),
+		_sheet(&"hurt", ART_DIR + "hero_hurt.png", Vector2i(48, 48), 0, 2, 10.0, false),
+		_sheet(&"die", ART_DIR + "hero_die.png", Vector2i(48, 48), 0, 4, 10.0, false),
 	]
 	var hero_set: AnimationSet = AnimationSet.new()
 	hero_set.sheets = hero_sheets
 	_save(hero_set, CONTENT_DIR + "hero/hero_animations.tres")
 
 	var slime: EnemyDefinition = _enemy(
-		&"slime", _sheet(&"move", ENEMY_DIR + "slime/slime.png", Vector2i(74, 86), 0, 4, 8.0, true),
-		0.45, 0.0, 1.0, 0.8, 35.0
+		&"slime", _sheet(&"move", ART_DIR + "slime_move.png", Vector2i(32, 32), 0, 6, 12.0, true),
+		1.0, 0.0, 1.0, 0.8, 35.0
 	)
+	slime.idle_animation = _sheet(&"idle", ART_DIR + "slime_idle.png", Vector2i(32, 32), 0, 4, 10.0, true)
 	var bat: EnemyDefinition = _enemy(
 		&"bat", _sheet(&"fly", ENEMY_DIR + "bat/bat.png", Vector2i(127, 138), 0, 3, 10.0, true),
 		0.3, 18.0, 0.7, 1.0, 55.0

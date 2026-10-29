@@ -5,6 +5,8 @@ extends Resource
 
 @export var id: StringName
 @export var animation: AnimationSheet
+## Played while the enemy stands at the hero; without one it keeps playing `animation`.
+@export var idle_animation: AnimationSheet
 @export var sprite_scale: float = 0.5
 @export var tint: Color = Color.WHITE
 @export var hover_height: float = 0.0

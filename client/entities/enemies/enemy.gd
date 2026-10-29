@@ -20,6 +20,8 @@ var damage: BigNumber = BigNumber.zero()
 var frozen_seconds: float = 0.0
 
 var _fade_tween: Tween
+## True while the enemy stands at min_x (the hero), where it plays its idle animation.
+var _at_contact: bool = false
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var health: HealthComponent = $Health
@@ -54,6 +56,7 @@ func spawn(
 	health.setup(max_health)
 	sprite.sprite_frames = _frames_for(definition)
 	sprite.offset = Vector2(0.0, -definition.animation.frame_size.y * 0.5)
+	_at_contact = false
 	sprite.play(definition.animation.animation_name)
 
 
@@ -69,6 +72,9 @@ func advance(delta: float, world_speed: float, min_x: float) -> void:
 		return
 	var speed: float = world_speed if is_frozen() else definition.move_speed + world_speed
 	position.x = maxf(position.x - speed * delta, min_x)
+	_at_contact = position.x <= min_x
+	if not is_frozen():
+		_play_locomotion()
 
 
 func try_attack(delta: float, target_in_range: bool) -> bool:
@@ -105,7 +111,16 @@ func vanish() -> void:
 func _thaw() -> void:
 	frozen_seconds = 0.0
 	sprite.self_modulate = Color.WHITE
-	sprite.play(definition.animation.animation_name)
+	_play_locomotion()
+
+
+## Idle at the hero when the definition has one, otherwise the move animation.
+func _play_locomotion() -> void:
+	var sheet: AnimationSheet = definition.animation
+	if _at_contact and definition.idle_animation != null:
+		sheet = definition.idle_animation
+	if sprite.animation != sheet.animation_name or not sprite.is_playing():
+		sprite.play(sheet.animation_name)
 
 
 func _on_damaged(_result: DamageResult) -> void:
@@ -126,5 +141,7 @@ func _on_died() -> void:
 static func _frames_for(enemy_definition: EnemyDefinition) -> SpriteFrames:
 	if not _frames_cache.has(enemy_definition.id):
 		var sheets: Array[AnimationSheet] = [enemy_definition.animation]
+		if enemy_definition.idle_animation != null:
+			sheets.append(enemy_definition.idle_animation)
 		_frames_cache[enemy_definition.id] = SpriteFramesBuilder.build(sheets)
 	return _frames_cache[enemy_definition.id]

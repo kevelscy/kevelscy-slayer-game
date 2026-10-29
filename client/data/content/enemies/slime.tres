@@ -1,21 +1,30 @@
 [gd_resource type="Resource" script_class="EnemyDefinition" format=3]
 
-[ext_resource type="Script" path="res://components/animation/animation_sheet.gd" id="1_78ad6"]
-[ext_resource type="Texture2D" path="res://assets/sprites/enemies/slime/slime.png" id="2_733mt"]
-[ext_resource type="Script" path="res://data/definitions/enemy_definition.gd" id="3_8xf0j"]
+[ext_resource type="Script" path="res://components/animation/animation_sheet.gd" id="1_733mt"]
+[ext_resource type="Texture2D" path="res://art/sprites/slime_move.png" id="2_8xf0j"]
+[ext_resource type="Texture2D" path="res://art/sprites/slime_idle.png" id="3_xdh2t"]
+[ext_resource type="Script" path="res://data/definitions/enemy_definition.gd" id="4_5shvo"]
 
-[sub_resource type="Resource" id="Resource_xdh2t"]
-script = ExtResource("1_78ad6")
+[sub_resource type="Resource" id="Resource_g72pn"]
+script = ExtResource("1_733mt")
 animation_name = &"move"
-texture = ExtResource("2_733mt")
-frame_size = Vector2i(74, 86)
+texture = ExtResource("2_8xf0j")
+frame_size = Vector2i(32, 32)
+frame_count = 6
+fps = 12.0
+
+[sub_resource type="Resource" id="Resource_je4my"]
+script = ExtResource("1_733mt")
+animation_name = &"idle"
+texture = ExtResource("3_xdh2t")
+frame_size = Vector2i(32, 32)
 frame_count = 4
-fps = 8.0
 
 [resource]
-script = ExtResource("3_8xf0j")
+script = ExtResource("4_5shvo")
 id = &"slime"
-animation = SubResource("Resource_xdh2t")
-sprite_scale = 0.45
+animation = SubResource("Resource_g72pn")
+idle_animation = SubResource("Resource_je4my")
+sprite_scale = 1.0
 damage_multiplier = 0.8
 move_speed = 35.0
