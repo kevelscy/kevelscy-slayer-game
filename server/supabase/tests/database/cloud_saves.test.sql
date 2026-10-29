@@ -2,7 +2,7 @@
 -- Run with `supabase test db` from server/. Each run is one rolled-back
 -- transaction, so now() is constant and the stored timestamps compare exactly.
 begin;
-select plan(33);
+select plan(36);
 
 -- Two players and helpers to act as each of them through PostgREST roles.
 insert into auth.users (id, aud, role, is_anonymous)
@@ -149,7 +149,19 @@ select throws_ok(
   $$ select public.push_save(pg_temp.valid_save() || '{"talents": {"might": "2"}}') $$,
   '22023', 'save field ''talents.might'' is missing or not an integer', 'talent level as a string'
 );
+select throws_ok(
+  $$ select public.push_save(pg_temp.valid_save() || jsonb_build_object('padding', repeat('x', 16384))) $$,
+  '22023', 'save is larger than 16384 bytes', 'an oversized save'
+);
 select is((public.pull_save() -> 'save' ->> 'stage')::int, 24, 'rejected pushes left the stored save unchanged');
+
+-- S1 (cloud-save-deferred): the size cap is inclusive.
+select lives_ok(
+  $$ select public.push_save(pg_temp.valid_save() || jsonb_build_object('stage', 25, 'padding',
+       repeat('x', 16384 - octet_length((pg_temp.valid_save() || '{"stage": 25, "padding": ""}')::text)))) $$,
+  'a save of exactly 16384 bytes is accepted'
+);
+select is((public.pull_save() -> 'save' ->> 'stage')::int, 25, 'the 16384-byte save is stored');
 reset role;
 
 select * from finish();

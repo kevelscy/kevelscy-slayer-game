@@ -31,7 +31,9 @@ local stack and its public publishable key.
   own row; there is no direct insert, update or delete, so every write goes through `push_save`.
 - `push_save` accepts only a version 3 save that passes the client codec's rules and rejects
   anything else with SQLSTATE `22023` and the codec's message (for example
-  `save field 'stage' must be >= 1, got 0`), leaving the stored save unchanged.
+  `save field 'stage' must be >= 1, got 0`), leaving the stored save unchanged. A save larger than
+  16384 bytes of JSON text is rejected the same way (`save is larger than 16384 bytes`); a real
+  save is about 400 bytes.
 - `push_save` replaces the save's `last_seen_unix` with the server time, so offline time is always
   `server now - server last_seen`.
 - Anonymous callers (no player) get `42501`; a token without a player gets `28000 not signed in`.
