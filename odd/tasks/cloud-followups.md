@@ -19,13 +19,20 @@ each spec states the reading recorded for the reviewed lines.
 
 ## Tasks
 
-- T1 S1 inline, test-first — commit:
-- T2 S2 inline, test-first — commit:
-- T3 S3 inline, docs only — commit:
-- T4 S4 inline, refactor under existing tests — commit:
-- T5 native assess, push to main — commit:
+- [x] T1 S1 inline, test-first — commit: 17190e7
+- [x] T2 S2 inline, test-first — commit: 2da16ba
+- [x] T3 S3 inline, docs only — commit: 63a0717
+- [x] T4 S4 inline, refactor under existing tests — commit: 46fae37
+- [x] T5 native assess, push to main — commit: this log entry (L4)
 
 ## Log
 
 - L1 User (verbatim): "vamos con todos los pendientes, dejas de ultimo las features neuvas"
 - L2 User (verbatim, 2026-10-29 resume): "retomá la última sesión"
+- L3 Evidence: T1 RED pushes seen by the waiter `[0] != [1]`, then GREEN (the sync emits
+  _sync_finished after its push). T2 RED `3590` expected `3575`, then GREEN (_grant starts at
+  max(last_seen, acked + play before the pull)); a device that never pushed still pays from the
+  row's last_seen. T4 has no meaningful RED: the boot test now calls start_new_game() and checks
+  no reward is announced. Full suite 380/380.
+- L4 Native assess (base ec137d5, committed-only): risk medium, no reviewDue and no independent
+  verifier, so no native review was started. Pushed to origin/main.
