@@ -2,11 +2,11 @@ extends SceneTree
 ## One-shot generator for the MVP content resources (.tres). Run it after changing the
 ## tables below, then tune the generated files in the editor:
 ##   scripts/godot.sh --headless --path client -s res://tools/generate_mvp_content.gd
-## Pack enemy frame data comes from assets/ASSETS.md; the hero, the slime, the bat and the skeleton
-## are original art from art/sprites/ (art/STYLE.md): hero frames are 48 px tall (the attack is 96 px
-## wide so the swing fits), slime frames are 32x32, bat frames are 40x32 (wide wings) and skeleton
-## frames are 40x40 (room for its sword). The slime and the skeleton idle while they stand at the
-## hero; the bat flies in place.
+## Every enemy and the hero are original art from art/sprites/ (art/STYLE.md): hero frames are
+## 48 px tall (the attack is 96 px wide so the swing fits), slime frames are 32x32, bat frames are
+## 40x32 (wide wings), skeleton frames are 40x40 (room for its sword) and the mutant butterfly
+## boss frames are 128x128 (drawn with 2x2 pixels). Every enemy but the bat idles while it stands
+## at the hero; the bat flies in place.
 
 const ART_DIR: String = "res://art/sprites/"
 const CONTENT_DIR: String = "res://data/content/"
@@ -39,10 +39,12 @@ func _init() -> void:
 	)
 	skeleton.idle_animation = _sheet(&"idle", ART_DIR + "skeleton_idle.png", Vector2i(40, 40), 0, 4, 10.0, true)
 	var boss: EnemyDefinition = _enemy(
-		&"spider_boss", _sheet(&"walk", "res://assets/sprites/boss/spider.png", Vector2i(138, 138), 0, 6, 10.0, true),
-		0.75, 0.0, 1.0, 1.0, 25.0
+		&"butterfly_boss", _sheet(&"fly", ART_DIR + "butterfly_boss_fly.png", Vector2i(128, 128), 0, 6, 10.0, true),
+		1.0, 8.0, 1.0, 1.0, 25.0
 	)
-	boss.tint = Color(1.0, 0.55, 0.55)
+	boss.idle_animation = _sheet(
+		&"idle", ART_DIR + "butterfly_boss_idle.png", Vector2i(128, 128), 0, 4, 10.0, true
+	)
 	for definition: EnemyDefinition in [slime, bat, skeleton, boss]:
 		_save(definition, CONTENT_DIR + "enemies/%s.tres" % definition.id)
 

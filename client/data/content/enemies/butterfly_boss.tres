@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" format=3]
+
+[ext_resource type="Script" path="res://components/animation/animation_sheet.gd" id="1_llrfw"]
+[ext_resource type="Texture2D" path="res://art/sprites/butterfly_boss_fly.png" id="2_kjben"]
+[ext_resource type="Texture2D" path="res://art/sprites/butterfly_boss_idle.png" id="3_7wai3"]
+[ext_resource type="Script" path="res://data/definitions/enemy_definition.gd" id="4_6c1lg"]
+
+[sub_resource type="Resource" id="Resource_0uc5l"]
+script = ExtResource("1_llrfw")
+animation_name = &"fly"
+texture = ExtResource("2_kjben")
+frame_size = Vector2i(128, 128)
+frame_count = 6
+
+[sub_resource type="Resource" id="Resource_b1og6"]
+script = ExtResource("1_llrfw")
+animation_name = &"idle"
+texture = ExtResource("3_7wai3")
+frame_size = Vector2i(128, 128)
+frame_count = 4
+
+[resource]
+script = ExtResource("4_6c1lg")
+id = &"butterfly_boss"
+animation = SubResource("Resource_0uc5l")
+idle_animation = SubResource("Resource_b1og6")
+sprite_scale = 1.0
+hover_height = 8.0
+move_speed = 25.0

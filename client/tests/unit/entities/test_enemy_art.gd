@@ -1,11 +1,12 @@
 extends GutTest
 ## Enemies play the original Pixelorama art from art/sprites/ (10-12 fps). The slime (32x32
-## frames) and the skeleton (40x40 frames) move while they advance and idle at the hero; the bat
-## (40x32 frames) only flies.
+## frames), the skeleton (40x40 frames) and the mutant butterfly boss (128x128 frames, 2x2 px) move
+## while they advance and idle at the hero; the bat (40x32 frames) only flies.
 
 const SLIME: EnemyDefinition = preload("res://data/content/enemies/slime.tres")
 const BAT: EnemyDefinition = preload("res://data/content/enemies/bat.tres")
 const SKELETON: EnemyDefinition = preload("res://data/content/enemies/skeleton.tres")
+const ROSTER: EnemyRoster = preload("res://data/content/enemies/forest_roster.tres")
 const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
 const CONTACT_X: float = 50.0
 
@@ -58,6 +59,26 @@ func test_skeleton_uses_the_original_art() -> void:
 func test_skeleton_walks_while_it_advances_and_idles_at_the_hero() -> void:
 	var enemy: Enemy = _spawn(SKELETON)
 	assert_eq(enemy.sprite.animation, &"walk")
+	enemy.advance(10.0, 0.0, CONTACT_X)
+	assert_eq(enemy.sprite.animation, &"idle")
+	assert_true(enemy.sprite.is_playing())
+
+
+func test_boss_is_the_mutant_butterfly() -> void:
+	var boss: EnemyDefinition = ROSTER.boss
+	assert_eq(boss.id, &"butterfly_boss")
+	assert_eq(boss.resource_path, "res://data/content/enemies/butterfly_boss.tres")
+	var size: Vector2i = Vector2i(128, 128)
+	_assert_sheet(boss.animation, &"fly", "res://art/sprites/butterfly_boss_fly.png", 6, size)
+	_assert_sheet(boss.idle_animation, &"idle", "res://art/sprites/butterfly_boss_idle.png", 4, size)
+	assert_eq(boss.sprite_scale, 1.0)
+	assert_eq(boss.tint, Color.WHITE, "original art needs no tint")
+	assert_eq(boss.hover_height, 8.0, "it flies just above the ground line")
+
+
+func test_boss_flies_while_it_advances_and_idles_at_the_hero() -> void:
+	var enemy: Enemy = _spawn(ROSTER.boss)
+	assert_eq(enemy.sprite.animation, &"fly")
 	enemy.advance(10.0, 0.0, CONTACT_X)
 	assert_eq(enemy.sprite.animation, &"idle")
 	assert_true(enemy.sprite.is_playing())
