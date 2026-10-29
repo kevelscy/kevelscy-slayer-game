@@ -54,12 +54,15 @@ refresh token the server refuses signs up a new player.
 
 - The local save loads first, so the game never waits on the network. Then the cloud save is
   pulled: if it has at least the local progress (ascensions, stage, upgrade levels, talent
-  levels, then gold; ties go to the cloud) it replaces the run, and the battle restarts.
+  levels, then gold; ties go to the cloud) it replaces the run, and the battle restarts. A tie
+  goes to the cloud only while that boot pull took less than 2 s of play; after a slower pull
+  the tie keeps the run the player is already playing.
 - Offline gold uses only server times: the server stamps `last_seen` on every push. While the
   cloud row is still this device's last confirmed push, the time away is the server's now minus
   that `last_seen` minus the game time played since (kept in `cloud_sync.json` next to the save,
-  so it survives the OS killing a backgrounded app). Another device's row, or an unreachable
-  server, pays nothing.
+  so it survives the OS killing a backgrounded app). Play while that pull is in flight comes
+  after the server's now, so it does not shorten the absence. Another device's row, or an
+  unreachable server, pays nothing.
 - The game pushes after each sync, every 60 s, on focus loss, and when the window is closed
   (after any push already in flight, waiting at most 3 s in total). Requests cannot finish while
   a mobile app is suspended, so suspend pushes nothing.

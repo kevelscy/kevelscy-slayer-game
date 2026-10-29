@@ -243,6 +243,39 @@ func test_the_boot_sync_gives_an_exact_tie_to_the_cloud() -> void:
 	assert_signal_emitted(session, "save_applied")
 
 
+func test_the_boot_sync_keeps_the_session_on_a_tie_once_play_ran_during_the_pull() -> void:
+	_boot_local(_save(6))
+	_queue_pull(_tied_cloud(), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	transport.hold()
+	watch_signals(session)
+	var booted: Array[bool] = [false]
+	var boot_then_flag: Callable = func() -> void:
+		await sync.boot()
+		booted[0] = true
+	boot_then_flag.call()
+	sync.tick(2.0)
+	transport.release()
+	await wait_process_frames(2)
+	assert_true(booted[0])
+	assert_signal_not_emitted(session, "save_applied", "a slow pull never restarts the running game")
+	assert_eq(_rpc_requests("push_save").size(), 1, "the kept session is pushed")
+	assert_eq(_pushed_stage(), 6)
+
+
+func test_the_boot_sync_still_gives_a_tie_to_the_cloud_after_a_short_pull() -> void:
+	_boot_local(_save(6))
+	_queue_pull(_tied_cloud(), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	transport.hold()
+	watch_signals(session)
+	sync.boot()
+	sync.tick(1.9)
+	transport.release()
+	await wait_process_frames(2)
+	assert_signal_emitted(session, "save_applied")
+
+
 func test_a_timer_retry_keeps_the_running_session_on_a_tie() -> void:
 	_boot_local(_save(6))
 	await sync.boot()
@@ -371,6 +404,27 @@ func test_resume_pays_the_suspended_time_from_the_server() -> void:
 	assert_eq(reward.elapsed_seconds, HOUR)
 	assert_signal_emitted_with_parameters(sync, "offline_reward_granted", [reward])
 	assert_eq(_pushed_stage(), 6)
+
+
+func test_play_while_the_resume_pull_is_in_flight_is_not_subtracted_from_the_reward() -> void:
+	await _boot_synced(_save(6))
+	sync.tick(40.0)
+	_queue_pull(_save(6), T0, T0 + HOUR)
+	transport.queue(500, {})
+	transport.hold()
+	var rewards: Array[OfflineReward] = []
+	var resume_then_keep: Callable = func() -> void:
+		rewards.append(await sync.resume())
+	resume_then_keep.call()
+	sync.tick(15.0)
+	transport.release()
+	await wait_process_frames(2)
+	assert_eq(rewards.size(), 1)
+	assert_eq(rewards[0].elapsed_seconds, HOUR - 40, "only the play before the pull is subtracted")
+	var marker: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir_path.path_join("cloud_sync.json")))
+	assert_almost_eq(
+		float(marker["played_since_ack"]), float(HOUR + 15), 0.001, "the play during the pull still counts after the paid absence"
+	)
 
 
 func test_resume_subtracts_the_play_since_the_last_push() -> void:

@@ -19,6 +19,8 @@ signal _push_finished
 signal _sync_finished(reward: OfflineReward)
 
 const PUSH_SECONDS: float = 60.0
+## Game time a boot pull may take and still give an exact tie to the cloud.
+const BOOT_TIE_GRACE_SECONDS: float = 2.0
 
 var _session: GameSession
 var _controller: SaveController
@@ -87,7 +89,11 @@ func _sync(cloud_wins_ties: bool) -> OfflineReward:
 	return reward
 
 
+## The boot tie goes to the cloud only while less than BOOT_TIE_GRACE_SECONDS of
+## game time ran during the pull; after that applying it would restart a game the
+## player is already playing.
 func _pull_and_reconcile(cloud_wins_ties: bool) -> OfflineReward:
+	var played_at_pull: float = _played_since_ack
 	var pulled: CloudPullResult = await _client.pull()
 	if not pulled.ok:
 		push_warning("CloudSync: sync skipped (%s)" % pulled.error)
@@ -95,26 +101,29 @@ func _pull_and_reconcile(cloud_wins_ties: bool) -> OfflineReward:
 	_synced = true
 	var reward: OfflineReward = _nothing()
 	var owned: bool = _owns(pulled)
-	var min_lead: int = 0 if cloud_wins_ties else 1
+	var played_during_pull: float = _played_since_ack - played_at_pull
+	var ties_to_cloud: bool = cloud_wins_ties and played_during_pull < BOOT_TIE_GRACE_SECONDS
+	var min_lead: int = 0 if ties_to_cloud else 1
 	if pulled.data != null and compare_progress(pulled.data, _local()) >= min_lead:
 		_session.apply_save(pulled.data)
 		_controller.save_now()
-		reward = _grant(pulled, owned)
+		reward = _grant(pulled, owned, played_at_pull)
 	elif owned:
 		# The local save is ahead only by the play after this device's last push.
-		reward = _grant(pulled, true)
+		reward = _grant(pulled, true, played_at_pull)
 	return reward
 
 
 func resume() -> OfflineReward:
 	if not _synced:
 		return await _sync(false)
+	var played_at_pull: float = _played_since_ack
 	var pulled: CloudPullResult = await _client.pull()
 	if not pulled.ok:
 		push_warning("CloudSync: resume sync skipped (%s)" % pulled.error)
 		return _nothing()
 	# Resume never rolls the session back; another device's row pays nothing.
-	var reward: OfflineReward = _grant(pulled, true) if _owns(pulled) else _nothing()
+	var reward: OfflineReward = _grant(pulled, true, played_at_pull) if _owns(pulled) else _nothing()
 	await push()
 	return reward
 
@@ -170,13 +179,17 @@ func _owns(pulled: CloudPullResult) -> bool:
 	return pulled.data != null and _acked_unix > 0 and pulled.last_seen_unix == _acked_unix
 
 
-## An owned row pays from its last_seen plus the play since, then counts the time
-## up to now as accounted so a later resume pays only the next absence.
-func _grant(pulled: CloudPullResult, owned: bool) -> OfflineReward:
-	var played: int = int(_played_since_ack) if owned else 0
+## An owned row pays from its last_seen plus the play before the pull was sent,
+## then counts the time up to the server's now as accounted so a later resume pays
+## only the next absence. Play while the pull was in flight happened after that
+## now, so it is not subtracted here and still counts as play afterwards.
+func _grant(pulled: CloudPullResult, owned: bool, played_at_pull: float) -> OfflineReward:
+	var played: int = int(played_at_pull) if owned else 0
 	var reward: OfflineReward = _session.grant_offline(pulled.last_seen_unix + played, pulled.server_now_unix)
 	if owned:
-		_played_since_ack = maxf(_played_since_ack, float(pulled.server_now_unix - _acked_unix))
+		var played_during_pull: float = _played_since_ack - played_at_pull
+		var accounted: float = maxf(played_at_pull, float(pulled.server_now_unix - _acked_unix))
+		_played_since_ack = accounted + played_during_pull
 	if not reward.is_empty():
 		_controller.save_now()
 		offline_reward_granted.emit(reward)
