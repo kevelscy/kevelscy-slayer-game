@@ -80,3 +80,40 @@ func test_skills_use_skill_buttons_and_spirits_sit_in_framed_cards() -> void:
 		var card: Control = label.get_parent()
 		assert_true(card is PanelContainer)
 		assert_eq(card.theme_type_variation, GameTheme.CARD)
+
+
+
+func test_each_skill_button_shows_its_icon_scaled_twice_with_square_pixels() -> void:
+	for index: int in panel.skill_buttons.size():
+		var sheet: Image = (load("res://art/icons/skill_%s.png" % ABILITIES.skills[index].id) as Texture2D).get_image()
+		for frame: int in [AbilityPanel.SILVER, AbilityPanel.GOLD]:
+			var icon: Image = (panel.skill_icons[index][frame] as Texture2D).get_image()
+			assert_eq(icon.get_size(), Vector2i(64, 64))
+			for point: Vector2i in [Vector2i(1, 1), Vector2i(16, 16), Vector2i(30, 29)]:
+				var expected: Color = sheet.get_pixel(frame * 32 + point.x, point.y)
+				assert_eq(icon.get_pixelv(point * 2), expected, "skill %d frame %d at %s" % [index, frame, point])
+				assert_eq(icon.get_pixelv(point * 2 + Vector2i.ONE), expected, "nearest, not blended")
+
+
+func test_ready_skill_shows_the_gold_frame() -> void:
+	assert_eq(panel.skill_buttons[0].icon, panel.skill_icons[0][AbilityPanel.GOLD])
+
+
+func test_locked_skill_shows_the_silver_frame() -> void:
+	assert_eq(panel.skill_buttons[1].icon, panel.skill_icons[1][AbilityPanel.SILVER])
+
+
+func test_skill_on_cooldown_goes_back_to_the_silver_frame_until_ready() -> void:
+	session.tick_combat(0.0, true)
+	panel.skill_buttons[0].pressed.emit()
+	assert_eq(panel.skill_buttons[0].icon, panel.skill_icons[0][AbilityPanel.SILVER])
+	session.tick_combat(8.0, true)
+	panel.refresh()
+	assert_eq(panel.skill_buttons[0].icon, panel.skill_icons[0][AbilityPanel.GOLD])
+
+
+func test_icons_are_drawn_above_the_text_at_their_own_size() -> void:
+	var button: Button = panel.skill_buttons[0]
+	assert_false(button.expand_icon, "never shrunk to a fractional scale")
+	assert_eq(button.vertical_icon_alignment, VERTICAL_ALIGNMENT_TOP)
+	assert_eq(button.icon_alignment, HORIZONTAL_ALIGNMENT_CENTER)

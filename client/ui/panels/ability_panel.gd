@@ -4,6 +4,14 @@ extends VBoxContainer
 ## slots. Built in code because every row comes from the ability catalog.
 
 const REFRESH_SECONDS: float = 0.1
+## Each skill icon sheet has two 32x32 frames: the silver frame, then the gold one
+## shown while the skill is ready. Scaled 2x with nearest filtering so the pixels
+## stay square, and drawn above the button text.
+const ICON_PATH: String = "res://art/icons/skill_%s.png"
+const ICON_FRAME_SIZE: int = 32
+const ICON_SCALE: int = 2
+const SILVER: int = 0
+const GOLD: int = 1
 const STAT_NAMES: Dictionary[StringName, String] = {
 	StatBlock.ATTACK: "Attack",
 	StatBlock.HEALTH: "Health",
@@ -13,6 +21,8 @@ const STAT_NAMES: Dictionary[StringName, String] = {
 }
 
 var skill_buttons: Array[Button] = []
+## Per skill button: [silver, gold] icon textures.
+var skill_icons: Array[Array] = []
 var autocast_toggle: CheckButton
 var spirit_labels: Array[Label] = []
 
@@ -29,6 +39,10 @@ func bind(session: GameSession) -> void:
 		var button: Button = Button.new()
 		button.theme_type_variation = GameTheme.SKILL_BUTTON
 		button.custom_minimum_size = Vector2(140.0, 88.0)
+		skill_icons.append(_icon_frames(session.skills.slots[index].definition))
+		button.icon = skill_icons[index][SILVER]
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 		button.pressed.connect(func() -> void: _on_skill_pressed(index))
 		skill_row.add_child(button)
 		skill_buttons.append(button)
@@ -75,6 +89,7 @@ func refresh() -> void:
 		else:
 			button.text = title
 		button.disabled = not slot.is_ready(stage)
+		button.icon = skill_icons[index][GOLD if slot.is_ready(stage) else SILVER]
 	var autocast_unlocked: bool = _session.skills.is_autocast_unlocked(stage)
 	autocast_toggle.disabled = not autocast_unlocked
 	autocast_toggle.text = "Auto-cast" if autocast_unlocked else (
@@ -92,6 +107,16 @@ static func _spirit_status(slot: SpiritTeam.SpiritSlot) -> String:
 		return "Stage %d" % spirit.unlock_stage
 	# PERCENT and FLAT rate passives are both fractions, shown as whole percents.
 	return "+%d%% %s" % [roundi(spirit.passive_value * 100.0), STAT_NAMES.get(spirit.passive_stat, String(spirit.passive_stat))]
+
+
+static func _icon_frames(skill: SkillDefinition) -> Array[Texture2D]:
+	var sheet: Image = (load(ICON_PATH % skill.id) as Texture2D).get_image()
+	var frames: Array[Texture2D] = []
+	for frame: int in [SILVER, GOLD]:
+		var image: Image = sheet.get_region(Rect2i(frame * ICON_FRAME_SIZE, 0, ICON_FRAME_SIZE, ICON_FRAME_SIZE))
+		image.resize(ICON_FRAME_SIZE * ICON_SCALE, ICON_FRAME_SIZE * ICON_SCALE, Image.INTERPOLATE_NEAREST)
+		frames.append(ImageTexture.create_from_image(image))
+	return frames
 
 
 func _on_skill_pressed(index: int) -> void:
