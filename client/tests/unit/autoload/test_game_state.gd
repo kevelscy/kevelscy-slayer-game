@@ -85,12 +85,13 @@ func test_notifications_before_ready_are_ignored() -> void:
 	assert_eq(spy.calls, [] as Array[String])
 
 
-func test_cloud_is_on_by_default_and_off_for_no_cloud_and_test_runs() -> void:
+func test_cloud_is_on_by_default_and_off_for_no_cloud_test_and_import_runs() -> void:
 	assert_true(GameStateScript.cloud_enabled(PackedStringArray(), PackedStringArray()))
 	assert_false(GameStateScript.cloud_enabled(PackedStringArray(), PackedStringArray(["--no-cloud"])))
 	assert_false(
 		GameStateScript.cloud_enabled(PackedStringArray(["-s", "addons/gut/gut_cmdln.gd"]), PackedStringArray())
 	)
+	assert_false(GameStateScript.cloud_enabled(PackedStringArray(["--headless", "--import"]), PackedStringArray()))
 
 
 func test_cloud_config_defaults_to_the_local_stack() -> void:

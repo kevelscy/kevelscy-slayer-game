@@ -26,14 +26,19 @@ func _init(session: GameSession, controller: SaveController, client: CloudSaveCl
 	_client = client
 
 
-## Compares progress: ascensions first, then stage, then the sum of upgrade levels.
+## Compares progress: ascensions, stage, the sum of upgrade levels, the sum of
+## talent levels, then gold, so gold or talents earned without network count.
 static func compare_progress(a: SaveData, b: SaveData) -> int:
-	var keys_a: Array[int] = [a.ascension_count, a.stage, _upgrade_levels(a)]
-	var keys_b: Array[int] = [b.ascension_count, b.stage, _upgrade_levels(b)]
+	var keys_a: Array[int] = [a.ascension_count, a.stage, _upgrade_levels(a), _talent_levels(a)]
+	var keys_b: Array[int] = [b.ascension_count, b.stage, _upgrade_levels(b), _talent_levels(b)]
 	for index: int in keys_a.size():
 		if keys_a[index] != keys_b[index]:
 			return 1 if keys_a[index] > keys_b[index] else -1
-	return 0
+	# A pushed save carries gold rounded by serialize(); the same rounding on both
+	# sides keeps a save equal to the session it came from.
+	if a.gold.serialize() == b.gold.serialize():
+		return 0
+	return a.gold.compare(b.gold)
 
 
 func boot() -> OfflineReward:
@@ -102,6 +107,13 @@ static func _upgrade_levels(data: SaveData) -> int:
 		data.attack_level + data.health_level + data.crit_chance_level
 		+ data.crit_damage_level + data.attack_speed_level
 	)
+
+
+static func _talent_levels(data: SaveData) -> int:
+	var total: int = 0
+	for level: int in data.talents.values():
+		total += level
+	return total
 
 
 static func _nothing() -> OfflineReward:

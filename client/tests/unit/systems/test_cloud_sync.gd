@@ -72,7 +72,7 @@ func _gold() -> BigNumber:
 	return session.wallet.get_amount(GameSession.GOLD)
 
 
-func test_compare_progress_orders_by_ascensions_then_stage_then_levels() -> void:
+func test_compare_progress_orders_by_ascensions_stage_levels_talents_then_gold() -> void:
 	assert_eq(CloudSync.compare_progress(_save(5, 1), _save(40, 0)), 1)
 	assert_eq(CloudSync.compare_progress(_save(10), _save(12)), -1)
 	assert_eq(CloudSync.compare_progress(_save(10, 0, 3), _save(10, 0, 2)), 1)
@@ -80,6 +80,13 @@ func test_compare_progress_orders_by_ascensions_then_stage_then_levels() -> void
 	rate_levels.crit_chance_level = 1
 	rate_levels.attack_speed_level = 1
 	assert_eq(CloudSync.compare_progress(rate_levels, _save(10, 0, 1)), 1)
+	var talented: SaveData = _save(10, 0, 2)
+	talented.talents = {"might": 1}
+	assert_eq(CloudSync.compare_progress(talented, _save(10, 0, 2)), 1, "talent levels after upgrade levels")
+	var richer: SaveData = _save(10, 0, 2)
+	richer.gold = BigNumber.from_float(101.0)
+	assert_eq(CloudSync.compare_progress(richer, _save(10, 0, 2)), 1, "gold last")
+	assert_eq(CloudSync.compare_progress(_save(10, 0, 2), richer), -1)
 	assert_eq(CloudSync.compare_progress(_save(10, 0, 2), _save(10, 0, 2)), 0)
 
 
@@ -214,3 +221,27 @@ func test_resume_while_unreachable_pays_nothing() -> void:
 	_boot_local(_save(6))
 	var reward: OfflineReward = await sync.resume()
 	assert_true(reward.is_empty())
+
+
+func test_gold_earned_without_network_at_the_same_stage_is_kept() -> void:
+	var local: SaveData = _save(4)
+	local.gold = BigNumber.from_float(900.0)
+	_boot_local(local)
+	_queue_pull(_save(4), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	var reward: OfflineReward = await sync.boot()
+	assert_true(reward.is_empty(), "the cloud last_seen predates the local play")
+	assert_true(_gold().is_equal_approx(BigNumber.from_float(900.0)))
+	assert_eq((transport.last_json() as Dictionary)["save"]["gold"], BigNumber.from_float(900.0).serialize())
+
+
+func test_resume_pays_when_the_gold_only_differs_by_serialization() -> void:
+	var local: SaveData = _save(6)
+	local.gold = BigNumber.from_float(27675.123456789)
+	_boot_local(local)
+	session.wallet.restore(GameSession.GOLD, BigNumber.from_float(27675.123456789))
+	var cloud: SaveData = SaveCodec.decode(SaveCodec.encode(session.to_save(T0))).data
+	_queue_pull(cloud, T0, T0 + HOUR)
+	transport.queue(200, {"server_now_unix": T0 + HOUR})
+	var reward: OfflineReward = await sync.resume()
+	assert_eq(reward.elapsed_seconds, HOUR)

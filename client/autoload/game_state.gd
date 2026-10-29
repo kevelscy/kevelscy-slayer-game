@@ -5,8 +5,8 @@ extends Node
 ##
 ## With the cloud on (the default) the local save still loads first, then
 ## CloudSync pulls the cloud save and pays offline time from the server clock;
-## the device clock never pays offline time. `-- --no-cloud` and GUT runs keep
-## the local-only, device-clock behaviour.
+## the device clock never pays offline time. `-- --no-cloud`, GUT runs and
+## `--import` runs keep the local-only, device-clock behaviour.
 
 signal offline_reward_granted(reward: OfflineReward)
 
@@ -16,6 +16,7 @@ const TALENTS: TalentCatalog = preload("res://data/content/talents/talent_catalo
 const SAVE_PATH_ARG_PREFIX: String = "--save-path="
 const NO_CLOUD_ARG: String = "--no-cloud"
 const GUT_RUNNER: String = "gut_cmdln.gd"
+const IMPORT_ARG: String = "--import"
 const AUTH_FILE: String = "auth.json"
 ## Project settings that point a build at a hosted project; the defaults are the
 ## local Supabase stack started from server/ (its publishable key is public).
@@ -104,7 +105,7 @@ func close_game() -> void:
 
 
 static func cloud_enabled(args: PackedStringArray, user_args: PackedStringArray) -> bool:
-	if user_args.has(NO_CLOUD_ARG):
+	if user_args.has(NO_CLOUD_ARG) or args.has(IMPORT_ARG):
 		return false
 	for arg: String in args:
 		if arg.ends_with(GUT_RUNNER):
