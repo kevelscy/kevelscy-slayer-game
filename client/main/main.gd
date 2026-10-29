@@ -17,6 +17,10 @@ const TAB_TITLES: PackedStringArray = ["Upgrades", "Spirits", "Ascension"]
 const TAB_ICONS: PackedStringArray = [
 	"res://art/icons/tab_upgrades.png", "res://art/icons/tab_spirits.png", "res://art/icons/tab_ascension.png",
 ]
+## A swipe between portrait pages: at least this far sideways (canvas px, 720 wide)...
+const SWIPE_MIN_DISTANCE: float = 120.0
+## ...and at least this many times its vertical distance, so vertical drags keep scrolling.
+const SWIPE_HORIZONTAL_RATIO: float = 2.0
 
 var _landscape: bool = false
 var _layout_applied: bool = false
@@ -28,6 +32,8 @@ var _report_elapsed: float = 0.0
 var _toast_tween: Tween
 ## The page tab shown in portrait; Ascension is an overlay, never a page.
 var _page: int = TAB_UPGRADES
+## Where the left button went down on the portrait pages; INF while no swipe is tracked.
+var _swipe_start: Vector2 = Vector2.INF
 
 @onready var safe_area: MarginContainer = $SafeArea
 @onready var portrait: VBoxContainer = $SafeArea/Portrait
@@ -151,6 +157,54 @@ func _on_tab_selected(index: int) -> void:
 	_page = index
 	_show_page()
 	pages.scroll_vertical = 0
+
+
+## Portrait: a sideways swipe that starts on the pages moves to the next (left) or
+## previous (right) page and eats the release, so the button under it is not pressed.
+## Touch reaches this as the emulated left mouse button.
+func _input(event: InputEvent) -> void:
+	if handle_swipe(event):
+		get_viewport().set_input_as_handled()
+
+
+## Tracks the swipe; true when event is the release of a swipe that changed the page
+## (the caller marks it handled).
+func handle_swipe(event: InputEvent) -> bool:
+	var button: InputEventMouseButton = event as InputEventMouseButton
+	if button == null or button.button_index != MOUSE_BUTTON_LEFT:
+		return false
+	if button.pressed:
+		var on_pages: bool = not _landscape and not ascension_panel.visible \
+				and pages.get_global_rect().has_point(button.position)
+		_swipe_start = button.position if on_pages else Vector2.INF
+		return false
+	if _swipe_start == Vector2.INF:
+		return false
+	var target: int = swipe_target(_page, button.position - _swipe_start)
+	_swipe_start = Vector2.INF
+	if target == _page:
+		return false
+	_cancel_page_presses()
+	tab_bar.select(target)
+	return true
+
+
+## Hiding a page drops the mouse focus with a synthetic release, which would press the
+## button the swipe started on; disabling a button clears its pending press.
+func _cancel_page_presses() -> void:
+	for node: Node in page_stack.find_children("*", "BaseButton", true, false):
+		var button: BaseButton = node as BaseButton
+		var disabled: bool = button.disabled
+		button.disabled = true
+		button.disabled = disabled
+
+
+## The page a drag of delta leads to from page; page itself when it is no swipe or
+## there is no page that way (Ascension is an overlay, never a page).
+static func swipe_target(page: int, delta: Vector2) -> int:
+	if absf(delta.x) < SWIPE_MIN_DISTANCE or absf(delta.x) < SWIPE_HORIZONTAL_RATIO * absf(delta.y):
+		return page
+	return clampi(page + (1 if delta.x < 0.0 else -1), TAB_UPGRADES, TAB_SPIRITS)
 
 
 ## Portrait shows only the picked page; landscape shows both panels in their columns.

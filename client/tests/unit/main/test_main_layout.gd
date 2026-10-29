@@ -108,3 +108,88 @@ func test_landscape_shows_both_panels_whatever_tab_was_picked() -> void:
 	assert_eq(main.tab_bar.selected, Main.TAB_SPIRITS, "back to the page picked before")
 	assert_false(main.upgrade_panel.visible)
 	assert_true(main.spirit_panel.visible)
+
+
+## Presses the left button at from and releases it at to through Main.handle_swipe
+## (what Main._input runs); true when the release was consumed.
+func _swipe(from: Vector2, to: Vector2) -> bool:
+	var press: InputEventMouseButton = InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = from
+	assert_false(main.handle_swipe(press), "the press is never consumed")
+	var release: InputEventMouseButton = InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	release.position = to
+	return main.handle_swipe(release)
+
+
+func _pages_center() -> Vector2:
+	await get_tree().process_frame
+	var rect: Rect2 = main.pages.get_global_rect()
+	assert_true(rect.has_area(), "the pages have a size to swipe on")
+	return rect.get_center()
+
+
+func _assert_page(index: int) -> void:
+	assert_eq(main.tab_bar.selected, index, "selected tab")
+	assert_true(main.tab_bar.buttons[index].button_pressed, "tab drawn selected")
+	assert_eq(main.upgrade_panel.visible, index == Main.TAB_UPGRADES, "upgrades page")
+	assert_eq(main.spirit_panel.visible, index == Main.TAB_SPIRITS, "spirits page")
+
+
+func test_swipe_left_on_upgrades_shows_spirits_and_consumes_the_release() -> void:
+	_portrait()
+	var center: Vector2 = await _pages_center()
+	assert_true(_swipe(center, center + Vector2(-200, 20)), "the release never presses a button")
+	_assert_page(Main.TAB_SPIRITS)
+
+
+func test_swipe_right_on_spirits_goes_back_to_upgrades() -> void:
+	_portrait()
+	main.tab_bar.select(Main.TAB_SPIRITS)
+	var center: Vector2 = await _pages_center()
+	assert_true(_swipe(center, center + Vector2(200, -20)))
+	_assert_page(Main.TAB_UPGRADES)
+
+
+func test_swipes_past_the_first_or_last_page_do_nothing() -> void:
+	_portrait()
+	var center: Vector2 = await _pages_center()
+	assert_false(_swipe(center, center + Vector2(200, 0)), "no page before Upgrades")
+	_assert_page(Main.TAB_UPGRADES)
+	main.tab_bar.select(Main.TAB_SPIRITS)
+	assert_false(_swipe(center, center + Vector2(-200, 0)), "never into Ascension")
+	_assert_page(Main.TAB_SPIRITS)
+	assert_false(main.ascension_panel.visible)
+
+
+func test_short_or_vertical_drags_are_not_swipes() -> void:
+	_portrait()
+	var center: Vector2 = await _pages_center()
+	assert_false(_swipe(center, center + Vector2(-Main.SWIPE_MIN_DISTANCE + 1.0, 0)), "too short")
+	assert_false(_swipe(center, center + Vector2(-200, -101)), "mostly vertical scrolls the page")
+	_assert_page(Main.TAB_UPGRADES)
+	assert_true(_swipe(center, center + Vector2(-Main.SWIPE_MIN_DISTANCE, 0)), "exactly the threshold")
+	_assert_page(Main.TAB_SPIRITS)
+
+
+func test_swipes_starting_off_the_pages_are_ignored() -> void:
+	_portrait()
+	await _pages_center()
+	var battle: Vector2 = main.battle_view.get_global_rect().get_center()
+	assert_false(_swipe(battle, battle + Vector2(-200, 0)))
+	_assert_page(Main.TAB_UPGRADES)
+
+
+func test_swipes_are_ignored_in_landscape_and_under_the_ascension_overlay() -> void:
+	_portrait()
+	var center: Vector2 = await _pages_center()
+	main.ascension_panel.open()
+	assert_false(_swipe(center, center + Vector2(-200, 0)), "overlay open")
+	_assert_page(Main.TAB_UPGRADES)
+	main.ascension_panel.visible = false
+	_landscape()
+	assert_false(_swipe(center, center + Vector2(-200, 0)), "landscape")
+	assert_eq(main.tab_bar.selected, Main.TAB_UPGRADES)
