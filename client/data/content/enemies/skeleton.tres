@@ -1,22 +1,30 @@
 [gd_resource type="Resource" script_class="EnemyDefinition" format=3]
 
-[ext_resource type="Script" path="res://components/animation/animation_sheet.gd" id="1_m2s64"]
-[ext_resource type="Texture2D" path="res://assets/sprites/enemies/skeleton/skeleton.png" id="2_ixhi4"]
-[ext_resource type="Script" path="res://data/definitions/enemy_definition.gd" id="3_fac7f"]
+[ext_resource type="Script" path="res://components/animation/animation_sheet.gd" id="1_ixhi4"]
+[ext_resource type="Texture2D" path="res://art/sprites/skeleton_walk.png" id="2_fac7f"]
+[ext_resource type="Texture2D" path="res://art/sprites/skeleton_idle.png" id="3_4tpbn"]
+[ext_resource type="Script" path="res://data/definitions/enemy_definition.gd" id="4_81p23"]
 
-[sub_resource type="Resource" id="Resource_4tpbn"]
-script = ExtResource("1_m2s64")
+[sub_resource type="Resource" id="Resource_10bch"]
+script = ExtResource("1_ixhi4")
 animation_name = &"walk"
-texture = ExtResource("2_ixhi4")
-frame_size = Vector2i(138, 138)
+texture = ExtResource("2_fac7f")
+frame_size = Vector2i(40, 40)
+frame_count = 6
+
+[sub_resource type="Resource" id="Resource_wbwcq"]
+script = ExtResource("1_ixhi4")
+animation_name = &"idle"
+texture = ExtResource("3_4tpbn")
+frame_size = Vector2i(40, 40)
 frame_count = 4
-fps = 8.0
 
 [resource]
-script = ExtResource("3_fac7f")
+script = ExtResource("4_81p23")
 id = &"skeleton"
-animation = SubResource("Resource_4tpbn")
-sprite_scale = 0.45
+animation = SubResource("Resource_10bch")
+idle_animation = SubResource("Resource_wbwcq")
+sprite_scale = 1.0
 health_multiplier = 1.4
 damage_multiplier = 1.2
 move_speed = 30.0

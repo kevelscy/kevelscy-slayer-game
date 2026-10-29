@@ -1,9 +1,11 @@
 extends GutTest
 ## Enemies play the original Pixelorama art from art/sprites/ (10-12 fps). The slime (32x32
-## frames) moves while it advances and idles at the hero; the bat (40x32 frames) only flies.
+## frames) and the skeleton (40x40 frames) move while they advance and idle at the hero; the bat
+## (40x32 frames) only flies.
 
 const SLIME: EnemyDefinition = preload("res://data/content/enemies/slime.tres")
 const BAT: EnemyDefinition = preload("res://data/content/enemies/bat.tres")
+const SKELETON: EnemyDefinition = preload("res://data/content/enemies/skeleton.tres")
 const ENEMY_SCENE: PackedScene = preload("res://entities/enemies/enemy.tscn")
 const CONTACT_X: float = 50.0
 
@@ -44,6 +46,21 @@ func test_bat_uses_the_original_art() -> void:
 	assert_null(BAT.idle_animation, "the bat flies in place at the hero")
 	assert_eq(BAT.sprite_scale, 1.0)
 	assert_eq(BAT.hover_height, 18.0)
+
+
+func test_skeleton_uses_the_original_art() -> void:
+	_assert_sheet(SKELETON.animation, &"walk", "res://art/sprites/skeleton_walk.png", 6, Vector2i(40, 40))
+	_assert_sheet(SKELETON.idle_animation, &"idle", "res://art/sprites/skeleton_idle.png", 4, Vector2i(40, 40))
+	assert_eq(SKELETON.sprite_scale, 1.0)
+	assert_eq(SKELETON.hover_height, 0.0)
+
+
+func test_skeleton_walks_while_it_advances_and_idles_at_the_hero() -> void:
+	var enemy: Enemy = _spawn(SKELETON)
+	assert_eq(enemy.sprite.animation, &"walk")
+	enemy.advance(10.0, 0.0, CONTACT_X)
+	assert_eq(enemy.sprite.animation, &"idle")
+	assert_true(enemy.sprite.is_playing())
 
 
 func test_slime_moves_while_it_advances_and_idles_at_the_hero() -> void:
