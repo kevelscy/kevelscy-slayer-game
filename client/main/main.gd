@@ -1,6 +1,6 @@
 class_name Main
 extends Control
-## Root screen: moves the battle view, HUD, upgrade and ability panels between the
+## Root screen: moves the battle view, HUD, upgrade, ability and spirit panels between the
 ## portrait stack (mobile) and the three-column landscape layout (PC) as the window changes.
 ## The ascension panel is a full-screen overlay opened from the HUD in both layouts.
 
@@ -31,6 +31,7 @@ var _toast_tween: Tween
 @onready var hud: Hud = $SafeArea/Portrait/Hud
 @onready var upgrade_panel: UpgradePanel = $SafeArea/Portrait/UpgradePanel
 @onready var ability_panel: AbilityPanel = $SafeArea/Portrait/AbilityPanel
+@onready var spirit_panel: SpiritPanel = $SafeArea/Portrait/SpiritPanel
 @onready var ascension_panel: AscensionPanel = $AscensionPanel
 @onready var toast: PanelContainer = $Toast
 @onready var toast_label: Label = $Toast/Label
@@ -44,6 +45,7 @@ func _ready() -> void:
 	hud.bind(session, battle_world.hero)
 	upgrade_panel.bind(session)
 	ability_panel.bind(session)
+	spirit_panel.bind(session)
 	ascension_panel.bind(session)
 	hud.ascension_button.pressed.connect(ascension_panel.open)
 	if _open_ascension:
@@ -112,11 +114,13 @@ func _reparent_panels() -> void:
 		hud.reparent(center_column, false)
 		battle_view.reparent(center_column, false)
 		ability_panel.reparent(left_column, false)
+		spirit_panel.reparent(left_column, false)
 		upgrade_panel.reparent(right_column, false)
 	else:
 		hud.reparent(portrait, false)
 		battle_view.reparent(portrait, false)
 		ability_panel.reparent(portrait, false)
+		spirit_panel.reparent(portrait, false)
 		upgrade_panel.reparent(portrait, false)
 
 

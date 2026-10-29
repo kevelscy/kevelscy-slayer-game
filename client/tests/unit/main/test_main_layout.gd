@@ -26,3 +26,10 @@ func test_landscape_puts_skills_left_and_upgrades_right() -> void:
 	main._reparent_panels()
 	assert_eq(main.ability_panel.get_parent(), main.left_column)
 	assert_eq(main.upgrade_panel.get_parent(), main.right_column)
+
+
+func test_landscape_puts_spirits_under_the_skills() -> void:
+	main._landscape = true
+	main._reparent_panels()
+	assert_eq(main.spirit_panel.get_parent(), main.left_column)
+	assert_lt(main.ability_panel.get_index(), main.spirit_panel.get_index())
