@@ -18,6 +18,7 @@ const NO_CLOUD_ARG: String = "--no-cloud"
 const GUT_RUNNER: String = "gut_cmdln.gd"
 const IMPORT_ARG: String = "--import"
 const AUTH_FILE: String = "auth.json"
+const SYNC_MARKER_FILE: String = "cloud_sync.json"
 ## Project settings that point a build at a hosted project; the defaults are the
 ## local Supabase stack started from server/ (its publishable key is public).
 const CLOUD_URL_SETTING: String = "cloud/url"
@@ -130,7 +131,8 @@ func _make_cloud(save_path: String) -> CloudSync:
 	var config: CloudConfig = cloud_config()
 	var transport: GodotHttpTransport = GodotHttpTransport.new(self)
 	var auth: SupabaseAuth = SupabaseAuth.new(config, transport, auth_path(save_path), _device_clock)
-	return CloudSync.new(session, saves, CloudSaveClient.new(config, transport, auth))
+	var marker_path: String = save_path.get_base_dir().path_join(SYNC_MARKER_FILE)
+	return CloudSync.new(session, saves, CloudSaveClient.new(config, transport, auth), marker_path)
 
 
 ## Device clock: only for local saves and token expiry, never for cloud offline time.

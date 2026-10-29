@@ -46,13 +46,16 @@ next to the save) and keeps the save in the cloud. Start the local stack first (
 `server/README.md`); without it the game simply plays on the local save.
 
 - The local save loads first, so the game never waits on the network. Then the cloud save is
-  pulled: if it has at least the local progress (ascensions, then stage, then the sum of the
-  five upgrade levels; ties go to the cloud) it replaces the run, and the battle restarts.
-- Offline gold uses only server times: the server stamps `last_seen` on every push. It is paid
-  only when the cloud save holds the same progress as the game, so a save played without network
-  pays nothing that boot, and an unreachable server pays nothing.
-- The game pushes after each sync, every 60 s, on suspend and focus loss, and when the window is
-  closed (waiting at most 3 s).
+  pulled: if it has at least the local progress (ascensions, stage, upgrade levels, talent
+  levels, then gold; ties go to the cloud) it replaces the run, and the battle restarts.
+- Offline gold uses only server times: the server stamps `last_seen` on every push. While the
+  cloud row is still this device's last confirmed push, the time away is the server's now minus
+  that `last_seen` minus the game time played since (kept in `cloud_sync.json` next to the save,
+  so it survives the OS killing a backgrounded app). Another device's row, or an unreachable
+  server, pays nothing.
+- The game pushes after each sync, every 60 s, on focus loss, and when the window is closed
+  (waiting at most 3 s). Requests cannot finish while a mobile app is suspended, so suspend
+  pushes nothing.
 - A hosted project is set with the project settings `cloud/url` and `cloud/api_key`
   (publishable key); the defaults point at the local stack.
 

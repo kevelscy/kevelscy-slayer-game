@@ -10,6 +10,7 @@ var store: SaveStore
 var transport: FakeHttpTransport
 var session: GameSession
 var controller: SaveController
+var client: CloudSaveClient
 var sync: CloudSync
 
 
@@ -25,7 +26,8 @@ func before_each() -> void:
 	var auth: SupabaseAuth = SupabaseAuth.new(
 		config, transport, dir_path.path_join("auth.json"), func() -> int: return T0
 	)
-	sync = CloudSync.new(session, controller, CloudSaveClient.new(config, transport, auth))
+	client = CloudSaveClient.new(config, transport, auth)
+	sync = CloudSync.new(session, controller, client, dir_path.path_join("cloud_sync.json"))
 	transport.queue(200, {"access_token": "a1", "refresh_token": "r1", "expires_in": 3600, "user": {"id": "u1"}})
 	await auth.ensure_session()
 
@@ -188,16 +190,25 @@ func test_tick_pushes_every_sixty_seconds() -> void:
 	assert_eq(_rpc_requests("push_save").size(), 1)
 
 
-func test_suspend_pushes_the_session() -> void:
+func _ack_push(server_now: int) -> void:
+	transport.queue(200, {"server_now_unix": server_now})
+	await sync.push()
+
+
+func test_suspend_keeps_the_marker_without_pushing() -> void:
 	_boot_local(_save(6))
-	transport.queue(200, {"server_now_unix": T0})
-	await sync.suspend()
-	assert_eq(_rpc_requests("push_save").size(), 1)
-	assert_eq(_pushed_stage(), 6)
+	await _ack_push(T0)
+	sync.tick(30.0)
+	sync.suspend()
+	assert_eq(_rpc_requests("push_save").size(), 1, "requests cannot finish while suspended")
+	var marker: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(dir_path.path_join("cloud_sync.json")))
+	assert_eq(int(marker["acked_unix"]), T0)
+	assert_almost_eq(float(marker["played_since_ack"]), 30.0, 0.001)
 
 
 func test_resume_pays_the_suspended_time_from_the_server() -> void:
 	_boot_local(_save(6))
+	await _ack_push(T0)
 	_queue_pull(_save(6), T0, T0 + HOUR)
 	transport.queue(200, {"server_now_unix": T0 + HOUR})
 	watch_signals(sync)
@@ -207,9 +218,60 @@ func test_resume_pays_the_suspended_time_from_the_server() -> void:
 	assert_eq(_pushed_stage(), 6)
 
 
-func test_resume_pays_nothing_when_the_cloud_missed_the_suspend_push() -> void:
+func test_resume_subtracts_the_play_since_the_last_push() -> void:
 	_boot_local(_save(6))
-	_queue_pull(_save(5), T0 - 5 * HOUR, T0 + HOUR)
+	await _ack_push(T0)
+	sync.tick(40.0)
+	session.wallet.restore(GameSession.GOLD, BigNumber.from_float(900.0))
+	_queue_pull(_save(6), T0, T0 + HOUR)
+	transport.queue(200, {"server_now_unix": T0 + HOUR})
+	var reward: OfflineReward = await sync.resume()
+	assert_eq(reward.elapsed_seconds, HOUR - 40, "gold earned after the push does not block the reward")
+
+
+func test_play_while_pushes_fail_is_not_paid_as_offline_time() -> void:
+	_boot_local(_save(6))
+	await _ack_push(T0)
+	sync.tick(60.0)
+	sync.tick(60.0)
+	await wait_process_frames(1)
+	_queue_pull(_save(6), T0, T0 + HOUR)
+	transport.queue(200, {"server_now_unix": T0 + HOUR})
+	var reward: OfflineReward = await sync.resume()
+	assert_eq(reward.elapsed_seconds, HOUR - 120)
+
+
+func test_a_second_resume_pays_only_the_second_absence() -> void:
+	_boot_local(_save(6))
+	await _ack_push(T0)
+	_queue_pull(_save(6), T0, T0 + HOUR)
+	var first: OfflineReward = await sync.resume()
+	assert_eq(first.elapsed_seconds, HOUR, "its push failed, so the cloud keeps the T0 row")
+	sync.tick(50.0)
+	_queue_pull(_save(6), T0, T0 + 3 * HOUR)
+	var second: OfflineReward = await sync.resume()
+	assert_eq(second.elapsed_seconds, 2 * HOUR - 50)
+
+
+func test_boot_after_the_app_was_killed_pays_from_the_saved_marker() -> void:
+	_boot_local(_save(6))
+	await _ack_push(T0)
+	sync.tick(25.0)
+	sync.suspend()
+	session.wallet.restore(GameSession.GOLD, BigNumber.from_float(900.0))
+	controller.save_now()
+	var relaunched: CloudSync = CloudSync.new(session, controller, client, dir_path.path_join("cloud_sync.json"))
+	_queue_pull(_save(6), T0, T0 + HOUR)
+	transport.queue(200, {"server_now_unix": T0 + HOUR})
+	var reward: OfflineReward = await relaunched.boot()
+	assert_eq(reward.elapsed_seconds, HOUR - 25)
+	assert_true(_gold().is_equal_approx(BigNumber.from_float(900.0).add(reward.amounts[GameSession.GOLD])))
+
+
+func test_resume_pays_nothing_when_another_push_replaced_the_cloud_row() -> void:
+	_boot_local(_save(6))
+	await _ack_push(T0)
+	_queue_pull(_save(5), T0 + 60, T0 + HOUR)
 	transport.queue(200, {"server_now_unix": T0 + HOUR})
 	var reward: OfflineReward = await sync.resume()
 	assert_true(reward.is_empty())
@@ -235,13 +297,10 @@ func test_gold_earned_without_network_at_the_same_stage_is_kept() -> void:
 	assert_eq((transport.last_json() as Dictionary)["save"]["gold"], BigNumber.from_float(900.0).serialize())
 
 
-func test_resume_pays_when_the_gold_only_differs_by_serialization() -> void:
+func test_gold_that_only_differs_by_serialization_ties() -> void:
 	var local: SaveData = _save(6)
 	local.gold = BigNumber.from_float(27675.123456789)
 	_boot_local(local)
 	session.wallet.restore(GameSession.GOLD, BigNumber.from_float(27675.123456789))
 	var cloud: SaveData = SaveCodec.decode(SaveCodec.encode(session.to_save(T0))).data
-	_queue_pull(cloud, T0, T0 + HOUR)
-	transport.queue(200, {"server_now_unix": T0 + HOUR})
-	var reward: OfflineReward = await sync.resume()
-	assert_eq(reward.elapsed_seconds, HOUR)
+	assert_eq(CloudSync.compare_progress(cloud, session.to_save(T0)), 0)

@@ -4,10 +4,11 @@ extends RefCounted
 ## time from the server clock only (the device clock is never trusted).
 ##
 ## The local save loads first so the game never waits on the network. On boot the
-## save with more progress wins (ties go to the cloud). Offline gold is paid only
-## when the cloud save holds the same progress as the session, because only then
-## does its server-stamped last_seen mark when this session stopped playing.
-## Without the cloud nothing is paid and play continues on the local save.
+## save with more progress wins (ties go to the cloud). Offline gold is paid while
+## the cloud row is still this device's last confirmed push: its server-stamped
+## last_seen plus the game time played since marks when play stopped. Requests
+## cannot finish while the app is suspended, so the marker of that push survives
+## a relaunch in a file. Without the cloud nothing is paid.
 
 signal offline_reward_granted(reward: OfflineReward)
 
@@ -16,14 +17,23 @@ const PUSH_SECONDS: float = 60.0
 var _session: GameSession
 var _controller: SaveController
 var _client: CloudSaveClient
+var _marker_path: String
 var _push_elapsed: float = 0.0
 var _pushing: bool = false
+## Server time of the last push the cloud confirmed; that row carries it as last_seen.
+var _acked_unix: int = 0
+## Game time played since that push's snapshot. Frames stop while suspended, so
+## time away is never counted, and the device clock is never read.
+var _played_since_ack: float = 0.0
 
 
-func _init(session: GameSession, controller: SaveController, client: CloudSaveClient) -> void:
+func _init(
+	session: GameSession, controller: SaveController, client: CloudSaveClient, marker_path: String = ""
+) -> void:
 	_session = session
 	_controller = controller
 	_client = client
+	_marker_path = marker_path
 
 
 ## Compares progress: ascensions, stage, the sum of upgrade levels, the sum of
@@ -42,15 +52,20 @@ static func compare_progress(a: SaveData, b: SaveData) -> int:
 
 
 func boot() -> OfflineReward:
+	_load_marker()
 	var pulled: CloudPullResult = await _client.pull()
 	if not pulled.ok:
 		push_warning("CloudSync: boot sync skipped (%s)" % pulled.error)
 		return _nothing()
 	var reward: OfflineReward = _nothing()
+	var owned: bool = _owns(pulled)
 	if pulled.data != null and compare_progress(pulled.data, _local()) >= 0:
 		_session.apply_save(pulled.data)
 		_controller.save_now()
-		reward = _grant(pulled)
+		reward = _grant(pulled, owned)
+	elif owned:
+		# The local save is ahead only by the play after this device's last push.
+		reward = _grant(pulled, true)
 	await push()
 	return reward
 
@@ -60,18 +75,19 @@ func resume() -> OfflineReward:
 	if not pulled.ok:
 		push_warning("CloudSync: resume sync skipped (%s)" % pulled.error)
 		return _nothing()
-	var reward: OfflineReward = _nothing()
-	if pulled.data != null and compare_progress(pulled.data, _local()) == 0:
-		reward = _grant(pulled)
+	# Resume never rolls the session back; another device's row pays nothing.
+	var reward: OfflineReward = _grant(pulled, true) if _owns(pulled) else _nothing()
 	await push()
 	return reward
 
 
+## Nothing reaches the server while suspended, so keep the marker for a relaunch.
 func suspend() -> void:
-	await push()
+	_save_marker()
 
 
 func tick(delta: float) -> void:
+	_played_since_ack += delta
 	_push_elapsed += delta
 	if _push_elapsed >= PUSH_SECONDS:
 		push()
@@ -83,19 +99,54 @@ func push() -> CloudPushResult:
 	if _pushing:
 		return CloudPushResult.new(false, 0, "push already in flight")
 	_pushing = true
+	_save_marker()
+	var played_at_send: float = _played_since_ack
 	var result: CloudPushResult = await _client.push(_local())
 	_pushing = false
-	if not result.ok:
+	if result.ok:
+		_acked_unix = result.server_now_unix
+		_played_since_ack -= played_at_send
+		_save_marker()
+	else:
 		push_warning("CloudSync: push failed (%s)" % result.error)
 	return result
 
 
-func _grant(pulled: CloudPullResult) -> OfflineReward:
-	var reward: OfflineReward = _session.grant_offline(pulled.last_seen_unix, pulled.server_now_unix)
+func _owns(pulled: CloudPullResult) -> bool:
+	return pulled.data != null and _acked_unix > 0 and pulled.last_seen_unix == _acked_unix
+
+
+## An owned row pays from its last_seen plus the play since, then counts the time
+## up to now as accounted so a later resume pays only the next absence.
+func _grant(pulled: CloudPullResult, owned: bool) -> OfflineReward:
+	var played: int = int(_played_since_ack) if owned else 0
+	var reward: OfflineReward = _session.grant_offline(pulled.last_seen_unix + played, pulled.server_now_unix)
+	if owned:
+		_played_since_ack = maxf(_played_since_ack, float(pulled.server_now_unix - _acked_unix))
 	if not reward.is_empty():
 		_controller.save_now()
 		offline_reward_granted.emit(reward)
 	return reward
+
+
+func _save_marker() -> void:
+	if _marker_path.is_empty():
+		return
+	var file: FileAccess = FileAccess.open(_marker_path, FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify({"acked_unix": _acked_unix, "played_since_ack": _played_since_ack}))
+
+
+func _load_marker() -> void:
+	if _marker_path.is_empty() or not FileAccess.file_exists(_marker_path):
+		return
+	var json: JSON = JSON.new()
+	if json.parse(FileAccess.get_file_as_string(_marker_path)) != OK or not json.data is Dictionary:
+		return
+	var marker: Dictionary = json.data
+	if marker.get("acked_unix") is float and marker.get("played_since_ack") is float:
+		_acked_unix = int(marker["acked_unix"])
+		_played_since_ack = maxf(0.0, marker["played_since_ack"])
 
 
 func _local() -> SaveData:
