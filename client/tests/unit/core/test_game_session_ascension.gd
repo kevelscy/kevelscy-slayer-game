@@ -113,7 +113,7 @@ func test_talents_survive_ascending() -> void:
 
 
 func test_greed_multiplies_kill_and_boss_gold() -> void:
-	session.talents.set_levels({&"greed": 5})
+	session.talents.set_levels({"greed": 5})
 	session.on_enemy_killed(false)
 	var expected: BigNumber = session.balance.gold_reward(1).mul_float(1.5)
 	assert_true(session.wallet.get_amount(GameSession.GOLD).is_equal_approx(expected))
@@ -127,7 +127,7 @@ func test_greed_multiplies_kill_and_boss_gold() -> void:
 
 func test_greed_multiplies_offline_gold() -> void:
 	var base_rate: BigNumber = session.offline_gold_rate()
-	session.talents.set_levels({&"greed": 10})
+	session.talents.set_levels({"greed": 10})
 	assert_true(session.offline_gold_rate().is_equal_approx(base_rate.mul_float(2.0)))
 	var reward: OfflineReward = session.grant_offline(LAST_SEEN, LAST_SEEN + HOUR)
 	assert_true(reward.amounts[GameSession.GOLD].is_equal_approx(base_rate.mul_float(2.0 * HOUR)))

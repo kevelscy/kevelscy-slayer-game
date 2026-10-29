@@ -62,7 +62,7 @@ func test_unaffordable_purchase_spends_nothing() -> void:
 
 
 func test_maxed_talent_cannot_be_bought() -> void:
-	tree.set_levels({&"might": 10})
+	tree.set_levels({"might": 10})
 	tree.shards = 100
 	assert_true(tree.is_maxed(&"might"))
 	assert_false(tree.try_buy(&"might"))
@@ -74,7 +74,7 @@ func test_tier_two_talent_needs_its_prerequisite_level() -> void:
 	assert_false(tree.is_unlocked(&"precision"))
 	assert_false(tree.try_buy(&"precision"))
 	assert_eq(tree.shards, 100)
-	tree.set_levels({&"might": 5})
+	tree.set_levels({"might": 5})
 	assert_true(tree.is_unlocked(&"precision"))
 	assert_true(tree.try_buy(&"precision"))
 	assert_almost_eq(stats.get_rate(StatBlock.CRIT_CHANCE), 0.06, 1e-9)
@@ -82,13 +82,13 @@ func test_tier_two_talent_needs_its_prerequisite_level() -> void:
 
 func test_gold_gain_talent_multiplies_gold_and_not_stats() -> void:
 	assert_almost_eq(tree.gold_multiplier(), 1.0, 1e-9)
-	tree.set_levels({&"greed": 3})
+	tree.set_levels({"greed": 3})
 	assert_almost_eq(tree.gold_multiplier(), 1.3, 1e-9)
 	assert_almost_eq(stats.get_big(StatBlock.ATTACK).to_float(), 100.0, 1e-6)
 
 
 func test_set_levels_clamps_ignores_unknown_ids_and_replaces_bonuses() -> void:
-	tree.set_levels({&"might": 50, &"unknown": 3})
+	tree.set_levels({"might": 50, "unknown": 3})
 	assert_eq(tree.level(&"might"), 10)
 	assert_almost_eq(stats.get_big(StatBlock.ATTACK).to_float(), 200.0, 1e-6)
 	tree.set_levels({})
@@ -97,5 +97,5 @@ func test_set_levels_clamps_ignores_unknown_ids_and_replaces_bonuses() -> void:
 
 
 func test_levels_snapshot_lists_every_talent() -> void:
-	tree.set_levels({&"might": 2})
+	tree.set_levels({"might": 2})
 	assert_eq(tree.levels(), {&"might": 2, &"greed": 0, &"precision": 0})

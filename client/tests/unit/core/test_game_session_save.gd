@@ -120,7 +120,7 @@ func test_save_round_trip_keeps_ascension_progress() -> void:
 	var source: GameSession = GameSession.new(StageBalance.new(), 10, 30.0, AbilityCatalog.new(), talents)
 	source.talents.shards = 7
 	source.ascension_count = 3
-	source.talents.set_levels({&"might": 4, &"greed": 2})
+	source.talents.set_levels({"might": 4, "greed": 2})
 	var data: SaveData = source.to_save(1_700_000_123)
 	assert_eq(data.ascension_shards, 7)
 	assert_eq(data.ascension_count, 3)

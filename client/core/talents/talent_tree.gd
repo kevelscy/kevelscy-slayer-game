@@ -63,20 +63,19 @@ func try_buy(talent_id: StringName) -> bool:
 	return true
 
 
-## Restores saved levels: unknown ids are ignored, levels clamp to each max and
-## talents missing from `saved` drop to 0. Prerequisites are not re-checked.
-func set_levels(saved: Dictionary) -> void:
-	for talent_id: StringName in _definitions:
-		var saved_level: int = int(saved.get(talent_id, saved.get(String(talent_id), 0)))
-		_set_level(talent_id, clampi(saved_level, 0, _definitions[talent_id].max_level))
+## Restores saved levels keyed by talent id as in SaveData.talents: unknown ids
+## are ignored, levels clamp to each max and talents missing from `saved` drop to
+## 0. Prerequisites are not re-checked.
+func set_levels(saved: Dictionary[String, int]) -> void:
+	for talent: TalentDefinition in _definitions.values():
+		_set_level(talent.id, clampi(saved.get(String(talent.id), 0), 0, talent.max_level))
 
 
 func gold_multiplier() -> float:
 	var bonus: float = 0.0
-	for talent_id: StringName in _definitions:
-		var talent: TalentDefinition = _definitions[talent_id]
+	for talent: TalentDefinition in _definitions.values():
 		if talent.stat == TalentDefinition.GOLD_GAIN:
-			bonus += talent.per_level * level(talent_id)
+			bonus += talent.per_level * _levels[talent.id]
 	return 1.0 + bonus
 
 
