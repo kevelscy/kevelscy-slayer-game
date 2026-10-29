@@ -61,12 +61,14 @@ static func compare_progress(a: SaveData, b: SaveData) -> int:
 
 func boot() -> OfflineReward:
 	_load_marker()
-	return await _sync()
+	return await _sync(true)
 
 
 ## Pulls the cloud, keeps the save with more progress, pays an owned row's
-## offline time, then pushes the result.
-func _sync() -> OfflineReward:
+## offline time, then pushes the result. Only the boot sync gives a tie to the
+## cloud: a retry runs mid-play, where applying an equal save would restart the
+## running game (buffs, spirits and the battle) for no progress.
+func _sync(cloud_wins_ties: bool) -> OfflineReward:
 	if _syncing:
 		return _nothing()
 	_syncing = true
@@ -78,7 +80,8 @@ func _sync() -> OfflineReward:
 	_synced = true
 	var reward: OfflineReward = _nothing()
 	var owned: bool = _owns(pulled)
-	if pulled.data != null and compare_progress(pulled.data, _local()) >= 0:
+	var min_lead: int = 0 if cloud_wins_ties else 1
+	if pulled.data != null and compare_progress(pulled.data, _local()) >= min_lead:
 		_session.apply_save(pulled.data)
 		_controller.save_now()
 		reward = _grant(pulled, owned)
@@ -91,7 +94,7 @@ func _sync() -> OfflineReward:
 
 func resume() -> OfflineReward:
 	if not _synced:
-		return await _sync()
+		return await _sync(false)
 	var pulled: CloudPullResult = await _client.pull()
 	if not pulled.ok:
 		push_warning("CloudSync: resume sync skipped (%s)" % pulled.error)
@@ -116,7 +119,7 @@ func tick(delta: float) -> void:
 		push()
 	else:
 		_push_elapsed = 0.0
-		_sync()
+		_sync(false)
 
 
 ## Sends the session to the cloud; a push already in flight makes this a no-op.

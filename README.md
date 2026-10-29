@@ -62,7 +62,8 @@ refresh token the server refuses signs up a new player.
   (after any push already in flight, waiting at most 3 s in total). Requests cannot finish while
   a mobile app is suspended, so suspend pushes nothing.
 - Nothing is pushed until a sync has pulled the cloud, so a device that booted offline never
-  overwrites progress stored by another one; until then the 60 s timer retries the sync.
+  overwrites progress stored by another one; until then the 60 s timer retries the sync. That
+  retry runs mid-play, so only a cloud save strictly ahead replaces the run; a tie keeps it.
 - A hosted project is set with the project settings `cloud/url` and `cloud/api_key`
   (publishable key); the defaults point at the local stack.
 

@@ -229,6 +229,48 @@ func test_tick_retries_the_boot_sync_instead_of_pushing() -> void:
 	assert_eq(_rpc_requests("push_save").size(), 2)
 
 
+## The live session round-tripped through the codec: equal progress, gold included.
+func _tied_cloud() -> SaveData:
+	return SaveCodec.decode(SaveCodec.encode(session.to_save(T0))).data
+
+
+func test_the_boot_sync_gives_an_exact_tie_to_the_cloud() -> void:
+	_boot_local(_save(6))
+	_queue_pull(_tied_cloud(), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	watch_signals(session)
+	await sync.boot()
+	assert_signal_emitted(session, "save_applied")
+
+
+func test_a_timer_retry_keeps_the_running_session_on_a_tie() -> void:
+	_boot_local(_save(6))
+	await sync.boot()
+	_queue_pull(_tied_cloud(), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	watch_signals(session)
+	watch_signals(sync)
+	sync.tick(60.0)
+	await wait_process_frames(1)
+	assert_signal_not_emitted(session, "save_applied", "a tie never restarts the running game")
+	assert_signal_not_emitted(sync, "offline_reward_granted", "another device's row pays nothing")
+	assert_eq(_rpc_requests("pull_save").size(), 2)
+	assert_eq(_rpc_requests("push_save").size(), 1, "the kept session is pushed")
+	assert_eq(_pushed_stage(), 6)
+
+
+func test_a_resume_before_the_first_sync_keeps_the_running_session_on_a_tie() -> void:
+	_boot_local(_save(6))
+	await sync.boot()
+	_queue_pull(_tied_cloud(), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	watch_signals(session)
+	var reward: OfflineReward = await sync.resume()
+	assert_signal_not_emitted(session, "save_applied", "a tie never restarts the running game")
+	assert_true(reward.is_empty())
+	assert_eq(_rpc_requests("push_save").size(), 1, "the kept session is pushed")
+
+
 func test_a_resume_before_the_first_sync_runs_the_boot_sync() -> void:
 	_boot_local(_save(4))
 	await sync.boot()
