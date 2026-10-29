@@ -30,11 +30,27 @@ scripts/test.sh -gselect=test_damage # extra args are forwarded to GUT
 
 - The run is saved to `user://save.json` (versioned JSON, written through a temp file and rename)
   every 30 s, when the app is paused or loses focus, and on every clean exit.
+- Save format version 2 adds the crit chance, crit damage and attack speed levels. A version 1
+  save still loads with those levels at 0 and is written back as version 2.
 - A save that fails validation is never half-applied: the game starts fresh and keeps the bad
   file as `user://save.rejected.json`.
 - Offline gold = sustainable kills per second × gold per kill × time away (capped at 8 h). It is
   paid on boot and when a mobile app returns from the background; nothing runs while suspended.
   The device clock is used until the server validates timestamps.
+
+## Stat upgrades
+
+Gold buys five stats in the upgrade panel:
+
+| Stat | Start | Per level | Max |
+|---|---|---|---|
+| Attack | 10 | ×1.12 | — |
+| Health | 100 | ×1.12 | — |
+| Crit Chance | 5.0% | +0.5% | level 90 (50%) |
+| Crit Damage | 150% | +5% | — |
+| Attack Speed | 1.50/s | +0.02/s | level 75 (3.00/s) |
+
+A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed upgrades count.
 
 ## Skills and spirits
 

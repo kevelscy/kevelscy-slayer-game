@@ -1,31 +1,39 @@
 class_name UpgradePanel
 extends VBoxContainer
-## One row per stat upgrade: name, level, current value and a buy button priced in gold.
+## One row per stat upgrade: name, level, current value and a buy button priced in
+## gold, or "Max" once a capped track is complete.
 
 
 class Row:
 	var title: String
 	var track: UpgradeTrack
+	## Formats the track's current value for the label.
+	var value_text: Callable
 	var label: Label
 	var button: Button
 
 
+var rows: Array[Row] = []
+
 var _session: GameSession
-var _rows: Array[Row] = []
 
 
 func bind(session: GameSession) -> void:
 	_session = session
-	_add_row("Attack", session.attack_track)
-	_add_row("Health", session.health_track)
+	_add_row("Attack", session.attack_track, func() -> String: return NumberFormat.format(session.attack_track.value()))
+	_add_row("Health", session.health_track, func() -> String: return NumberFormat.format(session.health_track.value()))
+	_add_row("Crit Chance", session.crit_chance_track, func() -> String: return "%.1f%%" % (session.crit_chance_track.rate() * 100.0))
+	_add_row("Crit Damage", session.crit_damage_track, func() -> String: return "%d%%" % roundi(session.crit_damage_track.rate() * 100.0))
+	_add_row("Attack Speed", session.attack_speed_track, func() -> String: return "%.2f/s" % session.attack_speed_track.rate())
 	session.wallet.changed.connect(func(_currency: StringName, _total: BigNumber) -> void: _refresh())
 	_refresh()
 
 
-func _add_row(title: String, track: UpgradeTrack) -> void:
+func _add_row(title: String, track: UpgradeTrack, value_text: Callable) -> void:
 	var row: Row = Row.new()
 	row.title = title
 	row.track = track
+	row.value_text = value_text
 	var box: HBoxContainer = HBoxContainer.new()
 	row.label = Label.new()
 	row.label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -35,7 +43,7 @@ func _add_row(title: String, track: UpgradeTrack) -> void:
 	box.add_child(row.label)
 	box.add_child(row.button)
 	add_child(box)
-	_rows.append(row)
+	rows.append(row)
 
 
 func _on_buy_pressed(track: UpgradeTrack) -> void:
@@ -44,8 +52,12 @@ func _on_buy_pressed(track: UpgradeTrack) -> void:
 
 
 func _refresh() -> void:
-	for row: Row in _rows:
+	for row: Row in rows:
+		row.label.text = "%s  Lv %d\n%s" % [row.title, row.track.level, row.value_text.call()]
+		if row.track.is_maxed():
+			row.button.text = "Max"
+			row.button.disabled = true
+			continue
 		var cost: BigNumber = row.track.next_cost()
-		row.label.text = "%s  Lv %d\n%s" % [row.title, row.track.level, NumberFormat.format(row.track.value())]
 		row.button.text = "Up  %s" % NumberFormat.format(cost)
 		row.button.disabled = not _session.wallet.can_afford(GameSession.GOLD, cost)
