@@ -11,21 +11,21 @@ const SFX_DIR: String = "res://audio/sfx/"
 ## id -> [minimum interval in seconds, polyphony, volume in dB, random pitch (1.0 = none)].
 ## Every id has a WAV named after it in SFX_DIR, built by audio/source/build_sfx.py.
 const SOUNDS: Dictionary[StringName, Array] = {
-	&"hit": [0.06, 4, -10.0, 1.12],
-	&"crit": [0.08, 2, -6.0, 1.05],
-	&"coin": [0.08, 3, -12.0, 1.0],
-	&"spirit": [0.1, 2, -14.0, 1.1],
-	&"thunder": [0.2, 1, -8.0, 1.0],
-	&"meteor": [0.2, 1, -8.0, 1.0],
-	&"blizzard": [0.2, 1, -9.0, 1.0],
-	&"fury": [0.2, 1, -9.0, 1.0],
-	&"shield": [0.2, 1, -9.0, 1.0],
-	&"upgrade": [0.05, 2, -10.0, 1.0],
-	&"ui_tap": [0.05, 1, -14.0, 1.0],
-	&"boss_start": [0.5, 1, -8.0, 1.0],
-	&"boss_defeat": [0.5, 1, -8.0, 1.0],
-	&"hero_death": [0.5, 1, -8.0, 1.0],
-	&"ascension": [0.5, 1, -6.0, 1.0],
+	&"hit": [0.06, 4, -13.0, 1.12],
+	&"crit": [0.08, 2, -9.0, 1.05],
+	&"coin": [0.08, 3, -15.0, 1.0],
+	&"spirit": [0.1, 2, -17.0, 1.1],
+	&"thunder": [0.2, 1, -11.0, 1.0],
+	&"meteor": [0.2, 1, -14.0, 1.0],
+	&"blizzard": [0.2, 1, -12.0, 1.0],
+	&"fury": [0.2, 1, -15.0, 1.0],
+	&"shield": [0.2, 1, -12.0, 1.0],
+	&"upgrade": [0.05, 2, -13.0, 1.0],
+	&"ui_tap": [0.05, 1, -17.0, 1.0],
+	&"boss_start": [0.5, 1, -11.0, 1.0],
+	&"boss_defeat": [0.5, 1, -11.0, 1.0],
+	&"hero_death": [0.5, 1, -11.0, 1.0],
+	&"ascension": [0.5, 1, -12.0, 1.0],
 }
 
 ## Milliseconds clock, replaceable in tests.
