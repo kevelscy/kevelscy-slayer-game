@@ -1,51 +1,53 @@
 [gd_resource type="Resource" script_class="AnimationSet" format=3]
 
-[ext_resource type="Script" path="res://data/definitions/animation_set.gd" id="1_sku31"]
-[ext_resource type="Script" path="res://components/animation/animation_sheet.gd" id="2_rj3db"]
-[ext_resource type="Texture2D" path="res://assets/sprites/hero/hero_idle.png" id="3_t5hir"]
-[ext_resource type="Texture2D" path="res://assets/sprites/hero/hero_run.png" id="4_dfa0d"]
-[ext_resource type="Texture2D" path="res://assets/sprites/hero/hero_attack.png" id="5_txv40"]
-[ext_resource type="Texture2D" path="res://assets/sprites/hero/hero_hurt_die.png" id="6_8ao0d"]
-
-[sub_resource type="Resource" id="Resource_52brt"]
-script = ExtResource("2_rj3db")
-animation_name = &"idle"
-texture = ExtResource("3_t5hir")
-frame_count = 2
-fps = 4.0
-
-[sub_resource type="Resource" id="Resource_4aoos"]
-script = ExtResource("2_rj3db")
-animation_name = &"run"
-texture = ExtResource("4_dfa0d")
-frame_count = 8
-fps = 12.0
+[ext_resource type="Script" path="res://data/definitions/animation_set.gd" id="1_rj3db"]
+[ext_resource type="Script" path="res://components/animation/animation_sheet.gd" id="2_t5hir"]
+[ext_resource type="Texture2D" path="res://art/sprites/hero_idle.png" id="3_dfa0d"]
+[ext_resource type="Texture2D" path="res://art/sprites/hero_run.png" id="4_txv40"]
+[ext_resource type="Texture2D" path="res://art/sprites/hero_attack.png" id="5_8ao0d"]
+[ext_resource type="Texture2D" path="res://art/sprites/hero_hurt.png" id="6_52brt"]
+[ext_resource type="Texture2D" path="res://art/sprites/hero_die.png" id="7_4aoos"]
 
 [sub_resource type="Resource" id="Resource_n4ws1"]
-script = ExtResource("2_rj3db")
-animation_name = &"attack"
-texture = ExtResource("5_txv40")
-frame_count = 6
-fps = 14.0
-loop = false
+script = ExtResource("2_t5hir")
+animation_name = &"idle"
+texture = ExtResource("3_dfa0d")
+frame_size = Vector2i(48, 48)
+frame_count = 4
 
 [sub_resource type="Resource" id="Resource_3wghn"]
-script = ExtResource("2_rj3db")
-animation_name = &"hurt"
-texture = ExtResource("6_8ao0d")
-frame_count = 3
+script = ExtResource("2_t5hir")
+animation_name = &"run"
+texture = ExtResource("4_txv40")
+frame_size = Vector2i(48, 48)
+frame_count = 6
+fps = 12.0
+
+[sub_resource type="Resource" id="Resource_s2no0"]
+script = ExtResource("2_t5hir")
+animation_name = &"attack"
+texture = ExtResource("5_8ao0d")
+frame_size = Vector2i(96, 48)
+frame_count = 6
 fps = 12.0
 loop = false
 
-[sub_resource type="Resource" id="Resource_s2no0"]
-script = ExtResource("2_rj3db")
+[sub_resource type="Resource" id="Resource_mripy"]
+script = ExtResource("2_t5hir")
+animation_name = &"hurt"
+texture = ExtResource("6_52brt")
+frame_size = Vector2i(48, 48)
+frame_count = 2
+loop = false
+
+[sub_resource type="Resource" id="Resource_4fwid"]
+script = ExtResource("2_t5hir")
 animation_name = &"die"
-texture = ExtResource("6_8ao0d")
-first_frame = 3
-frame_count = 9
-fps = 12.0
+texture = ExtResource("7_4aoos")
+frame_size = Vector2i(48, 48)
+frame_count = 4
 loop = false
 
 [resource]
-script = ExtResource("1_sku31")
-sheets = Array[ExtResource("2_rj3db")]([SubResource("Resource_52brt"), SubResource("Resource_4aoos"), SubResource("Resource_n4ws1"), SubResource("Resource_3wghn"), SubResource("Resource_s2no0")])
+script = ExtResource("1_rj3db")
+sheets = Array[ExtResource("2_t5hir")]([SubResource("Resource_n4ws1"), SubResource("Resource_3wghn"), SubResource("Resource_s2no0"), SubResource("Resource_mripy"), SubResource("Resource_4fwid")])

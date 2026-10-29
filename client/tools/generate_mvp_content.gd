@@ -2,21 +2,21 @@ extends SceneTree
 ## One-shot generator for the MVP content resources (.tres). Run it after changing the
 ## tables below, then tune the generated files in the editor:
 ##   scripts/godot.sh --headless --path client -s res://tools/generate_mvp_content.gd
-## Frame data comes from assets/ASSETS.md.
+## Enemy frame data comes from assets/ASSETS.md; the hero is original art from art/sprites/
+## (art/STYLE.md): 48 px tall frames, the attack is 96 px wide so the swing fits.
 
-const HERO_DIR: String = "res://assets/sprites/hero/"
+const HERO_DIR: String = "res://art/sprites/"
 const ENEMY_DIR: String = "res://assets/sprites/enemies/"
 const CONTENT_DIR: String = "res://data/content/"
 
 
 func _init() -> void:
-	var hurt_die: String = HERO_DIR + "hero_hurt_die.png"
 	var hero_sheets: Array[AnimationSheet] = [
-		_sheet(&"idle", HERO_DIR + "hero_idle.png", Vector2i(64, 64), 0, 2, 4.0, true),
-		_sheet(&"run", HERO_DIR + "hero_run.png", Vector2i(64, 64), 0, 8, 12.0, true),
-		_sheet(&"attack", HERO_DIR + "hero_attack.png", Vector2i(64, 64), 0, 6, 14.0, false),
-		_sheet(&"hurt", hurt_die, Vector2i(64, 64), 0, 3, 12.0, false),
-		_sheet(&"die", hurt_die, Vector2i(64, 64), 3, 9, 12.0, false),
+		_sheet(&"idle", HERO_DIR + "hero_idle.png", Vector2i(48, 48), 0, 4, 10.0, true),
+		_sheet(&"run", HERO_DIR + "hero_run.png", Vector2i(48, 48), 0, 6, 12.0, true),
+		_sheet(&"attack", HERO_DIR + "hero_attack.png", Vector2i(96, 48), 0, 6, 12.0, false),
+		_sheet(&"hurt", HERO_DIR + "hero_hurt.png", Vector2i(48, 48), 0, 2, 10.0, false),
+		_sheet(&"die", HERO_DIR + "hero_die.png", Vector2i(48, 48), 0, 4, 10.0, false),
 	]
 	var hero_set: AnimationSet = AnimationSet.new()
 	hero_set.sheets = hero_sheets

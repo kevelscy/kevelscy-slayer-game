@@ -14,7 +14,7 @@ script = ExtResource("1_hero")
 animation_set = ExtResource("2_anims")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="."]
-offset = Vector2(0, -32)
+offset = Vector2(0, -22)
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("3_health")
