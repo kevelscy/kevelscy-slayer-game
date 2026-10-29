@@ -28,3 +28,28 @@ lowercase letters are small caps).
 
 - `damage_font.png` 369x11, red (Rojo vivo #f4170b) with a dark outline: normal hits
 - `damage_font_crit.png` 369x11, gold: critical hits, drawn at 2x
+
+## Sound effects
+
+`client/audio/sfx/` holds the game's sound effects: original sounds synthesized with SoundCraft
+(built-in Subtractive Synth and Drum Synth, no samples), WAV 44.1 kHz 16-bit stereo, peak-normalized
+with a 10 ms fade-out. `client/audio/source/build_sfx.py` rebuilds them: each recipe writes its
+SoundCraft command script (`<id>.txt`) and session (`<id>.scraft`) next to it, then bounces the WAV
+(`soundcraft-cli` on PATH; `build_sfx.py [id ...]`).
+
+`SfxPlayer.SOUNDS` keys every sound by its file name and sets its minimum replay interval,
+polyphony, volume and random pitch. They play on the `SFX` bus (`client/default_bus_layout.tres`).
+
+| file | event | length |
+|---|---|---|
+| `hit.wav` | hero hits an enemy | 0.12 s |
+| `crit.wav` | critical hit | 0.30 s |
+| `coin.wav` | enemy killed (gold) | 0.25 s |
+| `spirit.wav` | spirit attack | 0.15 s |
+| `thunder.wav`, `meteor.wav`, `blizzard.wav`, `fury.wav`, `shield.wav` | skill cast (named after the skill id) | 0.60, 0.80, 0.70, 0.50, 0.50 s |
+| `upgrade.wav` | gold upgrade or talent bought | 0.35 s |
+| `ui_tap.wav` | bottom tab changed | 0.06 s |
+| `boss_start.wav` | boss appears | 1.00 s |
+| `boss_defeat.wav` | boss defeated | 1.20 s |
+| `hero_death.wav` | hero dies | 0.80 s |
+| `ascension.wav` | ascension confirmed | 1.50 s |
