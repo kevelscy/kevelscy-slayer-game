@@ -19,7 +19,11 @@ func rejected_path() -> String:
 
 
 ## A rejected save is moved to rejected_path() so the fresh game never overwrites it.
+## A temp file left behind means a write was interrupted before its rename; the
+## save itself is still the last complete one, so the partial copy is discarded.
 func load_save() -> SaveLoadResult:
+	if FileAccess.file_exists(_temp_path()):
+		DirAccess.remove_absolute(_temp_path())
 	if not FileAccess.file_exists(path):
 		return SaveLoadResult.new(SaveLoadResult.Status.NEW_GAME)
 	var decoded: SaveDecodeResult = SaveCodec.decode(FileAccess.get_file_as_string(path))
@@ -31,14 +35,23 @@ func load_save() -> SaveLoadResult:
 	return SaveLoadResult.new(SaveLoadResult.Status.REJECTED, null, decoded.error)
 
 
+## A failed write (full disk, I/O error) never replaces the existing save.
 func write(data: SaveData) -> Error:
-	var temp_path: String = path + TEMP_SUFFIX
+	var temp_path: String = _temp_path()
 	var file: FileAccess = FileAccess.open(temp_path, FileAccess.WRITE)
 	if file == null:
 		return FileAccess.get_open_error()
-	file.store_string(SaveCodec.encode(data))
+	var stored: bool = file.store_string(SaveCodec.encode(data))
+	var write_error: Error = file.get_error()
 	file.close()
+	if not stored or write_error != OK:
+		DirAccess.remove_absolute(temp_path)
+		return write_error if write_error != OK else ERR_FILE_CANT_WRITE
 	var renamed: Error = DirAccess.rename_absolute(temp_path, path)
 	if renamed != OK:
 		DirAccess.remove_absolute(temp_path)
 	return renamed
+
+
+func _temp_path() -> String:
+	return path + TEMP_SUFFIX

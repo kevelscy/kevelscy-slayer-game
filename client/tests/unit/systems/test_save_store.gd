@@ -61,6 +61,25 @@ func test_rejected_save_is_moved_aside_and_reports_the_reason() -> void:
 	assert_eq(FileAccess.get_file_as_string(store.rejected_path()), "{broken")
 
 
+func test_load_discards_a_temp_file_left_by_an_interrupted_write() -> void:
+	store.write(_sample(4))
+	var temp: FileAccess = FileAccess.open(store.path + SaveStore.TEMP_SUFFIX, FileAccess.WRITE)
+	temp.store_string("{\"version\":1,\"sta")
+	temp.close()
+	var result: SaveLoadResult = store.load_save()
+	assert_eq(result.status, SaveLoadResult.Status.LOADED)
+	assert_eq(result.data.stage, 4)
+	assert_eq(Array(DirAccess.get_files_at(dir_path)), ["save.json"])
+
+
+func test_load_discards_a_leftover_temp_file_even_without_a_save() -> void:
+	var temp: FileAccess = FileAccess.open(store.path + SaveStore.TEMP_SUFFIX, FileAccess.WRITE)
+	temp.store_string("partial")
+	temp.close()
+	assert_eq(store.load_save().status, SaveLoadResult.Status.NEW_GAME)
+	assert_eq(Array(DirAccess.get_files_at(dir_path)), [])
+
+
 func test_fresh_save_after_rejection_keeps_the_rejected_copy() -> void:
 	_write_raw("{broken")
 	store.load_save()

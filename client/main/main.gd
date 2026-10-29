@@ -15,6 +15,7 @@ var _dev_report: bool = false
 var _screenshot_path: String = ""
 var _frames: int = 0
 var _report_elapsed: float = 0.0
+var _toast_tween: Tween
 
 @onready var safe_area: MarginContainer = $SafeArea
 @onready var portrait: VBoxContainer = $SafeArea/Portrait
@@ -47,12 +48,15 @@ func _show_offline_reward(reward: OfflineReward) -> void:
 	toast_label.text = "Welcome back!\n+%s gold (%s away)" % [
 		NumberFormat.format(gold), _format_duration(reward.elapsed_seconds)
 	]
+	# A new reward restarts the toast; the previous fade must not hide it early.
+	if _toast_tween != null and _toast_tween.is_valid():
+		_toast_tween.kill()
 	toast.visible = true
 	toast.modulate.a = 1.0
-	var tween: Tween = create_tween()
-	tween.tween_interval(TOAST_SECONDS)
-	tween.tween_property(toast, "modulate:a", 0.0, 0.5)
-	tween.tween_callback(toast.hide)
+	_toast_tween = create_tween()
+	_toast_tween.tween_interval(TOAST_SECONDS)
+	_toast_tween.tween_property(toast, "modulate:a", 0.0, 0.5)
+	_toast_tween.tween_callback(toast.hide)
 	if _dev_report:
 		print("[dev] offline reward: %s" % toast_label.text.replace("\n", " "))
 
