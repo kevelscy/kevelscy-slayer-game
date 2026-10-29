@@ -30,3 +30,9 @@ features did not already fix. The reviewer text was not kept; the specs restate 
   of 3615, a boot pull with 2 s of play applied the tie), GREEN 32/32; a 1.9 s boot pull still gives the tie to the
   cloud. Full scripts/test.sh 373/373, exit 0; real save.json/auth.json SHA-1 unchanged. Real run on the migrated
   stack (`--save-path=/tmp/cd-verify/save.json`, 600 frames): no warnings, the push was acknowledged.
+- L3 Native review review-cdafddcbc63bc10e (base 3bcba3c, committed-only, untracked .vscode/ and client/.mcp.json
+  excluded; assess unassessable with undeclared untracked files, so the review ran from the Task Size high-risk
+  items: cloud overwrite rule and a server contract). Tier medium, 185 lines, lenses risk/resilience/reliability:
+  approved on the first pass, acknowledged (authority burned). Non-blocking findings (reviewer text not kept):
+  R3-001 WARNING cloud_sync.gd:190-192 (play-during-pull accounting in `_grant`), R3-002 WARNING cloud_sync.gd:110
+  (grant after an applied cloud save). Left for the backlog after the ascension findings.
