@@ -10,6 +10,8 @@ const RUN_SPEED: float = 60.0
 const ENEMY_SPACING: float = 4.0
 const LAYER_SPEED_FACTORS: Array[float] = [0.1, 0.3, 0.6, 1.0]
 const BUFF_TINT: Color = Color(1.4, 0.75, 0.7)
+## Gap between an enemy's head and the bottom of its damage number.
+const DAMAGE_NUMBER_GAP: float = 2.0
 
 @export var roster: EnemyRoster
 
@@ -24,6 +26,7 @@ var _spirit_orbs: Dictionary[int, SpiritOrb] = {}
 
 @onready var hero: Hero = $Hero
 @onready var enemy_pool: NodePool = $EnemyPool
+@onready var damage_number_pool: NodePool = $DamageNumberPool
 @onready var background: Node2D = $Background
 
 
@@ -157,6 +160,7 @@ func _spawn(definition: EnemyDefinition, is_boss: bool) -> void:
 	if not enemy.defeated.is_connected(_on_enemy_defeated):
 		enemy.defeated.connect(_on_enemy_defeated)
 		enemy.despawn_requested.connect(enemy_pool.release)
+		enemy.health.damaged.connect(_show_damage_number.bind(enemy))
 	enemy.spawn(
 		definition,
 		session.enemy_health(is_boss).mul_float(definition.health_multiplier),
@@ -164,6 +168,16 @@ func _spawn(definition: EnemyDefinition, is_boss: bool) -> void:
 		is_boss,
 		Vector2(SPAWN_X, GROUND_Y)
 	)
+
+
+## Every hit an enemy takes floats up as a pixel number above its head.
+func _show_damage_number(result: DamageResult, enemy: Enemy) -> void:
+	var number: DamageNumber = damage_number_pool.acquire() as DamageNumber
+	if not number.finished.is_connected(damage_number_pool.release):
+		number.finished.connect(damage_number_pool.release)
+	var head_y: float = enemy.position.y - enemy.definition.animation.frame_size.y * enemy.definition.sprite_scale
+	var jitter: float = rng.randf_range(-DamageNumber.MAX_JITTER, DamageNumber.MAX_JITTER)
+	number.show_hit(result, Vector2(enemy.position.x + jitter, head_y - DAMAGE_NUMBER_GAP))
 
 
 ## Enemies queue up in front of the hero: the first stops at contact range, the

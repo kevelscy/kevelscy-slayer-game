@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://art/tiles/bg_middle.png" id="7_middle"]
 [ext_resource type="Texture2D" path="res://art/tiles/bg_front.png" id="8_front"]
 [ext_resource type="Texture2D" path="res://art/tiles/bg_ground.png" id="9_ground"]
+[ext_resource type="PackedScene" path="res://world/damage_number.tscn" id="10_number"]
 
 [node name="BattleWorld" type="Node2D"]
 script = ExtResource("1_world")
@@ -55,3 +56,7 @@ scene = ExtResource("5_enemy")
 
 [node name="Hero" parent="." instance=ExtResource("3_hero")]
 position = Vector2(90, 172)
+
+[node name="DamageNumberPool" type="Node" parent="."]
+script = ExtResource("4_pool")
+scene = ExtResource("10_number")
