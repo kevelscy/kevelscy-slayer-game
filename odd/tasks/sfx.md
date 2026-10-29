@@ -36,9 +36,9 @@ exported as WAV into `client/audio/sfx/` and played by the game on combat, skill
 
 - [x] T1 S3,S5,S6 `SfxPlayer` (systems/audio) + `SFX` bus + catalog, tests RED then GREEN — inline — commit: b2ca925
 - [x] T2 S1-S4 combat sounds hit, crit, coin, spirit + wiring, tests — inline — commit: b2ca925
-- [ ] T3 S1-S4 skill sounds thunder, meteor, blizzard, fury, shield + wiring, tests — inline
-- [ ] T4 S1-S4 progression/UI sounds upgrade, ui_tap, boss_start, boss_defeat, hero_death, ascension + wiring, tests — inline
-- [ ] T5 S4 in-game run without errors, ASSETS.md audio section — inline
+- [x] T3 S1-S4 skill sounds thunder, meteor, blizzard, fury, shield + wiring, tests — inline — commit: a7e8112
+- [x] T4 S1-S4 progression/UI sounds upgrade, ui_tap, boss_start, boss_defeat, hero_death, ascension + wiring, tests — inline — commit: 6a65305
+- [x] T5 S4 in-game run without errors, ASSETS.md audio section — inline — commit: aa98026
 
 ## Log
 
@@ -48,3 +48,6 @@ exported as WAV into `client/audio/sfx/` and played by the game on combat, skill
 - L4 Decisions (auto mode): enemy killed plays `coin` only (no separate death sound, less noise); sounds are owned by an `SfxPlayer` node wired from `Main` (main → systems), the battle world exposes a hit signal; no settings UI in this feature (bus ready for it).
 - L5 T1+T2 (b2ca925): SfxPlayer + SFX bus + SfxDirector (Main) + BattleWorld.enemy_hit; hit 0.12 s, crit 0.30 s, coin 0.25 s, spirit 0.15 s built by client/audio/source/build_sfx.py (SoundCraft script → .scraft → convert 16-bit normalize → 10 ms fade-out). MIDI is 960 PPQ at 120 BPM (1.92 ticks per ms); with N tracks the clips take ids N+1..2N. Tests RED then GREEN; suite 465/465.
 - L6 (user, verbatim): "para, se acaba la ventana de contexto, guarda todo en engram status actual y pendientes, retomamos en la siguiente sesion" — stopped at T3 (skill sounds announced: thunder 0.60 s, meteor 0.80 s, blizzard 0.70 s, fury 0.50 s, shield 0.50 s; recipes not written yet).
+- L7 T3 (a7e8112): skill sounds thunder 0.60 s, meteor 0.80 s, blizzard 0.70 s, fury 0.50 s, shield 0.50 s; SfxDirector plays `skill.id` on `SkillBar.cast`. The subtractive synth has no noise oscillator, so noise comes from drum_synth voices shaped by eq_1band. Checked by 50 ms RMS envelopes (the first meteor whistle was ~28 dB under its explosion; rebalanced). Tests RED then GREEN; suite 467/467.
+- L8 T4 (6a65305): upgrade 0.35 s, ui_tap 0.06 s, boss_start 1.00 s, boss_defeat 1.20 s, hero_death 0.80 s, ascension 1.50 s. Gold upgrades play on `UpgradeTrack.leveled_up` (only emitted by a purchase); talents got a new `TalentTree.bought` signal because `leveled_up` also fires when a save restores levels. `SfxDirector.bind` takes the tab bar; `BottomTabBar.setup` and the Ascension tab re-select are silent, a swipe page change taps. Tests RED then GREEN; suite 473/473.
+- L9 T5 (aa98026): ASSETS.md "Sound effects" section (files, events, lengths, how to rebuild) and CREDITS.md sound credits. In game (headless, `--no-cloud`, scratch save, 1200 frames): every sound loads, no SfxPlayer errors; one run printed an exit-time ObjectDB leak warning that two reruns did not repeat. Not verified: how the sounds actually sound (the agent cannot listen) — the user auditions them with `afplay client/audio/sfx/<id>.wav` and tunes volumes. Feature CLOSED.
