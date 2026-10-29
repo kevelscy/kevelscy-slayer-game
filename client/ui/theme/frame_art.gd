@@ -20,6 +20,9 @@ const GOLD_LIGHT: Color = Color(1.0, 0.92, 0.6)
 const GOLD_DARK: Color = Color(0.62, 0.36, 0.1)
 const IRON_LIGHT: Color = Color(0.72, 0.7, 0.66)
 const IRON_DARK: Color = Color(0.34, 0.32, 0.3)
+## Palette Plata and Acero: the silver band of unselected tabs.
+const SILVER_LIGHT: Color = Color("#c0ced1")
+const SILVER_DARK: Color = Color("#929ea6")
 const GLOSS_STRENGTH: float = 0.22
 
 

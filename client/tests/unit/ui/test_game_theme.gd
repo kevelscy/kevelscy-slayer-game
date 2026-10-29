@@ -46,6 +46,21 @@ func test_every_button_kind_has_framed_art_for_every_state() -> void:
 		assert_true(theme.get_stylebox("focus", kind) is StyleBoxEmpty, "%s focus" % kind)
 
 
+func test_tab_buttons_have_a_silver_frame_and_a_gold_one_when_selected() -> void:
+	var theme: Theme = GameTheme.build()
+	assert_eq(theme.get_type_variation_base(GameTheme.TAB_BUTTON), &"Button")
+	var middle: int = FrameArt.SIZE / 2
+	var band_y: int = FrameArt.OUTLINE + 1
+	for state: String in ["normal", "hover"]:
+		var band: Color = (theme.get_stylebox(state, GameTheme.TAB_BUTTON) as StyleBoxTexture).texture.get_image().get_pixel(middle, band_y)
+		assert_gt(band.b, band.r, "%s band is silver" % state)
+	for state: String in ["pressed", "hover_pressed"]:
+		var band: Color = (theme.get_stylebox(state, GameTheme.TAB_BUTTON) as StyleBoxTexture).texture.get_image().get_pixel(middle, band_y)
+		assert_gt(band.r, band.b, "%s band is gold" % state)
+	assert_eq(theme.get_color("font_pressed_color", GameTheme.TAB_BUTTON), GameTheme.TITLE_GOLD)
+	assert_eq(theme.get_color("font_hover_pressed_color", GameTheme.TAB_BUTTON), GameTheme.TITLE_GOLD)
+
+
 func test_button_kinds_use_different_art() -> void:
 	var theme: Theme = GameTheme.build()
 	var buy: StyleBoxTexture = theme.get_stylebox("normal", GameTheme.BUY_BUTTON)

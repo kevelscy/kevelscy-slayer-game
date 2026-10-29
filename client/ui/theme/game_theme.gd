@@ -7,6 +7,8 @@ extends RefCounted
 const BUY_BUTTON: StringName = &"BuyButton"
 const SKILL_BUTTON: StringName = &"SkillButton"
 const ACCENT_BUTTON: StringName = &"AccentButton"
+## Bottom tab bar: silver frame, gold frame and gold text on the selected tab.
+const TAB_BUTTON: StringName = &"TabButton"
 const CARD: StringName = &"Card"
 const SECTION_TITLE: StringName = &"SectionTitle"
 ## Smaller text for the two-line labels inside cards.
@@ -42,6 +44,7 @@ static func build() -> Theme:
 	_add_button(theme, BUY_BUTTON, AMBER)
 	_add_button(theme, SKILL_BUTTON, AZURE)
 	_add_button(theme, ACCENT_BUTTON, AMETHYST)
+	_add_tab_button(theme)
 	_add_text(theme, &"CheckButton")
 	_add_text(theme, &"Label")
 
@@ -78,6 +81,24 @@ static func _add_button(theme: Theme, kind: StringName, fill: Array[Color]) -> v
 	theme.set_color("font_disabled_color", kind, TEXT_DISABLED)
 	for state: String in ["font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
 		theme.set_color(state, kind, TEXT)
+
+
+static func _add_tab_button(theme: Theme) -> void:
+	theme.set_type_variation(TAB_BUTTON, &"Button")
+	var light: Array[Color] = [NIGHT[0].lightened(0.1), NIGHT[1].lightened(0.1)]
+	var selected: StyleBoxTexture = _box(FrameArt.frame(light[0], light[1], FrameArt.GOLD_LIGHT, FrameArt.GOLD_DARK), BUTTON_PADDING)
+	theme.set_stylebox("normal", TAB_BUTTON, _box(FrameArt.frame(NIGHT[0], NIGHT[1], FrameArt.SILVER_LIGHT, FrameArt.SILVER_DARK), BUTTON_PADDING))
+	theme.set_stylebox("hover", TAB_BUTTON, _box(FrameArt.frame(light[0], light[1], FrameArt.SILVER_LIGHT, FrameArt.SILVER_DARK), BUTTON_PADDING))
+	theme.set_stylebox("pressed", TAB_BUTTON, selected)
+	theme.set_stylebox("hover_pressed", TAB_BUTTON, selected)
+	theme.set_stylebox("disabled", TAB_BUTTON, _box(FrameArt.frame(STONE[0], STONE[1], FrameArt.IRON_LIGHT, FrameArt.IRON_DARK, 0.4), BUTTON_PADDING))
+	theme.set_stylebox("focus", TAB_BUTTON, StyleBoxEmpty.new())
+	_add_text(theme, TAB_BUTTON)
+	theme.set_color("font_disabled_color", TAB_BUTTON, TEXT_DISABLED)
+	for state: String in ["font_hover_color", "font_focus_color"]:
+		theme.set_color(state, TAB_BUTTON, TEXT)
+	for state: String in ["font_pressed_color", "font_hover_pressed_color"]:
+		theme.set_color(state, TAB_BUTTON, TITLE_GOLD)
 
 
 static func _add_text(theme: Theme, kind: StringName) -> void:
