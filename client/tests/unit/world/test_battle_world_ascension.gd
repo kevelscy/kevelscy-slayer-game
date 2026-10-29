@@ -37,6 +37,19 @@ func test_ascending_clears_enemies_orbs_and_heals_the_hero() -> void:
 	assert_eq(world.scheduler.tick(0.0, 0, false), SpawnScheduler.Order.NONE, "the queued boss is dropped")
 
 
+func test_a_dead_hero_starts_the_new_run_alive_and_is_not_revived_twice() -> void:
+	world.hero.health.take_damage(DamageResult.new(BigNumber.from_float(1e9), false))
+	assert_true(world.hero.health.is_dead(), "precondition")
+	watch_signals(world.hero)
+	session.ascend()
+	assert_false(world.hero.health.is_dead())
+	assert_true(world.hero.health.max_health.is_equal_approx(session.hero_max_health()))
+	assert_true(world.hero.health.current.is_equal_approx(world.hero.health.max_health))
+	assert_eq(world.hero.state_machine.current_state.name, &"Run")
+	world.hero.state_machine.current_state.update(2.0)
+	assert_signal_emit_count(world.hero, "respawned", 1)
+
+
 func test_spirit_orbs_come_back_as_the_new_run_reaches_their_stage() -> void:
 	session.ascend()
 	session.progression.restore_stage(2)

@@ -128,10 +128,7 @@ func _restart_run() -> void:
 	for orb: SpiritOrb in _spirit_orbs.values():
 		orb.queue_free()
 	_spirit_orbs.clear()
-	hero.health.max_health = session.hero_max_health()
-	# A dead hero is revived at full health by its Dead state.
-	if not hero.health.is_dead():
-		hero.revive()
+	hero.restart(session.hero_max_health())
 	_sync_spirit_orbs()
 
 

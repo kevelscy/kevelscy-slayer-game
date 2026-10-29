@@ -62,6 +62,14 @@ func revive() -> void:
 	respawned.emit()
 
 
+## Starts a new run: full health at `new_max_health`, alive and running even if the
+## hero was dead, so the Dead state never revives it a second time.
+func restart(new_max_health: BigNumber) -> void:
+	health.max_health = new_max_health
+	revive()
+	state_machine.transition_to(&"Run")
+
+
 func _sync_attack_speed() -> void:
 	auto_attack.attacks_per_second = stats.get_rate(StatBlock.ATTACK_SPEED)
 
