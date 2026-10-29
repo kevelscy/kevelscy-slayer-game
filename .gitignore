@@ -31,3 +31,7 @@ export_credentials.cfg
 # OS / tooling
 .DS_Store
 node_modules/
+
+# Local editor and agent tooling config
+.vscode/
+client/.mcp.json
