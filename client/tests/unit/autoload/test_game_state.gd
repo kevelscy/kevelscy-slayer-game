@@ -98,6 +98,12 @@ func test_cloud_is_on_by_default_and_off_for_no_cloud_test_and_import_runs() -> 
 	assert_false(GameStateScript.cloud_enabled(PackedStringArray(["--headless", "--import"]), PackedStringArray()))
 
 
+func test_cloud_is_off_in_builds_exported_with_the_no_cloud_feature() -> void:
+	assert_eq(GameStateScript.NO_CLOUD_FEATURE, "no_cloud")
+	assert_false(GameStateScript.cloud_enabled(PackedStringArray(), PackedStringArray(), true))
+	assert_true(GameStateScript.cloud_enabled(PackedStringArray(), PackedStringArray(), false))
+
+
 func test_test_and_import_runs_use_a_scratch_save_unless_a_save_path_is_given() -> void:
 	var none: PackedStringArray = PackedStringArray()
 	var gut: PackedStringArray = PackedStringArray(["-s", "addons/gut/gut_cmdln.gd"])

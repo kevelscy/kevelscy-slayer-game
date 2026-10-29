@@ -140,6 +140,22 @@ scripts/godot.sh --path client --resolution 720x1280 -- --screenshot=$PWD/.tmp/p
 
 Soak runs with `--fixed-fps` need `--no-cloud`: the engine timer that bounds cloud requests then runs on game time, so requests time out before the server replies.
 
+## Android build (sideload)
+
+The `Android (no cloud)` preset in `client/export_presets.cfg` builds an arm64 APK with the
+`no_cloud` feature tag: like `--no-cloud`, the game keeps a local save only and pays offline gold
+from the device clock, because the default cloud (the local Supabase stack) is unreachable from a
+phone. It needs the Godot 4.7.2 export templates, the Android SDK (`export/android/android_sdk_path`
+in the editor settings), a JDK and the editor's debug keystore.
+
+```bash
+JAVA_HOME=$(/usr/libexec/java_home) scripts/godot.sh --headless --path client \
+  --export-debug "Android (no cloud)" ../build/android/slayer-idle.apk
+```
+
+The APK lands in `build/android/` (git-ignored) and is signed with the debug key: install it with
+`adb install` or by opening it on the phone with "install unknown apps" allowed.
+
 ## MCP (Godot MCP Toolkit)
 
 1. Open `client/` in the Godot editor. The `Godot MCP Toolkit` plugin (`addons/godot_mcp_toolkit`)

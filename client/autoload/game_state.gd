@@ -5,8 +5,9 @@ extends Node
 ##
 ## With the cloud on (the default) the local save still loads first, then
 ## CloudSync pulls the cloud save and pays offline time from the server clock;
-## the device clock never pays offline time. `-- --no-cloud`, GUT runs and
-## `--import` runs keep the local-only, device-clock behaviour. GUT and `--import`
+## the device clock never pays offline time. `-- --no-cloud`, builds exported
+## with the `no_cloud` feature tag, GUT runs and `--import` runs keep the
+## local-only, device-clock behaviour. GUT and `--import`
 ## runs (scripts/test.sh) also never touch the player's save: without
 ## `--save-path` they start from an empty scratch save.
 
@@ -17,6 +18,8 @@ const ABILITIES: AbilityCatalog = preload("res://data/content/abilities/ability_
 const TALENTS: TalentCatalog = preload("res://data/content/talents/talent_catalog.tres")
 const SAVE_PATH_ARG_PREFIX: String = "--save-path="
 const NO_CLOUD_ARG: String = "--no-cloud"
+## Custom feature tag of export presets whose builds have no reachable cloud.
+const NO_CLOUD_FEATURE: String = "no_cloud"
 const GUT_RUNNER: String = "gut_cmdln.gd"
 const IMPORT_ARG: String = "--import"
 const AUTH_FILE: String = "auth.json"
@@ -48,7 +51,9 @@ func _ready() -> void:
 	var load_existing: bool = prepare_save(save_path, OS.get_cmdline_args(), OS.get_cmdline_user_args())
 	saves = SaveController.new(session, SaveStore.new(save_path), _device_clock)
 	saves.offline_reward_granted.connect(offline_reward_granted.emit)
-	var cloud_on: bool = cloud_enabled(OS.get_cmdline_args(), OS.get_cmdline_user_args())
+	var cloud_on: bool = cloud_enabled(
+		OS.get_cmdline_args(), OS.get_cmdline_user_args(), OS.has_feature(NO_CLOUD_FEATURE)
+	)
 	saves.device_clock_offline = not cloud_on
 	if load_existing:
 		boot_reward = saves.boot()
@@ -113,8 +118,10 @@ func close_game() -> void:
 	quit_game.call()
 
 
-static func cloud_enabled(args: PackedStringArray, user_args: PackedStringArray) -> bool:
-	return not user_args.has(NO_CLOUD_ARG) and not _is_tool_run(args)
+static func cloud_enabled(
+	args: PackedStringArray, user_args: PackedStringArray, no_cloud_build: bool = false
+) -> bool:
+	return not no_cloud_build and not user_args.has(NO_CLOUD_ARG) and not _is_tool_run(args)
 
 
 ## GUT and `--import` runs are tools, not play sessions.
