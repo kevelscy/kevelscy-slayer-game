@@ -14,6 +14,7 @@ class SpiritSlot:
 	var definition: SpiritDefinition
 	var unlocked: bool = false
 	var attack_elapsed: float = 0.0
+	var passive: StatModifier
 
 
 var slots: Array[SpiritSlot] = []
@@ -38,10 +39,21 @@ func refresh_unlocks(stage: int) -> void:
 			continue
 		slot.unlocked = true
 		var spirit: SpiritDefinition = slot.definition
-		_stats.add_modifier(
-			StatModifier.new(spirit.passive_stat, spirit.passive_kind, BigNumber.from_float(spirit.passive_value))
+		slot.passive = StatModifier.new(
+			spirit.passive_stat, spirit.passive_kind, BigNumber.from_float(spirit.passive_value)
 		)
+		_stats.add_modifier(slot.passive)
 		unlocked.emit(index, slot.definition)
+
+
+## Ascension: every spirit locks again and its passive leaves the hero stats.
+func relock() -> void:
+	for slot: SpiritSlot in slots:
+		if slot.passive != null:
+			_stats.remove_modifier(slot.passive)
+		slot.passive = null
+		slot.unlocked = false
+		slot.attack_elapsed = 0.0
 
 
 ## A ready attack waits for a target instead of being lost. Returns attacks fired.

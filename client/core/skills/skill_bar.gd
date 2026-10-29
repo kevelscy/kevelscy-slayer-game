@@ -36,6 +36,11 @@ func try_cast(slot_index: int, stage: int, has_target: bool) -> bool:
 	return true
 
 
+func reset_cooldowns() -> void:
+	for slot: SkillSlot in slots:
+		slot.cooldown_remaining = 0.0
+
+
 func is_autocast_unlocked(stage: int) -> bool:
 	return stage >= AUTOCAST_UNLOCK_STAGE
 
