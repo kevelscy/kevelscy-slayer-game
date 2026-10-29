@@ -8,6 +8,8 @@ characters or assets.
 
 - Art: Pixelorama through the `pixelorama` MCP. Sound: SoundCraft (`soundcraft-cli mcp`).
   No AI image generators, no PhotoCraft.
+- Palette: `art/palettes/paleta_juego.gpl` (35 colors; swatch sheet `paleta_juego.png`), also
+  installed in Pixelorama's `Palettes/` folder.
 - Sources: `art/source/*.pxo`. Exports: transparent PNG; animations as horizontal
   spritesheets in `art/sprites/`, tiles in `art/tiles/`. Audio: `.ogg` in `audio/sfx/` or
   `audio/music/`.

@@ -1,0 +1,39 @@
+GIMP Palette
+Name: Paleta juego
+Columns: 8
+#
+ 15   8   8	Negro
+ 31  21  18	Sombra cálida
+ 40  41  57	Sombra fría
+ 50  37  48	Sombra púrpura
+ 58  33  24	Marrón 1
+ 89  54  37	Marrón 2
+103  72  55	Marrón 3
+137  74  37	Marrón 4
+161 115  76	Piel sombra
+171 139 106	Arena
+224 196 152	Piel
+253 218 160	Piel luz
+ 64  29  33	Rojo 1
+ 95  26   2	Rojo 2
+144  38   4	Rojo 3
+170  35  24	Rojo 4
+244  23  11	Rojo vivo
+187  81  16	Naranja 1
+240 133  13	Naranja 2
+244 144   6	Naranja 3
+232 189  75	Oro
+252 207  64	Amarillo
+253 229   4	Amarillo vivo
+ 77  64  67	Gris 1
+102  91  98	Gris 2
+124 107  92	Gris 3
+146 158 166	Acero
+192 206 209	Plata
+249 250 241	Blanco
+  7  71  94	Azul 1
+ 55 113 159	Azul 2
+ 23 107 212	Azul 3
+ 50 154 234	Azul 4
+ 19 204 189	Turquesa
+106 230 241	Cian
