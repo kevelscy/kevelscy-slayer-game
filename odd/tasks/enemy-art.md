@@ -18,7 +18,7 @@ follows `client/art/STYLE.md`, then wire each one into the game. One enemy per t
 - [x] T2 S1-S5 bat: fly 4 frames 40x32 → `bat_fly.png` 160x32, 12 fps, no idle, hover 18 — inline — commit: b70f38a
 - [x] T3 S1-S6 skeleton: walk 6 frames + idle 4 frames, 40x40 → `skeleton_walk.png` 240x40, `skeleton_idle.png` 160x40, 10 fps — inline — commit: d858267
 - [x] T4 S1-S6 boss: mutant butterfly, 128x128 frames (2x2 px), fly 6 frames + idle 4 frames → `butterfly_boss_fly.png` 768x128, `butterfly_boss_idle.png` 512x128, 10 fps — inline — commit: 57bd294
-- [x] T5 remove the unused pack character sprites (client/assets/sprites/**) and update ASSETS.md/CREDITS.md — inline — commit: COMMIT_T5
+- [x] T5 remove the unused pack character sprites (client/assets/sprites/**) and update ASSETS.md/CREDITS.md — inline — commit: b014959
 
 ## Log
 
