@@ -25,6 +25,12 @@ func cancel_boss() -> void:
 	_boss_queued = false
 
 
+## Back to an empty lane: no queued boss and a full interval before the next spawn.
+func reset() -> void:
+	_boss_queued = false
+	_timer = 0.0
+
+
 func tick(delta: float, regular_alive: int, boss_alive: bool) -> Order:
 	if _boss_queued:
 		_boss_queued = false

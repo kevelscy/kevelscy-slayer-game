@@ -18,8 +18,8 @@ Agent decisions D12–D17 are open to user override.
 
 - [x] T1 Talent core: TalentDefinition, TalentTree (levels, prerequisites, shard costs, stat modifiers, gold multiplier) + generated catalog (TDD) — S2 — inline — commit: 7ec2d86
 - [x] T2 GameSession ascension: shards, can_ascend, ascend reset, spirit relock, Greed on gold and offline (TDD) — S1,S3 — inline — commit: 7fdf467
-- [x] T3 SaveCodec v3 with v1/v2 migration + session save/restore (TDD, high risk: own commit) — S4 — inline — commit: see L9
-- [ ] T4 UI and world: AscensionPanel, confirm, BattleWorld reset after ascend, max health on Vitality, README — S5 — inline — commit:
+- [x] T3 SaveCodec v3 with v1/v2 migration + session save/restore (TDD, high risk: own commit) — S4 — inline — commit: 26d2a66
+- [x] T4 UI and world: AscensionPanel, confirm, BattleWorld reset after ascend, max health on Vitality, README — S5 — inline — commit: see L10
 - [ ] T5 Verify: suite, real v2 save migration, ascend in a real run, screenshots, soak — S1–S5 — inline — commit: n/a
 
 ## Log
@@ -33,3 +33,4 @@ Agent decisions D12–D17 are open to user override.
 - L7 S4 detail: talent level errors name the field as 'talents.<id>' (e.g. "save field 'talents.might' must be >= 0, got -1").
 - L8 (user, verbatim): "para, se acaba la ventana de contexto, guarda todo en engram status actual y pendientes, retomamos en la siguiente sesion". T3 state at stop, UNCOMMITTED and NOT YET RUN: RED observed (16 failing) for codec v3 tests in test_save_codec.gd and two session tests appended to test_game_session_save.gd; implementation written in save_data.gd (ascension_shards, ascension_count, talents Dictionary[String,int]), save_codec.gd (VERSION 3, OLDEST/RATE_LEVELS/ASCENSION versions, talents object validation) and game_session.gd to_save/apply_save. Next: run scripts/test.sh, fix until GREEN, commit T3 alone (high risk), native assess with baseRef 7fdf467; then T4 (AscensionPanel overlay + HUD/Main button, confirm dialog, BattleWorld reset on session.ascended: vanish enemies, scheduler reset, hero full health, sync spirit orbs; hero max health on talents.leveled_up; README) and T5.
 - L9 T3 evidence: resumed in a new session; GREEN 293/293 (4939 asserts) on the first run, no script errors. Committed alone as feat(save) save v3.
+- L10 T4 evidence: native assess for T3 (base 7fdf467) returned risk medium, reviewDue false: no native review. T4 RED (AscensionPanel missing; 3 world tests failing), GREEN 303/303. One test bug fixed: Vitality max health compared with before×1.1, but spirit passives at stage 20 stack additively, so it now compares with session.hero_max_health(). Added SpawnScheduler.reset(), BattleWorld._restart_run() on session.ascended (vanish enemies, free orbs, hero full health; a dead hero is left to its Dead state), hero max health on talents.leveled_up, HUD AscensionButton, AscensionPanel overlay (opaque background, 720 px centered content) and the dev flag --ascension-panel. Screenshots of the first run showed the overlay was transparent; fixed and rechecked in 720x1280 and 1600x900. A real v2 save (stage 23) loaded and was written back as v3 with the levels kept.

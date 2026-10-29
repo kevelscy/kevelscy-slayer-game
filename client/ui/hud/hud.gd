@@ -11,6 +11,7 @@ var _elapsed: float = 0.0
 
 @onready var stage_label: Label = $TopRow/StageLabel
 @onready var gold_label: Label = $TopRow/GoldLabel
+@onready var ascension_button: Button = $TopRow/AscensionButton
 @onready var progress_bar: ProgressBar = $ProgressRow/ProgressBar
 @onready var progress_label: Label = $ProgressRow/ProgressLabel
 @onready var hero_health_bar: ProgressBar = $HeroHealth

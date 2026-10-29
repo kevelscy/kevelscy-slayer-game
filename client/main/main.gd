@@ -2,9 +2,11 @@ class_name Main
 extends Control
 ## Root screen: moves the battle view, HUD, upgrade and ability panels between the
 ## portrait stack (mobile) and the three-column landscape layout (PC) as the window changes.
+## The ascension panel is a full-screen overlay opened from the HUD in both layouts.
 
 const DEV_REPORT_ARG: String = "--dev-report"
 const SCREENSHOT_ARG_PREFIX: String = "--screenshot="
+const ASCENSION_PANEL_ARG: String = "--ascension-panel"
 const SCREENSHOT_DELAY_FRAMES: int = 120
 const DEV_REPORT_SECONDS: float = 5.0
 const TOAST_SECONDS: float = 4.0
@@ -13,6 +15,7 @@ var _landscape: bool = false
 var _layout_applied: bool = false
 var _dev_report: bool = false
 var _screenshot_path: String = ""
+var _open_ascension: bool = false
 var _frames: int = 0
 var _report_elapsed: float = 0.0
 var _toast_tween: Tween
@@ -28,6 +31,7 @@ var _toast_tween: Tween
 @onready var hud: Hud = $SafeArea/Portrait/Hud
 @onready var upgrade_panel: UpgradePanel = $SafeArea/Portrait/UpgradePanel
 @onready var ability_panel: AbilityPanel = $SafeArea/Portrait/AbilityPanel
+@onready var ascension_panel: AscensionPanel = $AscensionPanel
 @onready var toast: PanelContainer = $Toast
 @onready var toast_label: Label = $Toast/Label
 
@@ -39,6 +43,10 @@ func _ready() -> void:
 	hud.bind(session, battle_world.hero)
 	upgrade_panel.bind(session)
 	ability_panel.bind(session)
+	ascension_panel.bind(session)
+	hud.ascension_button.pressed.connect(ascension_panel.open)
+	if _open_ascension:
+		ascension_panel.open()
 	get_viewport().size_changed.connect(_apply_layout)
 	_apply_layout()
 	GameState.offline_reward_granted.connect(_show_offline_reward)
@@ -131,6 +139,8 @@ func _read_dev_args() -> void:
 	for arg: String in OS.get_cmdline_user_args():
 		if arg == DEV_REPORT_ARG:
 			_dev_report = true
+		elif arg == ASCENSION_PANEL_ARG:
+			_open_ascension = true
 		elif arg.begins_with(SCREENSHOT_ARG_PREFIX):
 			_screenshot_path = arg.trim_prefix(SCREENSHOT_ARG_PREFIX)
 

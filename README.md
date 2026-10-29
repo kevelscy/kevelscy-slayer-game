@@ -30,8 +30,9 @@ scripts/test.sh -gselect=test_damage # extra args are forwarded to GUT
 
 - The run is saved to `user://save.json` (versioned JSON, written through a temp file and rename)
   every 30 s, when the app is paused or loses focus, and on every clean exit.
-- Save format version 2 adds the crit chance, crit damage and attack speed levels. A version 1
-  save still loads with those levels at 0 and is written back as version 2.
+- Save format version 2 adds the crit chance, crit damage and attack speed levels; version 3 adds
+  `ascension_shards`, `ascension_count` and `talents` (talent id to level). Version 1 and 2 saves
+  still load with the missing values at 0 / no talents and are written back as version 3.
 - A save that fails validation is never half-applied: the game starts fresh and keeps the bad
   file as `user://save.rejected.json`.
 - Offline gold = sustainable kills per second × gold per kill × time away (capped at 8 h). It is
@@ -60,11 +61,32 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
 - Auto-cast unlocks at stage 10. The `Auto-cast` toggle then fires every ready skill during
   combat; it is not saved and starts on after a restart.
 - Spirits (3 slots): Wisp (stage 2, +10% attack), Ember Fox (stage 6, +5% crit chance), Frost Owl
-  (stage 10, +20% health). Each unlocks permanently from the stage reached and attacks on its own
-  timer while the hero fights.
+  (stage 10, +20% health). Each unlocks from the current stage (again after an ascension) and
+  attacks on its own timer while the hero fights.
 - Offline gold counts spirit passives and spirit attacks, never active skills. Unlocks derive from
   the saved stage, so the save format is unchanged.
 - The panel sits under the upgrades in portrait and in the right column in landscape.
+
+## Ascension and talents
+
+- The `Ascension` button in the HUD opens a full-screen panel (portrait and landscape).
+- From stage 20, `Ascend +N shards` pays `stage - 15` ascension shards (5 at stage 20) after a
+  confirmation. The run restarts at stage 1 with 0 gold, every upgrade at level 0, buffs cleared
+  and skills, auto-cast and spirits locked again; the lane is cleared and the hero is at full
+  health. Before stage 20 the button reads `Ascend (Stage 20)` and is disabled.
+- Shards buy six permanent talents (max level 10; level n+1 costs n+1 shards). They survive
+  ascensions and restarts:
+
+| Talent | Per level | Needs |
+|---|---|---|
+| Might | +10% attack | — |
+| Vitality | +10% health | — |
+| Greed | +10% gold (kills, bosses, offline) | — |
+| Precision | +1% crit chance | Might 5 |
+| Ferocity | +10% crit damage | Might 5 |
+| Haste | +3% attack speed | Vitality 5 |
+
+  A row shows `Max` when maxed and `Needs <talent> 5` while locked.
 
 ## Dev run flags
 
@@ -79,6 +101,7 @@ scripts/godot.sh --path client --resolution 720x1280 -- --screenshot=$PWD/.tmp/p
 |---|---|
 | `--dev-report` | prints stage, kills, gold and boss state every 5 s, plus any offline reward |
 | `--screenshot=<abs png>` | saves a screenshot after 120 frames and quits |
+| `--ascension-panel` | opens the ascension panel on start (for screenshots) |
 | `--save-path=<path>` | uses a scratch save file instead of `user://save.json` |
 
 ## MCP (Godot MCP Toolkit)

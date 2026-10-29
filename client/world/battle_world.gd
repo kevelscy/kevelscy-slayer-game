@@ -43,6 +43,10 @@ func start(game_session: GameSession) -> void:
 	session.health_track.leveled_up.connect(
 		func(_level: int) -> void: hero.set_max_health(session.hero_max_health())
 	)
+	session.talents.leveled_up.connect(
+		func(_talent_id: StringName, _level: int) -> void: hero.set_max_health(session.hero_max_health())
+	)
+	session.ascended.connect(func(_shards: int) -> void: _restart_run())
 	session.skills.cast.connect(func(_slot: int, skill: SkillDefinition) -> void: resolve_skill(skill))
 	session.spirits.attacked.connect(resolve_spirit_attack)
 	session.spirits.unlocked.connect(
@@ -112,6 +116,21 @@ func _sync_spirit_orbs() -> void:
 		orb.setup(session.spirits.slots[index].definition, anchor, index * 1.3)
 		add_child(orb)
 		_spirit_orbs[index] = orb
+
+
+## After an ascension the new run starts on an empty lane with a fresh hero and
+## no spirit orbs; they return as the stage unlocks their spirits again.
+func _restart_run() -> void:
+	scheduler.reset()
+	for node: Node in enemy_pool.active_nodes().duplicate():
+		(node as Enemy).vanish()
+	for orb: SpiritOrb in _spirit_orbs.values():
+		orb.queue_free()
+	_spirit_orbs.clear()
+	hero.health.max_health = session.hero_max_health()
+	# A dead hero is revived at full health by its Dead state.
+	if not hero.health.is_dead():
+		hero.revive()
 
 
 func _alive_enemies_by_distance() -> Array[Enemy]:
