@@ -68,6 +68,16 @@ func test_ascending_resets_the_run_and_pays_shards() -> void:
 	assert_signal_emitted_with_parameters(session, "ascended", [9])
 
 
+func test_run_reset_signals_already_see_the_paid_shards() -> void:
+	_reach(24)
+	var seen: Array[int] = []
+	var record: Callable = func() -> void: seen.append_array([session.talents.shards, session.ascension_count])
+	session.progression.stage_changed.connect(func(_stage: int) -> void: record.call())
+	session.wallet.changed.connect(func(_currency: StringName, _total: BigNumber) -> void: record.call())
+	session.ascend()
+	assert_eq(seen, [9, 1, 9, 1], "wallet then stage listeners read the new shards and count")
+
+
 func test_ascending_relocks_spirits_and_their_passives() -> void:
 	var fresh_attack: BigNumber = session.hero_stats.get_big(StatBlock.ATTACK)
 	_reach(20)

@@ -124,10 +124,13 @@ func ascension_shards_on_ascend() -> int:
 ## Trades the run for shards: stage 1, no gold, no upgrade levels, no buffs, and
 ## skills and spirits locked again (their unlocks follow the stage). Talents,
 ## shards and the ascension count stay. Returns the shards paid, 0 if not allowed.
+## Shards are paid first, so the reset's own signals already see the new balance.
 func ascend() -> int:
 	var gained: int = ascension_shards_on_ascend()
 	if gained <= 0:
 		return 0
+	talents.shards += gained
+	ascension_count += 1
 	buffs.clear()
 	spirits.relock()
 	skills.reset_cooldowns()
@@ -136,8 +139,6 @@ func ascend() -> int:
 	wallet.restore(GOLD, BigNumber.zero())
 	progression.restore_stage(1)
 	_refresh_hero_stats()
-	talents.shards += gained
-	ascension_count += 1
 	ascended.emit(gained)
 	return gained
 
