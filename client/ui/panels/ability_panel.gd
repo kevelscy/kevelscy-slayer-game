@@ -23,7 +23,7 @@ var _refresh_elapsed: float = 0.0
 
 func bind(session: GameSession) -> void:
 	_session = session
-	add_child(section_title("Skills"))
+	add_child(section_title("Habilidades"))
 	var skill_row: HFlowContainer = HFlowContainer.new()
 	add_child(skill_row)
 	for index: int in session.skills.slots.size():
@@ -60,7 +60,7 @@ func refresh() -> void:
 		var button: Button = skill_buttons[index]
 		var title: String = slot.definition.display_name
 		if not slot.is_unlocked(stage):
-			button.text = "%s\nStage %d" % [title, slot.definition.unlock_stage]
+			button.text = "%s\nEtapa %d" % [title, slot.definition.unlock_stage]
 		elif slot.cooldown_remaining > 0.0:
 			button.text = "%s\n%ds" % [title, ceili(slot.cooldown_remaining)]
 		else:
@@ -69,8 +69,8 @@ func refresh() -> void:
 		button.icon = skill_icons[index][GOLD if slot.is_ready(stage) else SILVER]
 	var autocast_unlocked: bool = _session.skills.is_autocast_unlocked(stage)
 	autocast_toggle.disabled = not autocast_unlocked
-	autocast_toggle.text = "Auto-cast" if autocast_unlocked else (
-		"Auto-cast (Stage %d)" % SkillBar.AUTOCAST_UNLOCK_STAGE
+	autocast_toggle.text = "Automático" if autocast_unlocked else (
+		"Automático (Etapa %d)" % SkillBar.AUTOCAST_UNLOCK_STAGE
 	)
 	autocast_toggle.set_pressed_no_signal(_session.skills.autocast_enabled)
 

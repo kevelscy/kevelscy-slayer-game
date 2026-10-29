@@ -1,7 +1,8 @@
 class_name NumberFormat
 extends RefCounted
-## Idle-game short notation: 999, 1.23K, 12.3M, 123B, 1.00T, then aa..zz, then scientific.
+## Idle-game short notation: 999, 1,23K, 12,3M, 123B, 1,00T, then aa..zz, then scientific.
 ## Values are truncated, never rounded up, so the display never overstates a balance.
+## Decimals use a comma, as the Spanish audience reads them.
 
 const SHORT_SUFFIXES: PackedStringArray = ["", "K", "M", "B", "T"]
 const ALPHABET: String = "abcdefghijklmnopqrstuvwxyz"
@@ -36,8 +37,14 @@ static func _suffix_for_group(group: int) -> String:
 	return ALPHABET[letter_index / 26] + ALPHABET[letter_index % 26]
 
 
+## A plain rate or percent with a fixed number of decimals and a decimal comma
+## (rounded like "%.*f"), for labels such as "5,5%" or "1,50/s".
+static func decimal(value: float, decimals: int) -> String:
+	return ("%.*f" % [decimals, value]).replace(".", ",")
+
+
 static func _truncate(value: float, decimals: int) -> String:
 	var factor: float = pow(10.0, decimals)
 	# Epsilon guards against values like 1.23 being stored as 1.2299999.
 	var truncated: float = floor(value * factor + 1e-6) / factor
-	return String.num(truncated, decimals).pad_decimals(decimals)
+	return String.num(truncated, decimals).pad_decimals(decimals).replace(".", ",")

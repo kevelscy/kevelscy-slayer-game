@@ -10,4 +10,4 @@ script = ExtResource("1_panel")
 [node name="Title" type="Label" parent="."]
 layout_mode = 2
 theme_type_variation = &"SectionTitle"
-text = "Upgrades"
+text = "Mejoras"

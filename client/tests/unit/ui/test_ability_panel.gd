@@ -19,12 +19,12 @@ func test_one_button_per_skill() -> void:
 
 
 func test_locked_skill_shows_its_unlock_stage_and_is_disabled() -> void:
-	assert_eq(panel.skill_buttons[1].text, "Meteor\nStage 3")
+	assert_eq(panel.skill_buttons[1].text, "Meteoro\nEtapa 3")
 	assert_true(panel.skill_buttons[1].disabled)
 
 
 func test_ready_skill_shows_its_name_and_is_enabled() -> void:
-	assert_eq(panel.skill_buttons[0].text, "Thunder")
+	assert_eq(panel.skill_buttons[0].text, "Trueno")
 	assert_false(panel.skill_buttons[0].disabled)
 
 
@@ -33,7 +33,7 @@ func test_skill_on_cooldown_shows_the_seconds_left() -> void:
 	panel.skill_buttons[0].pressed.emit()
 	session.tick_combat(2.5, true)
 	panel.refresh()
-	assert_eq(panel.skill_buttons[0].text, "Thunder\n6s")
+	assert_eq(panel.skill_buttons[0].text, "Trueno\n6s")
 	assert_true(panel.skill_buttons[0].disabled)
 
 
@@ -46,11 +46,11 @@ func test_pressing_a_ready_skill_casts_it() -> void:
 
 func test_autocast_toggle_is_locked_until_stage_ten() -> void:
 	assert_true(panel.autocast_toggle.disabled)
-	assert_eq(panel.autocast_toggle.text, "Auto-cast (Stage 10)")
+	assert_eq(panel.autocast_toggle.text, "Automático (Etapa 10)")
 	session.progression.restore_stage(10)
 	panel.refresh()
 	assert_false(panel.autocast_toggle.disabled)
-	assert_eq(panel.autocast_toggle.text, "Auto-cast")
+	assert_eq(panel.autocast_toggle.text, "Automático")
 	assert_true(panel.autocast_toggle.button_pressed)
 
 

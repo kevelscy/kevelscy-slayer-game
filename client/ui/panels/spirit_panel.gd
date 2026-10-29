@@ -7,11 +7,11 @@ extends VBoxContainer
 const REFRESH_SECONDS: float = 0.1
 const ICON_PATH: String = "res://art/icons/spirit_%s.png"
 const STAT_NAMES: Dictionary[StringName, String] = {
-	StatBlock.ATTACK: "Attack",
-	StatBlock.HEALTH: "Health",
-	StatBlock.CRIT_CHANCE: "Crit Chance",
-	StatBlock.CRIT_DAMAGE: "Crit Damage",
-	StatBlock.ATTACK_SPEED: "Attack Speed",
+	StatBlock.ATTACK: "Ataque",
+	StatBlock.HEALTH: "Vida",
+	StatBlock.CRIT_CHANCE: "Prob. crítico",
+	StatBlock.CRIT_DAMAGE: "Daño crítico",
+	StatBlock.ATTACK_SPEED: "Vel. ataque",
 }
 
 var spirit_cards: Array[PanelContainer] = []
@@ -26,7 +26,7 @@ var _refresh_elapsed: float = 0.0
 
 func bind(session: GameSession) -> void:
 	_session = session
-	add_child(AbilityPanel.section_title("Spirits"))
+	add_child(AbilityPanel.section_title("Espíritus"))
 	var spirit_row: HBoxContainer = HBoxContainer.new()
 	add_child(spirit_row)
 	for slot: SpiritTeam.SpiritSlot in session.spirits.slots:
@@ -75,6 +75,6 @@ func refresh() -> void:
 static func _spirit_status(slot: SpiritTeam.SpiritSlot) -> String:
 	var spirit: SpiritDefinition = slot.definition
 	if not slot.unlocked:
-		return "Stage %d" % spirit.unlock_stage
+		return "Etapa %d" % spirit.unlock_stage
 	# PERCENT and FLAT rate passives are both fractions, shown as whole percents.
 	return "+%d%% %s" % [roundi(spirit.passive_value * 100.0), STAT_NAMES.get(spirit.passive_stat, String(spirit.passive_stat))]

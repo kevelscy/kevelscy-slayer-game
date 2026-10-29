@@ -6,24 +6,24 @@
 [sub_resource type="Resource" id="Resource_xh8hg"]
 script = ExtResource("2_dg3l5")
 id = &"might"
-display_name = "Might"
+display_name = "Poder"
 
 [sub_resource type="Resource" id="Resource_3uea1"]
 script = ExtResource("2_dg3l5")
 id = &"vitality"
-display_name = "Vitality"
+display_name = "Vitalidad"
 stat = &"health"
 
 [sub_resource type="Resource" id="Resource_j7amy"]
 script = ExtResource("2_dg3l5")
 id = &"greed"
-display_name = "Greed"
+display_name = "Codicia"
 stat = &"gold_gain"
 
 [sub_resource type="Resource" id="Resource_oy8qc"]
 script = ExtResource("2_dg3l5")
 id = &"precision"
-display_name = "Precision"
+display_name = "Precisión"
 stat = &"crit_chance"
 kind = 0
 per_level = 0.01
@@ -32,7 +32,7 @@ requires = &"might"
 [sub_resource type="Resource" id="Resource_kcirp"]
 script = ExtResource("2_dg3l5")
 id = &"ferocity"
-display_name = "Ferocity"
+display_name = "Ferocidad"
 stat = &"crit_damage"
 kind = 0
 requires = &"might"
@@ -40,7 +40,7 @@ requires = &"might"
 [sub_resource type="Resource" id="Resource_86ekb"]
 script = ExtResource("2_dg3l5")
 id = &"haste"
-display_name = "Haste"
+display_name = "Celeridad"
 stat = &"attack_speed"
 per_level = 0.03
 requires = &"vitality"

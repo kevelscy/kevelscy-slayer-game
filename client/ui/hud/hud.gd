@@ -35,12 +35,12 @@ func _refresh() -> void:
 	if _session == null:
 		return
 	var progression: StageProgression = _session.progression
-	stage_label.text = "Stage %d" % progression.stage
-	gold_label.text = "Gold %s" % NumberFormat.format(_session.wallet.get_amount(GameSession.GOLD))
+	stage_label.text = "Etapa %d" % progression.stage
+	gold_label.text = "Oro %s" % NumberFormat.format(_session.wallet.get_amount(GameSession.GOLD))
 	if progression.is_boss_active:
 		progress_bar.max_value = progression.boss_seconds
 		progress_bar.value = progression.boss_time_left
-		progress_label.text = "BOSS %.1fs" % progression.boss_time_left
+		progress_label.text = "JEFE %ss" % NumberFormat.decimal(progression.boss_time_left, 1)
 	else:
 		progress_bar.max_value = progression.kills_per_stage
 		progress_bar.value = progression.kills

@@ -1,7 +1,7 @@
 class_name UpgradePanel
 extends VBoxContainer
 ## One row per stat upgrade: name, level, current value and a buy button priced in
-## gold, or "Max" once a capped track is complete.
+## gold, or "Máx" once a capped track is complete.
 
 
 class Row:
@@ -20,11 +20,11 @@ var _session: GameSession
 
 func bind(session: GameSession) -> void:
 	_session = session
-	_add_row("Attack", session.attack_track, func() -> String: return NumberFormat.format(session.attack_track.value()))
-	_add_row("Health", session.health_track, func() -> String: return NumberFormat.format(session.health_track.value()))
-	_add_row("Crit Chance", session.crit_chance_track, func() -> String: return "%.1f%%" % (session.crit_chance_track.rate() * 100.0))
-	_add_row("Crit Damage", session.crit_damage_track, func() -> String: return "%d%%" % roundi(session.crit_damage_track.rate() * 100.0))
-	_add_row("Attack Speed", session.attack_speed_track, func() -> String: return "%.2f/s" % session.attack_speed_track.rate())
+	_add_row("Ataque", session.attack_track, func() -> String: return NumberFormat.format(session.attack_track.value()))
+	_add_row("Vida", session.health_track, func() -> String: return NumberFormat.format(session.health_track.value()))
+	_add_row("Prob. crítico", session.crit_chance_track, func() -> String: return NumberFormat.decimal(session.crit_chance_track.rate() * 100.0, 1) + "%")
+	_add_row("Daño crítico", session.crit_damage_track, func() -> String: return "%d%%" % roundi(session.crit_damage_track.rate() * 100.0))
+	_add_row("Vel. ataque", session.attack_speed_track, func() -> String: return NumberFormat.decimal(session.attack_speed_track.rate(), 2) + "/s")
 	session.wallet.changed.connect(func(_currency: StringName, _total: BigNumber) -> void: _refresh())
 	_refresh()
 
@@ -58,11 +58,11 @@ func _on_buy_pressed(track: UpgradeTrack) -> void:
 
 func _refresh() -> void:
 	for row: Row in rows:
-		row.label.text = "%s  Lv %d\n%s" % [row.title, row.track.level, row.value_text.call()]
+		row.label.text = "%s  Nv %d\n%s" % [row.title, row.track.level, row.value_text.call()]
 		if row.track.is_maxed():
-			row.button.text = "Max"
+			row.button.text = "Máx"
 			row.button.disabled = true
 			continue
 		var cost: BigNumber = row.track.next_cost()
-		row.button.text = "Up  %s" % NumberFormat.format(cost)
+		row.button.text = "Mejorar %s" % NumberFormat.format(cost)
 		row.button.disabled = not _session.wallet.can_afford(GameSession.GOLD, cost)

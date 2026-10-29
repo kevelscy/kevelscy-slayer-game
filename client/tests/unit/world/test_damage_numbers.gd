@@ -46,7 +46,7 @@ func test_a_hit_shows_its_formatted_amount_above_the_enemy() -> void:
 	assert_eq(numbers.size(), 1)
 	var number: DamageNumber = numbers[0]
 	assert_eq(number.text, NumberFormat.format(BigNumber.from_float(1234.0)))
-	assert_eq(number.text, "1.23K")
+	assert_eq(number.text, "1,23K")
 	assert_eq(number.get_theme_font("font"), DamageNumber.FONT)
 	var enemy_top: float = enemy.position.y - enemy.definition.animation.frame_size.y * enemy.definition.sprite_scale
 	assert_lt(number.position.y + number.size.y, enemy_top + 1.0, "the number sits above the enemy")

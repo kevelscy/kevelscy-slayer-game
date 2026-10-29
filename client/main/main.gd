@@ -13,7 +13,7 @@ const TOAST_SECONDS: float = 4.0
 const TAB_UPGRADES: int = 0
 const TAB_SPIRITS: int = 1
 const TAB_ASCENSION: int = 2
-const TAB_TITLES: PackedStringArray = ["Upgrades", "Spirits", "Ascension"]
+const TAB_TITLES: PackedStringArray = ["Mejoras", "Espíritus", "Ascensión"]
 const TAB_ICONS: PackedStringArray = [
 	"res://art/icons/tab_upgrades.png", "res://art/icons/tab_spirits.png", "res://art/icons/tab_ascension.png",
 ]
@@ -79,7 +79,7 @@ func _ready() -> void:
 
 func _show_offline_reward(reward: OfflineReward) -> void:
 	var gold: BigNumber = reward.amounts.get(GameSession.GOLD, BigNumber.zero())
-	toast_label.text = "Welcome back!\n+%s gold (%s away)" % [
+	toast_label.text = "¡Hola de nuevo!\n+%s de oro (%s fuera)" % [
 		NumberFormat.format(gold), _format_duration(reward.elapsed_seconds)
 	]
 	# A new reward restarts the toast; the previous fade must not hide it early.

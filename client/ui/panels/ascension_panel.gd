@@ -7,13 +7,15 @@ extends PanelContainer
 const BACKGROUND: Color = Color(0.11, 0.08, 0.16, 1.0)
 ## Content width: the full portrait width, centered in landscape.
 const CONTENT_WIDTH: float = 720.0
+## The confirmation wraps its text inside this width, so both buttons stay on screen.
+const DIALOG_WIDTH: int = 640
 const STAT_NAMES: Dictionary[StringName, String] = {
-	StatBlock.ATTACK: "attack",
-	StatBlock.HEALTH: "health",
-	StatBlock.CRIT_CHANCE: "crit chance",
-	StatBlock.CRIT_DAMAGE: "crit damage",
-	StatBlock.ATTACK_SPEED: "attack speed",
-	TalentDefinition.GOLD_GAIN: "gold",
+	StatBlock.ATTACK: "ataque",
+	StatBlock.HEALTH: "vida",
+	StatBlock.CRIT_CHANCE: "prob. crítico",
+	StatBlock.CRIT_DAMAGE: "daño crítico",
+	StatBlock.ATTACK_SPEED: "vel. ataque",
+	TalentDefinition.GOLD_GAIN: "oro",
 }
 
 
@@ -51,12 +53,12 @@ func bind(session: GameSession) -> void:
 	var header: HBoxContainer = HBoxContainer.new()
 	column.add_child(header)
 	var title: Label = Label.new()
-	title.text = "Ascension"
+	title.text = "Ascensión"
 	title.theme_type_variation = GameTheme.SECTION_TITLE
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	close_button = Button.new()
-	close_button.text = "Close"
+	close_button.text = "Cerrar"
 	close_button.custom_minimum_size = Vector2(160.0, 72.0)
 	close_button.pressed.connect(hide)
 	header.add_child(close_button)
@@ -86,7 +88,10 @@ func bind(session: GameSession) -> void:
 		list.add_child(_build_row(talent))
 
 	confirm_dialog = ConfirmationDialog.new()
-	confirm_dialog.title = "Ascend"
+	confirm_dialog.title = "Ascender"
+	confirm_dialog.ok_button_text = "Ascender"
+	confirm_dialog.cancel_button_text = "Cancelar"
+	confirm_dialog.dialog_autowrap = true
 	confirm_dialog.confirmed.connect(_on_ascend_confirmed)
 	add_child(confirm_dialog)
 
@@ -101,13 +106,13 @@ func open() -> void:
 
 
 func refresh() -> void:
-	shards_label.text = "Shards %d" % _session.talents.shards
-	count_label.text = "Ascensions %d" % _session.ascension_count
+	shards_label.text = "Fragmentos %d" % _session.talents.shards
+	count_label.text = "Ascensiones %d" % _session.ascension_count
 	if _session.can_ascend():
-		ascend_button.text = "Ascend +%d shards" % _session.ascension_shards_on_ascend()
+		ascend_button.text = "Ascender +%d fragmentos" % _session.ascension_shards_on_ascend()
 		ascend_button.disabled = false
 	else:
-		ascend_button.text = "Ascend (Stage %d)" % GameSession.ASCEND_MIN_STAGE
+		ascend_button.text = "Ascender (Etapa %d)" % GameSession.ASCEND_MIN_STAGE
 		ascend_button.disabled = true
 	for row: Row in rows:
 		_refresh_row(row)
@@ -137,19 +142,19 @@ func _refresh_row(row: Row) -> void:
 	var talents: TalentTree = _session.talents
 	var talent: TalentDefinition = row.talent
 	var level: int = talents.level(talent.id)
-	row.label.text = "%s  Lv %d/%d\n+%d%% %s" % [
+	row.label.text = "%s  Nv %d/%d\n+%d%% %s" % [
 		talent.display_name, level, talent.max_level,
 		roundi(talent.per_level * level * 100.0), STAT_NAMES.get(talent.stat, String(talent.stat)),
 	]
 	if talents.is_maxed(talent.id):
-		row.button.text = "Max"
+		row.button.text = "Máx"
 		row.button.disabled = true
 	elif not talents.is_unlocked(talent.id):
-		row.button.text = "Needs %s %d" % [talents.definition(talent.requires).display_name, talent.requires_level]
+		row.button.text = "Requiere %s %d" % [talents.definition(talent.requires).display_name, talent.requires_level]
 		row.button.disabled = true
 	else:
 		var cost: int = talents.next_cost(talent.id)
-		row.button.text = "Up  %d %s" % [cost, "shard" if cost == 1 else "shards"]
+		row.button.text = "Mejorar %d %s" % [cost, "fragmento" if cost == 1 else "fragmentos"]
 		row.button.disabled = talents.shards < cost
 
 
@@ -162,10 +167,18 @@ func _on_ascend_pressed() -> void:
 	if not _session.can_ascend():
 		return
 	confirm_dialog.dialog_text = (
-		"Restart from stage 1 for +%d shards?\nGold, upgrades, skills and spirits reset; talents stay."
-		% _session.ascension_shards_on_ascend()
+		"¿Volver a la etapa 1 por +%d fragmentos?\n" % _session.ascension_shards_on_ascend()
+		+ "Se reinician el oro, las mejoras, las habilidades y los espíritus; los talentos se mantienen."
 	)
-	confirm_dialog.popup_centered()
+	confirm_dialog.popup_centered(Vector2i(DIALOG_WIDTH, 0))
+	# The wrapped text measures its height before it knows its width; shrink once laid out.
+	_fit_confirm_dialog.call_deferred()
+
+
+func _fit_confirm_dialog() -> void:
+	if confirm_dialog.visible:
+		confirm_dialog.reset_size()
+		confirm_dialog.popup_centered(Vector2i(DIALOG_WIDTH, 0))
 
 
 func _on_ascend_confirmed() -> void:

@@ -23,22 +23,22 @@ func _labels() -> Array[String]:
 
 func test_lists_every_stat_with_level_and_value() -> void:
 	assert_eq(_labels(), [
-		"Attack  Lv 0\n10",
-		"Health  Lv 0\n100",
-		"Crit Chance  Lv 0\n5.0%",
-		"Crit Damage  Lv 0\n150%",
-		"Attack Speed  Lv 0\n1.50/s",
+		"Ataque  Nv 0\n10",
+		"Vida  Nv 0\n100",
+		"Prob. crítico  Nv 0\n5,0%",
+		"Daño crítico  Nv 0\n150%",
+		"Vel. ataque  Nv 0\n1,50/s",
 	])
 
 
 func test_rate_button_shows_cost_and_buys() -> void:
 	var row: UpgradePanel.Row = panel.rows[2]
-	assert_eq(row.button.text, "Up  50")
+	assert_eq(row.button.text, "Mejorar 50")
 	assert_true(row.button.disabled)
 	session.wallet.add(GameSession.GOLD, BigNumber.from_float(50.0))
 	assert_false(row.button.disabled)
 	row.button.pressed.emit()
-	assert_eq(row.label.text, "Crit Chance  Lv 1\n5.5%")
+	assert_eq(row.label.text, "Prob. crítico  Nv 1\n5,5%")
 	assert_true(session.wallet.get_amount(GameSession.GOLD).is_zero())
 
 
@@ -48,8 +48,8 @@ func test_maxed_track_shows_max_and_stays_disabled() -> void:
 	session.apply_save(saved)
 	session.wallet.add(GameSession.GOLD, BigNumber.of(1.0, 100))
 	var row: UpgradePanel.Row = panel.rows[4]
-	assert_eq(row.label.text, "Attack Speed  Lv 75\n3.00/s")
-	assert_eq(row.button.text, "Max")
+	assert_eq(row.label.text, "Vel. ataque  Nv 75\n3,00/s")
+	assert_eq(row.button.text, "Máx")
 	assert_true(row.button.disabled)
 
 

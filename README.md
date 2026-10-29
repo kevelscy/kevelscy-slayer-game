@@ -99,11 +99,14 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
 - Offline gold counts spirit passives and spirit attacks, never active skills. Unlocks derive from
   the saved stage, so the save format is unchanged.
 - Portrait (mobile): the HUD, the battle and the skill bar stay on screen; below them one
-  scrollable page picked from the bottom tab bar: `Upgrades` (default), `Spirits` or `Ascension`
+  scrollable page picked from the bottom tab bar: `Mejoras` (upgrades, default), `Espíritus`
+  (spirits) or `Ascensión`
   (opens the ascension panel and keeps the page). The selected tab has a gold frame, the others
   silver; each tab shows its pixel-art icon above the title. Swiping sideways on the page
-  moves between `Upgrades` and `Spirits` (left = next, right = previous) and never presses
+  moves between `Mejoras` and `Espíritus` (left = next, right = previous) and never presses
   the button the swipe started on.
+- Every player-facing text is Spanish (the target audience), with a decimal comma
+  (`1,23K`); code, docs and dev logs stay English.
 - Landscape (PC): skills and spirits in the left column, upgrades in the right one, no tab bar.
 
 ## Ascension and talents

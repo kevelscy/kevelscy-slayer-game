@@ -9,16 +9,16 @@ const CATALOG_PATH: String = "res://data/content/abilities/ability_catalog.tres"
 func _init() -> void:
 	var catalog: AbilityCatalog = AbilityCatalog.new()
 	catalog.skills = [
-		_skill(&"thunder", "Thunder", SkillDefinition.Effect.DAMAGE_ALL, 1, 8.0, 3.0, 0.0, Color(0.6, 0.8, 1.0)),
-		_skill(&"meteor", "Meteor", SkillDefinition.Effect.DAMAGE_FRONT, 3, 12.0, 10.0, 0.0, Color(1.0, 0.5, 0.15)),
-		_skill(&"blizzard", "Blizzard", SkillDefinition.Effect.FREEZE_ALL, 5, 15.0, 1.5, 3.0, Color(0.55, 0.95, 1.0)),
-		_skill(&"fury", "Fury", SkillDefinition.Effect.BUFF, 8, 20.0, 0.5, 6.0, Color(1.0, 0.3, 0.25)),
-		_skill(&"shield", "Shield", SkillDefinition.Effect.SHIELD, 12, 25.0, 0.5, 8.0, Color(1.0, 0.85, 0.3)),
+		_skill(&"thunder", "Trueno", SkillDefinition.Effect.DAMAGE_ALL, 1, 8.0, 3.0, 0.0, Color(0.6, 0.8, 1.0)),
+		_skill(&"meteor", "Meteoro", SkillDefinition.Effect.DAMAGE_FRONT, 3, 12.0, 10.0, 0.0, Color(1.0, 0.5, 0.15)),
+		_skill(&"blizzard", "Ventisca", SkillDefinition.Effect.FREEZE_ALL, 5, 15.0, 1.5, 3.0, Color(0.55, 0.95, 1.0)),
+		_skill(&"fury", "Furia", SkillDefinition.Effect.BUFF, 8, 20.0, 0.5, 6.0, Color(1.0, 0.3, 0.25)),
+		_skill(&"shield", "Escudo", SkillDefinition.Effect.SHIELD, 12, 25.0, 0.5, 8.0, Color(1.0, 0.85, 0.3)),
 	]
 	catalog.spirits = [
-		_spirit(&"wisp", "Wisp", 2, StatBlock.ATTACK, StatModifier.Kind.PERCENT, 0.1, 3.0, 1.0, Color("#13ccbd")),
-		_spirit(&"ember_fox", "Ember Fox", 6, StatBlock.CRIT_CHANCE, StatModifier.Kind.FLAT, 0.05, 4.0, 2.0, Color(1.0, 0.55, 0.2)),
-		_spirit(&"frost_owl", "Frost Owl", 10, StatBlock.HEALTH, StatModifier.Kind.PERCENT, 0.2, 5.0, 3.0, Color(0.7, 0.85, 1.0)),
+		_spirit(&"wisp", "Fuego fatuo", 2, StatBlock.ATTACK, StatModifier.Kind.PERCENT, 0.1, 3.0, 1.0, Color("#13ccbd")),
+		_spirit(&"ember_fox", "Zorro ígneo", 6, StatBlock.CRIT_CHANCE, StatModifier.Kind.FLAT, 0.05, 4.0, 2.0, Color(1.0, 0.55, 0.2)),
+		_spirit(&"frost_owl", "Búho de escarcha", 10, StatBlock.HEALTH, StatModifier.Kind.PERCENT, 0.2, 5.0, 3.0, Color(0.7, 0.85, 1.0)),
 	]
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CATALOG_PATH.get_base_dir()))
 	var error: Error = ResourceSaver.save(catalog, CATALOG_PATH)

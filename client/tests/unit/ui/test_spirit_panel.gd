@@ -20,12 +20,12 @@ func test_one_card_per_spirit() -> void:
 
 
 func test_spirit_slots_show_lock_stage_or_passive() -> void:
-	assert_eq(panel.spirit_labels[0].text, "Wisp\nStage 2")
+	assert_eq(panel.spirit_labels[0].text, "Fuego fatuo\nEtapa 2")
 	session.progression.restore_stage(6)
 	panel.refresh()
-	assert_eq(panel.spirit_labels[0].text, "Wisp\n+10% Attack")
-	assert_eq(panel.spirit_labels[1].text, "Ember Fox\n+5% Crit Chance")
-	assert_eq(panel.spirit_labels[2].text, "Frost Owl\nStage 10")
+	assert_eq(panel.spirit_labels[0].text, "Fuego fatuo\n+10% Ataque")
+	assert_eq(panel.spirit_labels[1].text, "Zorro ígneo\n+5% Prob. crítico")
+	assert_eq(panel.spirit_labels[2].text, "Búho de escarcha\nEtapa 10")
 
 
 func test_spirits_sit_in_framed_cards() -> void:
@@ -85,4 +85,4 @@ func test_spirit_icons_sit_centered_above_the_text_at_their_own_size() -> void:
 func test_spirits_refresh_on_their_own_as_the_stage_grows() -> void:
 	session.progression.restore_stage(6)
 	await wait_seconds(SpiritPanel.REFRESH_SECONDS * 3.0)
-	assert_eq(panel.spirit_labels[0].text, "Wisp\n+10% Attack")
+	assert_eq(panel.spirit_labels[0].text, "Fuego fatuo\n+10% Ataque")
