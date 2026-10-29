@@ -19,7 +19,7 @@ The reviewer text was not kept; the specs restate each finding from its file:lin
 
 - [x] T1 S1-S2 scratch save — inline — 9518200
 - [x] T2 S3-S4 sync waiter — inline — 4e4facc
-- [ ] T3 suite, review, push — inline — docs commit
+- [x] T3 suite, review, push — inline — this docs commit
 
 ## Log
 
@@ -30,3 +30,9 @@ The reviewer text was not kept; the specs restate each finding from its file:lin
   meaningful RED without root). T2 4e4facc: RED (two concurrent resumes got the same reward object), GREEN
   (each gets its own equal copy, one `offline_reward_granted`). Full scripts/test.sh 370/370, exit 0; the
   real `save.json` and `auth.json` kept the same SHA-1.
+- L3 Native review review-b03e54d082585f8a (base 0ad8c73, committed-only, untracked .vscode/ and
+  client/.mcp.json excluded; assess was unassessable with undeclared untracked files, so the review ran from the
+  Task Size high-risk item: concurrent sync). Tier medium, 172 lines, lenses resilience/reliability: approved on
+  the first pass, acknowledged (authority burned). Non-blocking findings (reviewer text not kept):
+  R3-001 WARNING cloud_sync.gd:79-80 (the waiter's early return), R3-002 SUGGESTION game_state.gd:53
+  (`saves.boot(load_existing)`). Left for the backlog after the ascension findings.
