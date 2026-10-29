@@ -6,9 +6,10 @@ extends Node
 signal offline_reward_granted(reward: OfflineReward)
 
 const STAGE_BALANCE: StageBalance = preload("res://data/content/balance/stage_balance.tres")
+const ABILITIES: AbilityCatalog = preload("res://data/content/abilities/ability_catalog.tres")
 const SAVE_PATH_ARG_PREFIX: String = "--save-path="
 
-var session: GameSession = GameSession.new(STAGE_BALANCE)
+var session: GameSession = GameSession.new(STAGE_BALANCE, 10, 30.0, ABILITIES)
 var saves: SaveController
 ## Reward paid on boot, kept until the main screen can show it.
 var boot_reward: OfflineReward

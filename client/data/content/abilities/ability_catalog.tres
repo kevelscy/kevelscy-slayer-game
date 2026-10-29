@@ -1,0 +1,91 @@
+[gd_resource type="Resource" script_class="AbilityCatalog" format=3]
+
+[ext_resource type="Script" path="res://core/abilities/ability_catalog.gd" id="1_ua7em"]
+[ext_resource type="Script" path="res://core/skills/skill_definition.gd" id="2_3qjhl"]
+[ext_resource type="Script" path="res://core/spirits/spirit_definition.gd" id="3_l2ac6"]
+
+[sub_resource type="Resource" id="Resource_djlwg"]
+script = ExtResource("2_3qjhl")
+id = &"thunder"
+display_name = "Thunder"
+cooldown_seconds = 8.0
+power = 3.0
+color = Color(0.6, 0.8, 1, 1)
+
+[sub_resource type="Resource" id="Resource_15cle"]
+script = ExtResource("2_3qjhl")
+id = &"meteor"
+display_name = "Meteor"
+effect = 1
+unlock_stage = 3
+cooldown_seconds = 12.0
+power = 10.0
+color = Color(1, 0.5, 0.15, 1)
+
+[sub_resource type="Resource" id="Resource_ppcxk"]
+script = ExtResource("2_3qjhl")
+id = &"blizzard"
+display_name = "Blizzard"
+effect = 2
+unlock_stage = 5
+cooldown_seconds = 15.0
+power = 1.5
+duration_seconds = 3.0
+color = Color(0.55, 0.95, 1, 1)
+
+[sub_resource type="Resource" id="Resource_6q7ef"]
+script = ExtResource("2_3qjhl")
+id = &"fury"
+display_name = "Fury"
+effect = 3
+unlock_stage = 8
+cooldown_seconds = 20.0
+power = 0.5
+duration_seconds = 6.0
+color = Color(1, 0.3, 0.25, 1)
+
+[sub_resource type="Resource" id="Resource_xwe56"]
+script = ExtResource("2_3qjhl")
+id = &"shield"
+display_name = "Shield"
+effect = 4
+unlock_stage = 12
+cooldown_seconds = 25.0
+power = 0.5
+duration_seconds = 8.0
+color = Color(1, 0.85, 0.3, 1)
+
+[sub_resource type="Resource" id="Resource_dy8vw"]
+script = ExtResource("3_l2ac6")
+id = &"wisp"
+display_name = "Wisp"
+unlock_stage = 2
+color = Color(0.6, 1, 0.6, 1)
+
+[sub_resource type="Resource" id="Resource_y45cc"]
+script = ExtResource("3_l2ac6")
+id = &"ember_fox"
+display_name = "Ember Fox"
+unlock_stage = 6
+passive_stat = &"crit_chance"
+passive_kind = 0
+passive_value = 0.05
+attack_interval_seconds = 4.0
+attack_power = 2.0
+color = Color(1, 0.55, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_hlbvy"]
+script = ExtResource("3_l2ac6")
+id = &"frost_owl"
+display_name = "Frost Owl"
+unlock_stage = 10
+passive_stat = &"health"
+passive_value = 0.2
+attack_interval_seconds = 5.0
+attack_power = 3.0
+color = Color(0.7, 0.85, 1, 1)
+
+[resource]
+script = ExtResource("1_ua7em")
+skills = Array[ExtResource("2_3qjhl")]([SubResource("Resource_djlwg"), SubResource("Resource_15cle"), SubResource("Resource_ppcxk"), SubResource("Resource_6q7ef"), SubResource("Resource_xwe56")])
+spirits = Array[ExtResource("3_l2ac6")]([SubResource("Resource_dy8vw"), SubResource("Resource_y45cc"), SubResource("Resource_hlbvy")])
