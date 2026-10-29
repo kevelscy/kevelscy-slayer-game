@@ -98,11 +98,16 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
   attacks on its own timer while the hero fights.
 - Offline gold counts spirit passives and spirit attacks, never active skills. Unlocks derive from
   the saved stage, so the save format is unchanged.
-- The panel sits under the upgrades in portrait and in the right column in landscape.
+- Portrait (mobile): the HUD, the battle and the skill bar stay on screen; below them one
+  scrollable page picked from the bottom tab bar: `Upgrades` (default), `Spirits` or `Ascension`
+  (opens the ascension panel and keeps the page). The selected tab has a gold frame, the others
+  silver.
+- Landscape (PC): skills and spirits in the left column, upgrades in the right one, no tab bar.
 
 ## Ascension and talents
 
-- The `Ascension` button in the HUD opens a full-screen panel (portrait and landscape).
+- The `Ascension` tab (portrait) or the `Ascension` button in the HUD (landscape) opens a
+  full-screen panel.
 - From stage 20, `Ascend +N shards` pays `stage - 15` ascension shards (5 at stage 20) after a
   confirmation. The run restarts at stage 1 with 0 gold, every upgrade at level 0, buffs cleared
   and skills, auto-cast and spirits locked again; the lane is cleared and the hero is at full

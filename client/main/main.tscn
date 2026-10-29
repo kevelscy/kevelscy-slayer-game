@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://world/battle_world.tscn" id="2_world"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://ui/panels/ability_panel.gd" id="5_abilities"]
 [ext_resource type="Script" path="res://ui/panels/ascension_panel.gd" id="6_ascension"]
 [ext_resource type="Script" path="res://ui/panels/spirit_panel.gd" id="7_spirits"]
+[ext_resource type="Script" path="res://ui/hud/bottom_tab_bar.gd" id="8_tabs"]
 
 [sub_resource type="Gradient" id="Gradient_backdrop"]
 colors = PackedColorArray(0.17, 0.12, 0.24, 1, 0.07, 0.05, 0.1, 1)
@@ -70,13 +71,26 @@ render_target_update_mode = 4
 layout_mode = 2
 script = ExtResource("5_abilities")
 
-[node name="SpiritPanel" type="VBoxContainer" parent="SafeArea/Portrait"]
+[node name="Pages" type="ScrollContainer" parent="SafeArea/Portrait"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="PageStack" type="VBoxContainer" parent="SafeArea/Portrait/Pages"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="UpgradePanel" parent="SafeArea/Portrait/Pages/PageStack" instance=ExtResource("4_upgrades")]
+layout_mode = 2
+
+[node name="SpiritPanel" type="VBoxContainer" parent="SafeArea/Portrait/Pages/PageStack"]
+visible = false
 layout_mode = 2
 script = ExtResource("7_spirits")
 
-[node name="UpgradePanel" parent="SafeArea/Portrait" instance=ExtResource("4_upgrades")]
+[node name="TabBar" type="HBoxContainer" parent="SafeArea/Portrait"]
 layout_mode = 2
-size_flags_vertical = 3
+script = ExtResource("8_tabs")
 
 [node name="Landscape" type="HBoxContainer" parent="SafeArea"]
 visible = false

@@ -10,6 +10,10 @@ const ASCENSION_PANEL_ARG: String = "--ascension-panel"
 const SCREENSHOT_DELAY_FRAMES: int = 120
 const DEV_REPORT_SECONDS: float = 5.0
 const TOAST_SECONDS: float = 4.0
+const TAB_UPGRADES: int = 0
+const TAB_SPIRITS: int = 1
+const TAB_ASCENSION: int = 2
+const TAB_TITLES: PackedStringArray = ["Upgrades", "Spirits", "Ascension"]
 
 var _landscape: bool = false
 var _layout_applied: bool = false
@@ -19,6 +23,8 @@ var _open_ascension: bool = false
 var _frames: int = 0
 var _report_elapsed: float = 0.0
 var _toast_tween: Tween
+## The page tab shown in portrait; Ascension is an overlay, never a page.
+var _page: int = TAB_UPGRADES
 
 @onready var safe_area: MarginContainer = $SafeArea
 @onready var portrait: VBoxContainer = $SafeArea/Portrait
@@ -29,9 +35,12 @@ var _toast_tween: Tween
 @onready var battle_view: SubViewportContainer = $SafeArea/Portrait/BattleView
 @onready var battle_world: BattleWorld = $SafeArea/Portrait/BattleView/SubViewport/BattleWorld
 @onready var hud: Hud = $SafeArea/Portrait/Hud
-@onready var upgrade_panel: UpgradePanel = $SafeArea/Portrait/UpgradePanel
 @onready var ability_panel: AbilityPanel = $SafeArea/Portrait/AbilityPanel
-@onready var spirit_panel: SpiritPanel = $SafeArea/Portrait/SpiritPanel
+@onready var pages: ScrollContainer = $SafeArea/Portrait/Pages
+@onready var page_stack: VBoxContainer = $SafeArea/Portrait/Pages/PageStack
+@onready var upgrade_panel: UpgradePanel = $SafeArea/Portrait/Pages/PageStack/UpgradePanel
+@onready var spirit_panel: SpiritPanel = $SafeArea/Portrait/Pages/PageStack/SpiritPanel
+@onready var tab_bar: BottomTabBar = $SafeArea/Portrait/TabBar
 @onready var ascension_panel: AscensionPanel = $AscensionPanel
 @onready var toast: PanelContainer = $Toast
 @onready var toast_label: Label = $Toast/Label
@@ -48,6 +57,8 @@ func _ready() -> void:
 	spirit_panel.bind(session)
 	ascension_panel.bind(session)
 	hud.ascension_button.pressed.connect(ascension_panel.open)
+	tab_bar.setup(TAB_TITLES, TAB_UPGRADES)
+	tab_bar.tab_selected.connect(_on_tab_selected)
 	if _open_ascension:
 		ascension_panel.open()
 	get_viewport().size_changed.connect(_apply_layout)
@@ -110,6 +121,7 @@ func _apply_layout() -> void:
 func _reparent_panels() -> void:
 	portrait.visible = not _landscape
 	landscape_root.visible = _landscape
+	hud.ascension_button.visible = _landscape
 	if _landscape:
 		hud.reparent(center_column, false)
 		battle_view.reparent(center_column, false)
@@ -120,8 +132,28 @@ func _reparent_panels() -> void:
 		hud.reparent(portrait, false)
 		battle_view.reparent(portrait, false)
 		ability_panel.reparent(portrait, false)
-		spirit_panel.reparent(portrait, false)
-		upgrade_panel.reparent(portrait, false)
+		upgrade_panel.reparent(page_stack, false)
+		spirit_panel.reparent(page_stack, false)
+		# Pages and the tab bar end the portrait stack, below the moved panels.
+		portrait.move_child(pages, -1)
+		portrait.move_child(tab_bar, -1)
+	_show_page()
+
+
+func _on_tab_selected(index: int) -> void:
+	if index == TAB_ASCENSION:
+		ascension_panel.open()
+		tab_bar.select(_page, false)
+		return
+	_page = index
+	_show_page()
+	pages.scroll_vertical = 0
+
+
+## Portrait shows only the picked page; landscape shows both panels in their columns.
+func _show_page() -> void:
+	upgrade_panel.visible = _landscape or _page == TAB_UPGRADES
+	spirit_panel.visible = _landscape or _page == TAB_SPIRITS
 
 
 ## Mobile notches: convert the display safe area from window pixels to canvas units.
