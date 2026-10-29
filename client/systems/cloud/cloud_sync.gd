@@ -69,10 +69,15 @@ func boot() -> OfflineReward:
 ## offline time, then pushes the result. Only the boot sync gives a tie to the
 ## cloud: a retry runs mid-play, where applying an equal save would restart the
 ## running game (buffs, spirits and the battle) for no progress.
+## The returned reward reports what the sync paid; it is paid and announced
+## through offline_reward_granted once, whoever asked.
 func _sync(cloud_wins_ties: bool) -> OfflineReward:
 	if _syncing:
-		# A resume during the timer retry shares that sync: one pull, one reward.
-		return await _sync_finished
+		# A resume during the timer retry shares that sync: one pull, one reward,
+		# reported to this caller as its own copy. The wait ends with that sync,
+		# whose requests each end within GodotHttpTransport.TIMEOUT_SECONDS.
+		var shared: OfflineReward = await _sync_finished
+		return OfflineReward.new(shared.elapsed_seconds, shared.amounts.duplicate())
 	_syncing = true
 	var reward: OfflineReward = await _pull_and_reconcile(cloud_wins_ties)
 	_syncing = false

@@ -294,6 +294,31 @@ func test_a_sync_requested_while_one_is_in_flight_returns_its_reward() -> void:
 	assert_eq(session.progression.stage, 9)
 
 
+func test_a_waiting_sync_gets_its_own_copy_of_the_reward() -> void:
+	_boot_local(_save(4))
+	await sync.boot()
+	_queue_pull(_save(9), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	transport.hold()
+	watch_signals(sync)
+	var rewards: Array[OfflineReward] = []
+	var resume_then_keep: Callable = func() -> void:
+		rewards.append(await sync.resume())
+	resume_then_keep.call()
+	resume_then_keep.call()
+	await wait_process_frames(1)
+	transport.release()
+	await wait_process_frames(2)
+	assert_eq(rewards.size(), 2)
+	assert_false(is_same(rewards[0], rewards[1]), "each caller owns its reward")
+	assert_false(is_same(rewards[0].amounts, rewards[1].amounts), "amounts are not shared")
+	assert_eq(rewards[1].elapsed_seconds, HOUR)
+	assert_eq(rewards[1].amounts.keys(), rewards[0].amounts.keys())
+	for key: StringName in rewards[0].amounts:
+		assert_eq(rewards[1].amounts[key].serialize(), rewards[0].amounts[key].serialize())
+	assert_signal_emit_count(sync, "offline_reward_granted", 1, "paid and announced once")
+
+
 func test_a_resume_before_the_first_sync_runs_the_boot_sync() -> void:
 	_boot_local(_save(4))
 	await sync.boot()
