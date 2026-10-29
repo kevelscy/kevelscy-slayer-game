@@ -53,6 +53,14 @@ func _boot_local(data: SaveData) -> void:
 	controller.boot()
 
 
+## Boots on an empty cloud so the boot push is acknowledged at server_now.
+func _boot_synced(data: SaveData, server_now: int = T0) -> void:
+	_boot_local(data)
+	_queue_pull(null, -1, server_now)
+	transport.queue(200, {"server_now_unix": server_now})
+	await sync.boot()
+
+
 func _queue_pull(data: SaveData, last_seen: int, server_now: int) -> void:
 	var save: Variant = null if data == null else JSON.parse_string(SaveCodec.encode(data))
 	transport.queue(200, {"save": save, "last_seen_unix": last_seen if data != null else null, "server_now_unix": server_now})
@@ -179,25 +187,83 @@ func test_a_rejected_cloud_save_is_not_applied_nor_overwritten() -> void:
 
 
 func test_tick_pushes_every_sixty_seconds() -> void:
-	_boot_local(_save(4))
+	await _boot_synced(_save(4))
 	sync.tick(59.0)
-	assert_eq(_rpc_requests("push_save").size(), 0)
+	assert_eq(_rpc_requests("push_save").size(), 1)
 	transport.queue(200, {"server_now_unix": T0})
 	sync.tick(1.0)
 	await wait_process_frames(1)
-	assert_eq(_rpc_requests("push_save").size(), 1)
+	assert_eq(_rpc_requests("push_save").size(), 2)
 	sync.tick(59.0)
+	assert_eq(_rpc_requests("push_save").size(), 2)
+
+
+func test_nothing_is_pushed_before_a_successful_boot_sync() -> void:
+	_boot_local(_save(4))
+	var before_boot: CloudPushResult = await sync.push()
+	await sync.boot()
+	var after_failed_boot: CloudPushResult = await sync.push()
+	for result: CloudPushResult in [before_boot, after_failed_boot]:
+		assert_false(result.ok)
+		assert_eq(result.error, "cloud not synced yet")
+	assert_eq(_rpc_requests("push_save").size(), 0)
+	assert_eq(_rpc_requests("pull_save").size(), 1, "only the boot pull was sent")
+
+
+func test_tick_retries_the_boot_sync_instead_of_pushing() -> void:
+	_boot_local(_save(4))
+	await sync.boot()
+	_queue_pull(_save(9), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	watch_signals(sync)
+	sync.tick(60.0)
+	await wait_process_frames(1)
+	assert_eq(session.progression.stage, 9, "the cloud ahead is applied, not overwritten")
+	assert_eq(_rpc_requests("pull_save").size(), 2)
 	assert_eq(_rpc_requests("push_save").size(), 1)
+	assert_eq(_pushed_stage(), 9)
+	assert_signal_emitted(sync, "offline_reward_granted")
+	sync.tick(60.0)
+	await wait_process_frames(1)
+	assert_eq(_rpc_requests("pull_save").size(), 2, "once synced, ticks push")
+	assert_eq(_rpc_requests("push_save").size(), 2)
 
 
-func _ack_push(server_now: int) -> void:
-	transport.queue(200, {"server_now_unix": server_now})
-	await sync.push()
+func test_a_resume_before_the_first_sync_runs_the_boot_sync() -> void:
+	_boot_local(_save(4))
+	await sync.boot()
+	_queue_pull(_save(9), T0 - HOUR, T0)
+	transport.queue(200, {"server_now_unix": T0})
+	var reward: OfflineReward = await sync.resume()
+	assert_eq(session.progression.stage, 9)
+	assert_eq(reward.elapsed_seconds, HOUR)
+	assert_eq(_pushed_stage(), 9)
+
+
+func test_flush_waits_for_the_push_in_flight_then_pushes_the_current_session() -> void:
+	await _boot_synced(_save(6))
+	transport.hold()
+	transport.queue(200, {"server_now_unix": T0 + 10})
+	transport.queue(200, {"server_now_unix": T0 + 20})
+	sync.push()
+	session.wallet.restore(GameSession.GOLD, BigNumber.from_float(900.0))
+	var done: Array[bool] = [false]
+	var flush_then_flag: Callable = func() -> void:
+		var result: CloudPushResult = await sync.flush()
+		done[0] = result.ok
+	flush_then_flag.call()
+	await wait_process_frames(2)
+	assert_false(done[0], "flush waits for the push in flight")
+	assert_eq(_rpc_requests("push_save").size(), 2)
+	transport.release()
+	await wait_process_frames(2)
+	assert_true(done[0])
+	assert_eq(_rpc_requests("push_save").size(), 3)
+	assert_eq((transport.last_json() as Dictionary)["save"]["gold"], BigNumber.from_float(900.0).serialize())
 
 
 func test_suspend_keeps_the_marker_without_pushing() -> void:
-	_boot_local(_save(6))
-	await _ack_push(T0)
+	await _boot_synced(_save(6))
 	sync.tick(30.0)
 	sync.suspend()
 	assert_eq(_rpc_requests("push_save").size(), 1, "requests cannot finish while suspended")
@@ -207,8 +273,7 @@ func test_suspend_keeps_the_marker_without_pushing() -> void:
 
 
 func test_resume_pays_the_suspended_time_from_the_server() -> void:
-	_boot_local(_save(6))
-	await _ack_push(T0)
+	await _boot_synced(_save(6))
 	_queue_pull(_save(6), T0, T0 + HOUR)
 	transport.queue(200, {"server_now_unix": T0 + HOUR})
 	watch_signals(sync)
@@ -219,8 +284,7 @@ func test_resume_pays_the_suspended_time_from_the_server() -> void:
 
 
 func test_resume_subtracts_the_play_since_the_last_push() -> void:
-	_boot_local(_save(6))
-	await _ack_push(T0)
+	await _boot_synced(_save(6))
 	sync.tick(40.0)
 	session.wallet.restore(GameSession.GOLD, BigNumber.from_float(900.0))
 	_queue_pull(_save(6), T0, T0 + HOUR)
@@ -230,8 +294,7 @@ func test_resume_subtracts_the_play_since_the_last_push() -> void:
 
 
 func test_play_while_pushes_fail_is_not_paid_as_offline_time() -> void:
-	_boot_local(_save(6))
-	await _ack_push(T0)
+	await _boot_synced(_save(6))
 	sync.tick(60.0)
 	sync.tick(60.0)
 	await wait_process_frames(1)
@@ -242,8 +305,7 @@ func test_play_while_pushes_fail_is_not_paid_as_offline_time() -> void:
 
 
 func test_a_second_resume_pays_only_the_second_absence() -> void:
-	_boot_local(_save(6))
-	await _ack_push(T0)
+	await _boot_synced(_save(6))
 	_queue_pull(_save(6), T0, T0 + HOUR)
 	var first: OfflineReward = await sync.resume()
 	assert_eq(first.elapsed_seconds, HOUR, "its push failed, so the cloud keeps the T0 row")
@@ -254,8 +316,7 @@ func test_a_second_resume_pays_only_the_second_absence() -> void:
 
 
 func test_boot_after_the_app_was_killed_pays_from_the_saved_marker() -> void:
-	_boot_local(_save(6))
-	await _ack_push(T0)
+	await _boot_synced(_save(6))
 	sync.tick(25.0)
 	sync.suspend()
 	session.wallet.restore(GameSession.GOLD, BigNumber.from_float(900.0))
@@ -269,8 +330,7 @@ func test_boot_after_the_app_was_killed_pays_from_the_saved_marker() -> void:
 
 
 func test_resume_pays_nothing_when_another_push_replaced_the_cloud_row() -> void:
-	_boot_local(_save(6))
-	await _ack_push(T0)
+	await _boot_synced(_save(6))
 	_queue_pull(_save(5), T0 + 60, T0 + HOUR)
 	transport.queue(200, {"server_now_unix": T0 + HOUR})
 	var reward: OfflineReward = await sync.resume()

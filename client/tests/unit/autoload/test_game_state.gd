@@ -44,6 +44,10 @@ class SpyCloud:
 		calls.append("cloud_push")
 		return CloudPushResult.new(true)
 
+	func flush() -> CloudPushResult:
+		calls.append("cloud_flush")
+		return CloudPushResult.new(true)
+
 
 var state: Node
 var spy: SpyController
@@ -116,11 +120,11 @@ func test_with_cloud_pause_resume_and_focus_loss_also_reach_the_cloud() -> void:
 	)
 
 
-func test_window_close_saves_pushes_then_quits() -> void:
+func test_window_close_saves_flushes_the_cloud_then_quits() -> void:
 	state.cloud = SpyCloud.new(spy.calls)
 	state.quit_game = func() -> void: spy.calls.append("quit")
 	await state.close_game()
-	assert_eq(spy.calls, ["save", "cloud_push", "quit"] as Array[String])
+	assert_eq(spy.calls, ["save", "cloud_flush", "quit"] as Array[String])
 
 
 func test_window_close_without_cloud_saves_and_quits() -> void:

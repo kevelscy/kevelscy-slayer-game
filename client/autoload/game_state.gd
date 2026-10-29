@@ -89,16 +89,17 @@ func _notification(what: int) -> void:
 			close_game()
 
 
-## Saves, gives the cloud a bounded chance to store the final state, then quits.
+## Saves, gives the cloud a bounded chance to store the final state (after any
+## push already in flight), then quits.
 ## A request cannot finish once the tree is gone, so this runs before quitting.
 func close_game() -> void:
 	saves.save_now()
 	if cloud != null:
 		var finished: Array[bool] = [false]
-		var push_then_flag: Callable = func() -> void:
-			await cloud.push()
+		var flush_then_flag: Callable = func() -> void:
+			await cloud.flush()
 			finished[0] = true
-		push_then_flag.call()
+		flush_then_flag.call()
 		var deadline: int = Time.get_ticks_msec() + int(CLOSE_PUSH_TIMEOUT_SECONDS * 1000.0)
 		while not finished[0] and Time.get_ticks_msec() < deadline:
 			await get_tree().process_frame

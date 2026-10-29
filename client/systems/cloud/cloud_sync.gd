@@ -9,8 +9,13 @@ extends RefCounted
 ## last_seen plus the game time played since marks when play stopped. Requests
 ## cannot finish while the app is suspended, so the marker of that push survives
 ## a relaunch in a file. Without the cloud nothing is paid.
+##
+## Nothing is pushed until a sync has pulled the cloud: a device that booted
+## offline could otherwise overwrite progress another device stored. Until then
+## the push timer retries the sync instead.
 
 signal offline_reward_granted(reward: OfflineReward)
+signal _push_finished
 
 const PUSH_SECONDS: float = 60.0
 
@@ -20,6 +25,9 @@ var _client: CloudSaveClient
 var _marker_path: String
 var _push_elapsed: float = 0.0
 var _pushing: bool = false
+## True once a pull reached the cloud and the session was reconciled with it.
+var _synced: bool = false
+var _syncing: bool = false
 ## Server time of the last push the cloud confirmed; that row carries it as last_seen.
 var _acked_unix: int = 0
 ## Game time played since that push's snapshot. Frames stop while suspended, so
@@ -53,10 +61,21 @@ static func compare_progress(a: SaveData, b: SaveData) -> int:
 
 func boot() -> OfflineReward:
 	_load_marker()
-	var pulled: CloudPullResult = await _client.pull()
-	if not pulled.ok:
-		push_warning("CloudSync: boot sync skipped (%s)" % pulled.error)
+	return await _sync()
+
+
+## Pulls the cloud, keeps the save with more progress, pays an owned row's
+## offline time, then pushes the result.
+func _sync() -> OfflineReward:
+	if _syncing:
 		return _nothing()
+	_syncing = true
+	var pulled: CloudPullResult = await _client.pull()
+	_syncing = false
+	if not pulled.ok:
+		push_warning("CloudSync: sync skipped (%s)" % pulled.error)
+		return _nothing()
+	_synced = true
 	var reward: OfflineReward = _nothing()
 	var owned: bool = _owns(pulled)
 	if pulled.data != null and compare_progress(pulled.data, _local()) >= 0:
@@ -71,6 +90,8 @@ func boot() -> OfflineReward:
 
 
 func resume() -> OfflineReward:
+	if not _synced:
+		return await _sync()
 	var pulled: CloudPullResult = await _client.pull()
 	if not pulled.ok:
 		push_warning("CloudSync: resume sync skipped (%s)" % pulled.error)
@@ -89,13 +110,20 @@ func suspend() -> void:
 func tick(delta: float) -> void:
 	_played_since_ack += delta
 	_push_elapsed += delta
-	if _push_elapsed >= PUSH_SECONDS:
+	if _push_elapsed < PUSH_SECONDS:
+		return
+	if _synced:
 		push()
+	else:
+		_push_elapsed = 0.0
+		_sync()
 
 
 ## Sends the session to the cloud; a push already in flight makes this a no-op.
 func push() -> CloudPushResult:
 	_push_elapsed = 0.0
+	if not _synced:
+		return CloudPushResult.new(false, 0, "cloud not synced yet")
 	if _pushing:
 		return CloudPushResult.new(false, 0, "push already in flight")
 	_pushing = true
@@ -109,7 +137,16 @@ func push() -> CloudPushResult:
 		_save_marker()
 	else:
 		push_warning("CloudSync: push failed (%s)" % result.error)
+	_push_finished.emit()
 	return result
+
+
+## Waits for a push in flight, then pushes the current session, so the last
+## state reaches the cloud even when a timer push was already sending.
+func flush() -> CloudPushResult:
+	while _pushing:
+		await _push_finished
+	return await push()
 
 
 func _owns(pulled: CloudPullResult) -> bool:
