@@ -26,6 +26,31 @@ scripts/test.sh                      # import + full GUT suite, headless; exits 
 scripts/test.sh -gselect=test_damage # extra args are forwarded to GUT
 ```
 
+## Saves and offline income
+
+- The run is saved to `user://save.json` (versioned JSON, written through a temp file and rename)
+  every 30 s, when the app is paused or loses focus, and on every clean exit.
+- A save that fails validation is never half-applied: the game starts fresh and keeps the bad
+  file as `user://save.rejected.json`.
+- Offline gold = sustainable kills per second × gold per kill × time away (capped at 8 h). It is
+  paid on boot and when a mobile app returns from the background; nothing runs while suspended.
+  The device clock is used until the server validates timestamps.
+
+## Dev run flags
+
+Pass these after `--` (they are ignored otherwise):
+
+```bash
+scripts/godot.sh --headless --path client --fixed-fps 60 --quit-after 3600 -- --dev-report --save-path=/tmp/soak.json
+scripts/godot.sh --path client --resolution 720x1280 -- --screenshot=$PWD/.tmp/portrait.png
+```
+
+| Flag | Effect |
+|---|---|
+| `--dev-report` | prints stage, kills, gold and boss state every 5 s, plus any offline reward |
+| `--screenshot=<abs png>` | saves a screenshot after 120 frames and quits |
+| `--save-path=<path>` | uses a scratch save file instead of `user://save.json` |
+
 ## MCP (Godot MCP Toolkit)
 
 1. Open `client/` in the Godot editor. The `Godot MCP Toolkit` plugin (`addons/godot_mcp_toolkit`)

@@ -80,3 +80,17 @@ layout_mode = 2
 text = "Skills & Spirits (phase 2)"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Toast" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 96.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Toast"]
+layout_mode = 2
+horizontal_alignment = 1

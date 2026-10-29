@@ -7,6 +7,7 @@ const DEV_REPORT_ARG: String = "--dev-report"
 const SCREENSHOT_ARG_PREFIX: String = "--screenshot="
 const SCREENSHOT_DELAY_FRAMES: int = 120
 const DEV_REPORT_SECONDS: float = 5.0
+const TOAST_SECONDS: float = 4.0
 
 var _landscape: bool = false
 var _layout_applied: bool = false
@@ -24,6 +25,8 @@ var _report_elapsed: float = 0.0
 @onready var battle_world: BattleWorld = $SafeArea/Portrait/BattleView/SubViewport/BattleWorld
 @onready var hud: Hud = $SafeArea/Portrait/Hud
 @onready var upgrade_panel: UpgradePanel = $SafeArea/Portrait/UpgradePanel
+@onready var toast: PanelContainer = $Toast
+@onready var toast_label: Label = $Toast/Label
 
 
 func _ready() -> void:
@@ -34,6 +37,32 @@ func _ready() -> void:
 	upgrade_panel.bind(session)
 	get_viewport().size_changed.connect(_apply_layout)
 	_apply_layout()
+	GameState.offline_reward_granted.connect(_show_offline_reward)
+	if GameState.boot_reward != null and not GameState.boot_reward.is_empty():
+		_show_offline_reward(GameState.boot_reward)
+
+
+func _show_offline_reward(reward: OfflineReward) -> void:
+	var gold: BigNumber = reward.amounts.get(GameSession.GOLD, BigNumber.zero())
+	toast_label.text = "Welcome back!\n+%s gold (%s away)" % [
+		NumberFormat.format(gold), _format_duration(reward.elapsed_seconds)
+	]
+	toast.visible = true
+	toast.modulate.a = 1.0
+	var tween: Tween = create_tween()
+	tween.tween_interval(TOAST_SECONDS)
+	tween.tween_property(toast, "modulate:a", 0.0, 0.5)
+	tween.tween_callback(toast.hide)
+	if _dev_report:
+		print("[dev] offline reward: %s" % toast_label.text.replace("\n", " "))
+
+
+static func _format_duration(seconds: int) -> String:
+	var hours: int = seconds / 3600
+	var minutes: int = (seconds % 3600) / 60
+	if hours > 0:
+		return "%dh %02dm" % [hours, minutes]
+	return "%dm %02ds" % [minutes, seconds % 60]
 
 
 func _process(delta: float) -> void:
