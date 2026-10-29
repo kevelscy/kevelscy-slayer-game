@@ -37,6 +37,7 @@ var _toast_tween: Tween
 
 
 func _ready() -> void:
+	theme = GameTheme.build()
 	_read_dev_args()
 	var session: GameSession = GameState.session
 	battle_world.start(session)

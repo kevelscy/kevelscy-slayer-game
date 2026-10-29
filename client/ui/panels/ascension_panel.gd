@@ -4,7 +4,7 @@ extends PanelContainer
 ## ascend button (behind a confirmation) and one buy row per talent. Built in code
 ## because every row comes from the talent catalog.
 
-const BACKGROUND: Color = Color(0.08, 0.09, 0.12, 1.0)
+const BACKGROUND: Color = Color(0.11, 0.08, 0.16, 1.0)
 ## Content width: the full portrait width, centered in landscape.
 const CONTENT_WIDTH: float = 720.0
 const STAT_NAMES: Dictionary[StringName, String] = {
@@ -52,6 +52,7 @@ func bind(session: GameSession) -> void:
 	column.add_child(header)
 	var title: Label = Label.new()
 	title.text = "Ascension"
+	title.theme_type_variation = GameTheme.SECTION_TITLE
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	close_button = Button.new()
@@ -69,6 +70,7 @@ func bind(session: GameSession) -> void:
 	balance_row.add_child(count_label)
 
 	ascend_button = Button.new()
+	ascend_button.theme_type_variation = GameTheme.ACCENT_BUTTON
 	ascend_button.custom_minimum_size = Vector2(0.0, 88.0)
 	ascend_button.pressed.connect(_on_ascend_pressed)
 	column.add_child(ascend_button)
@@ -111,19 +113,24 @@ func refresh() -> void:
 		_refresh_row(row)
 
 
-func _build_row(talent: TalentDefinition) -> HBoxContainer:
+func _build_row(talent: TalentDefinition) -> PanelContainer:
 	var row: Row = Row.new()
 	row.talent = talent
+	var card: PanelContainer = PanelContainer.new()
+	card.theme_type_variation = GameTheme.CARD
 	var box: HBoxContainer = HBoxContainer.new()
 	row.label = Label.new()
+	row.label.theme_type_variation = GameTheme.CARD_TEXT
 	row.label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.button = Button.new()
-	row.button.custom_minimum_size = Vector2(240.0, 72.0)
+	row.button.theme_type_variation = GameTheme.BUY_BUTTON
+	row.button.custom_minimum_size = Vector2(240.0, 60.0)
 	row.button.pressed.connect(func() -> void: _on_buy_pressed(talent.id))
 	box.add_child(row.label)
 	box.add_child(row.button)
+	card.add_child(box)
 	rows.append(row)
-	return box
+	return card
 
 
 func _refresh_row(row: Row) -> void:

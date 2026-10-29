@@ -27,6 +27,7 @@ func bind(session: GameSession) -> void:
 	add_child(skill_row)
 	for index: int in session.skills.slots.size():
 		var button: Button = Button.new()
+		button.theme_type_variation = GameTheme.SKILL_BUTTON
 		button.custom_minimum_size = Vector2(140.0, 88.0)
 		button.pressed.connect(func() -> void: _on_skill_pressed(index))
 		skill_row.add_child(button)
@@ -39,11 +40,15 @@ func bind(session: GameSession) -> void:
 	var spirit_row: HBoxContainer = HBoxContainer.new()
 	add_child(spirit_row)
 	for _slot: SpiritTeam.SpiritSlot in session.spirits.slots:
+		var card: PanelContainer = PanelContainer.new()
+		card.theme_type_variation = GameTheme.CARD
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var label: Label = Label.new()
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.theme_type_variation = GameTheme.CARD_TEXT
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.custom_minimum_size = Vector2(0.0, 72.0)
-		spirit_row.add_child(label)
+		label.custom_minimum_size = Vector2(0.0, 60.0)
+		card.add_child(label)
+		spirit_row.add_child(card)
 		spirit_labels.append(label)
 	refresh()
 
@@ -100,5 +105,6 @@ func _on_autocast_toggled(enabled: bool) -> void:
 
 static func _title(text: String) -> Label:
 	var label: Label = Label.new()
+	label.theme_type_variation = GameTheme.SECTION_TITLE
 	label.text = text
 	return label

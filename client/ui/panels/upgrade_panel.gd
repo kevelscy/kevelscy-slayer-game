@@ -34,15 +34,20 @@ func _add_row(title: String, track: UpgradeTrack, value_text: Callable) -> void:
 	row.title = title
 	row.track = track
 	row.value_text = value_text
+	var card: PanelContainer = PanelContainer.new()
+	card.theme_type_variation = GameTheme.CARD
 	var box: HBoxContainer = HBoxContainer.new()
 	row.label = Label.new()
+	row.label.theme_type_variation = GameTheme.CARD_TEXT
 	row.label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.button = Button.new()
-	row.button.custom_minimum_size = Vector2(220.0, 72.0)
+	row.button.theme_type_variation = GameTheme.BUY_BUTTON
+	row.button.custom_minimum_size = Vector2(220.0, 60.0)
 	row.button.pressed.connect(func() -> void: _on_buy_pressed(track))
 	box.add_child(row.label)
 	box.add_child(row.button)
-	add_child(box)
+	card.add_child(box)
+	add_child(card)
 	rows.append(row)
 
 

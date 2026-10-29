@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://world/battle_world.tscn" id="2_world"]
@@ -7,8 +7,14 @@
 [ext_resource type="Script" path="res://ui/panels/ability_panel.gd" id="5_abilities"]
 [ext_resource type="Script" path="res://ui/panels/ascension_panel.gd" id="6_ascension"]
 
-[sub_resource type="Theme" id="Theme_main"]
-default_font_size = 26
+[sub_resource type="Gradient" id="Gradient_backdrop"]
+colors = PackedColorArray(0.17, 0.12, 0.24, 1, 0.07, 0.05, 0.1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_backdrop"]
+gradient = SubResource("Gradient_backdrop")
+width = 8
+height = 64
+fill_to = Vector2(0, 1)
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -17,17 +23,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_main")
+texture_filter = 2
 script = ExtResource("1_main")
 
-[node name="Backdrop" type="ColorRect" parent="."]
+[node name="Backdrop" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.08, 0.09, 0.12, 1)
+texture = SubResource("GradientTexture2D_backdrop")
+expand_mode = 1
 
 [node name="SafeArea" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -44,6 +51,7 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="BattleView" type="SubViewportContainer" parent="SafeArea/Portrait"]
+texture_filter = 1
 layout_mode = 2
 size_flags_horizontal = 4
 custom_minimum_size = Vector2(720, 384)

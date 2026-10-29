@@ -51,3 +51,11 @@ func test_maxed_track_shows_max_and_stays_disabled() -> void:
 	assert_eq(row.label.text, "Attack Speed  Lv 75\n3.00/s")
 	assert_eq(row.button.text, "Max")
 	assert_true(row.button.disabled)
+
+
+func test_rows_are_framed_cards_with_buy_buttons() -> void:
+	for row: UpgradePanel.Row in panel.rows:
+		assert_eq(row.button.theme_type_variation, GameTheme.BUY_BUTTON)
+		var card: Control = row.button.get_parent().get_parent()
+		assert_true(card is PanelContainer)
+		assert_eq(card.theme_type_variation, GameTheme.CARD)

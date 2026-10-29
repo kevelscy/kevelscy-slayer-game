@@ -4,8 +4,10 @@
 
 [node name="UpgradePanel" type="VBoxContainer"]
 size_flags_vertical = 3
+theme_override_constants/separation = 2
 script = ExtResource("1_panel")
 
 [node name="Title" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"SectionTitle"
 text = "Upgrades"

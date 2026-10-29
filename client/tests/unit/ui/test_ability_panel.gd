@@ -71,3 +71,12 @@ func test_spirit_slots_show_lock_stage_or_passive() -> void:
 	assert_eq(panel.spirit_labels[0].text, "Wisp\n+10% Attack")
 	assert_eq(panel.spirit_labels[1].text, "Ember Fox\n+5% Crit Chance")
 	assert_eq(panel.spirit_labels[2].text, "Frost Owl\nStage 10")
+
+
+func test_skills_use_skill_buttons_and_spirits_sit_in_framed_cards() -> void:
+	for button: Button in panel.skill_buttons:
+		assert_eq(button.theme_type_variation, GameTheme.SKILL_BUTTON)
+	for label: Label in panel.spirit_labels:
+		var card: Control = label.get_parent()
+		assert_true(card is PanelContainer)
+		assert_eq(card.theme_type_variation, GameTheme.CARD)

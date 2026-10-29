@@ -87,3 +87,10 @@ func test_close_button_hides_the_overlay() -> void:
 	assert_true(panel.visible)
 	panel.close_button.pressed.emit()
 	assert_false(panel.visible)
+
+
+func test_ascend_is_an_accent_button_and_talents_are_cards_with_buy_buttons() -> void:
+	assert_eq(panel.ascend_button.theme_type_variation, GameTheme.ACCENT_BUTTON)
+	for row: AscensionPanel.Row in panel.rows:
+		assert_eq(row.button.theme_type_variation, GameTheme.BUY_BUTTON)
+		assert_eq((row.button.get_parent().get_parent() as Control).theme_type_variation, GameTheme.CARD)

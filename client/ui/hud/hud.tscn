@@ -22,6 +22,7 @@ horizontal_alignment = 2
 [node name="AscensionButton" type="Button" parent="TopRow"]
 custom_minimum_size = Vector2(200, 56)
 layout_mode = 2
+theme_type_variation = &"AccentButton"
 text = "Ascension"
 
 [node name="ProgressRow" type="HBoxContainer" parent="."]
@@ -42,5 +43,6 @@ horizontal_alignment = 2
 [node name="HeroHealth" type="ProgressBar" parent="."]
 custom_minimum_size = Vector2(0, 14)
 layout_mode = 2
+theme_type_variation = &"HealthBar"
 value = 100.0
 show_percentage = false
