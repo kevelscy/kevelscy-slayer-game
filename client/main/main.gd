@@ -35,6 +35,9 @@ var _page: int = TAB_UPGRADES
 ## Where the left button went down on the portrait pages; INF while no swipe is tracked.
 var _swipe_start: Vector2 = Vector2.INF
 
+var sfx: SfxPlayer = SfxPlayer.new()
+var sfx_director: SfxDirector = SfxDirector.new()
+
 @onready var safe_area: MarginContainer = $SafeArea
 @onready var portrait: VBoxContainer = $SafeArea/Portrait
 @onready var landscape_root: HBoxContainer = $SafeArea/Landscape
@@ -60,6 +63,12 @@ func _ready() -> void:
 	_read_dev_args()
 	var session: GameSession = GameState.session
 	battle_world.start(session)
+	sfx.name = "Sfx"
+	add_child(sfx)
+	sfx.load_catalog()
+	sfx_director.name = "SfxDirector"
+	add_child(sfx_director)
+	sfx_director.bind(sfx, session, battle_world)
 	hud.bind(session, battle_world.hero)
 	upgrade_panel.bind(session)
 	ability_panel.bind(session)

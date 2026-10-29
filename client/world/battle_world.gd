@@ -13,6 +13,9 @@ const BUFF_TINT: Color = Color(1.4, 0.75, 0.7)
 ## Gap between an enemy's head and the bottom of its damage number.
 const DAMAGE_NUMBER_GAP: float = 2.0
 
+## Any damage an enemy takes: hero hits, skills and spirit shots.
+signal enemy_hit(result: DamageResult)
+
 @export var roster: EnemyRoster
 
 var session: GameSession
@@ -172,6 +175,7 @@ func _spawn(definition: EnemyDefinition, is_boss: bool) -> void:
 
 ## Every hit an enemy takes floats up as a pixel number above its head.
 func _show_damage_number(result: DamageResult, enemy: Enemy) -> void:
+	enemy_hit.emit(result)
 	var number: DamageNumber = damage_number_pool.acquire() as DamageNumber
 	if not number.finished.is_connected(damage_number_pool.release):
 		number.finished.connect(damage_number_pool.release)
