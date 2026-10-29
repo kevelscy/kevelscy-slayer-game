@@ -40,6 +40,8 @@ var attack_speed_track: RateUpgradeTrack = RateUpgradeTrack.new(
 var skills: SkillBar
 var spirits: SpiritTeam
 var buffs: BuffTracker = BuffTracker.new(hero_stats)
+## Views read the talents and the ascension count; only the session's rules
+## (ascend, apply_save) and talent purchases through TalentTree.try_buy change them.
 var talents: TalentTree
 var ascension_count: int = 0
 ## Whether the last combat frame had a living target; manual casts read it.
