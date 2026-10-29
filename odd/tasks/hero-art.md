@@ -18,7 +18,7 @@ Replace the pack hero (64x64) with original 48x48 Pixelorama art that follows
 - [x] T2 S2-S5 hero attack, 6 frames 96x48 (hero centered as in idle) → `hero_attack.png` 576x48 — inline — commit: e0a821f
 - [x] T3 S2-S5 hero run, 6 frames 48x48 → `hero_run.png` 288x48 — inline — commit: 623a8e0
 - [x] T4 S2-S5 hero hurt (2 frames) and die (4 frames) 48x48 → `hero_hurt.png` 96x48, `hero_die.png` 192x48 — inline — commit: 80a0cad
-- [ ] T5 S6 wire the hero AnimationSet to the new sheets (48px frames, 10-12 fps, sprite offset), tests, screenshot — inline — commit: see L5 (screenshot pending)
+- [x] T5 S6 wire the hero AnimationSet to the new sheets (48px frames, 10-12 fps, sprite offset), tests, screenshot — inline — commit: 87a8276
 
 ## Log
 
@@ -28,3 +28,4 @@ Replace the pack hero (64x64) with original 48x48 Pixelorama art that follows
 - L4 Pixelorama MCP: `add_frame` lands asynchronously; drawing in the same batch hit a shifted frame (frame 4 empty, frame 5 doubled). Fix: create frames in a separate call, check `frames`, and pass `frame`/`layer` to `draw_pixels`. Per-frame pixel counts of the export now match the generated frames.
 - L5 T5 wired: generate_mvp_content.gd hero table -> res://art/sprites (idle 4f 10fps, run 6f 12fps, attack 96x48 6f 12fps, hurt 2f 10fps, die 4f 10fps), hero_animations.tres regenerated (enemy .tres unchanged), Sprite offset (0,-22). tests/unit/entities/test_hero_art.gd RED then GREEN; suite 395/395. Pending: in-game screenshot (run with `--save-path=` scratch + `--no-cloud` so the real save is untouched), push.
 - L6 (user) "para, se acaba la ventana de contexto, guarda todo en engram status actual y pendientes, retomamos en la siguiente sesion"
+- L7 (user) "retoma la ultima sesion" — pushed 619082f..87a8276. In-game screenshot 720x1280 (scratch save, `--no-cloud`): the new hero runs on the ground line at stage 1, scale reads well next to the slime, no errors in the log. The screenshot flag fires at frame 120, so only the run cycle was seen in game; attack/die are covered by test_hero_art.gd frame and offset checks. Feature closed.
