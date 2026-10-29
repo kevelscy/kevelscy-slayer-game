@@ -6,7 +6,9 @@ extends Node
 ## With the cloud on (the default) the local save still loads first, then
 ## CloudSync pulls the cloud save and pays offline time from the server clock;
 ## the device clock never pays offline time. `-- --no-cloud`, GUT runs and
-## `--import` runs keep the local-only, device-clock behaviour.
+## `--import` runs keep the local-only, device-clock behaviour. GUT and `--import`
+## runs (scripts/test.sh) also never touch the player's save: without
+## `--save-path` they start from an empty scratch save.
 
 signal offline_reward_granted(reward: OfflineReward)
 
@@ -18,6 +20,7 @@ const NO_CLOUD_ARG: String = "--no-cloud"
 const GUT_RUNNER: String = "gut_cmdln.gd"
 const IMPORT_ARG: String = "--import"
 const AUTH_FILE: String = "auth.json"
+const TOOL_RUN_SAVE_PATH: String = "user://tool_run/save.json"
 const SYNC_MARKER_FILE: String = "cloud_sync.json"
 ## Project settings that point a build at a hosted project; the defaults are the
 ## local Supabase stack started from server/ (its publishable key is public).
@@ -41,7 +44,10 @@ func _init() -> void:
 
 
 func _ready() -> void:
-	var save_path: String = _save_path()
+	var save_path: String = save_path_for(OS.get_cmdline_args(), OS.get_cmdline_user_args())
+	if save_path == TOOL_RUN_SAVE_PATH:
+		DirAccess.make_dir_recursive_absolute(TOOL_RUN_SAVE_PATH.get_base_dir())
+		DirAccess.remove_absolute(TOOL_RUN_SAVE_PATH)
 	saves = SaveController.new(session, SaveStore.new(save_path), _device_clock)
 	saves.offline_reward_granted.connect(offline_reward_granted.emit)
 	var cloud_on: bool = cloud_enabled(OS.get_cmdline_args(), OS.get_cmdline_user_args())
@@ -107,12 +113,17 @@ func close_game() -> void:
 
 
 static func cloud_enabled(args: PackedStringArray, user_args: PackedStringArray) -> bool:
-	if user_args.has(NO_CLOUD_ARG) or args.has(IMPORT_ARG):
-		return false
+	return not user_args.has(NO_CLOUD_ARG) and not _is_tool_run(args)
+
+
+## GUT and `--import` runs are tools, not play sessions.
+static func _is_tool_run(args: PackedStringArray) -> bool:
+	if args.has(IMPORT_ARG):
+		return true
 	for arg: String in args:
 		if arg.ends_with(GUT_RUNNER):
-			return false
-	return true
+			return true
+	return false
 
 
 static func cloud_config() -> CloudConfig:
@@ -141,9 +152,10 @@ static func _device_clock() -> int:
 	return int(Time.get_unix_time_from_system())
 
 
-## Dev hook: `-- --save-path=<path>` points soak and playtest runs at a scratch save.
-static func _save_path() -> String:
-	for arg: String in OS.get_cmdline_user_args():
+## Dev hook: `-- --save-path=<path>` points soak and playtest runs at a scratch
+## save. Tool runs without it get their own scratch save.
+static func save_path_for(args: PackedStringArray, user_args: PackedStringArray) -> String:
+	for arg: String in user_args:
 		if arg.begins_with(SAVE_PATH_ARG_PREFIX):
 			return arg.trim_prefix(SAVE_PATH_ARG_PREFIX)
-	return SaveStore.DEFAULT_PATH
+	return TOOL_RUN_SAVE_PATH if _is_tool_run(args) else SaveStore.DEFAULT_PATH

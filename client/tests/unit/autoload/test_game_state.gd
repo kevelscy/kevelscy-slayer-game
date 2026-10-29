@@ -98,6 +98,20 @@ func test_cloud_is_on_by_default_and_off_for_no_cloud_test_and_import_runs() -> 
 	assert_false(GameStateScript.cloud_enabled(PackedStringArray(["--headless", "--import"]), PackedStringArray()))
 
 
+func test_test_and_import_runs_use_a_scratch_save_unless_a_save_path_is_given() -> void:
+	var none: PackedStringArray = PackedStringArray()
+	var gut: PackedStringArray = PackedStringArray(["-s", "addons/gut/gut_cmdln.gd"])
+	var scratch: PackedStringArray = PackedStringArray(["--save-path=/tmp/soak/save.json"])
+	assert_eq(GameStateScript.save_path_for(none, none), "user://save.json")
+	assert_eq(GameStateScript.save_path_for(gut, none), "user://tool_run/save.json")
+	assert_eq(
+		GameStateScript.save_path_for(PackedStringArray(["--headless", "--import"]), none),
+		"user://tool_run/save.json"
+	)
+	assert_eq(GameStateScript.save_path_for(gut, scratch), "/tmp/soak/save.json")
+	assert_eq(GameStateScript.save_path_for(none, scratch), "/tmp/soak/save.json")
+
+
 func test_cloud_config_defaults_to_the_local_stack() -> void:
 	var config: CloudConfig = GameStateScript.cloud_config()
 	assert_eq(config.url, "http://127.0.0.1:54321")
