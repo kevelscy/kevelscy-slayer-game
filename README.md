@@ -36,6 +36,20 @@ scripts/test.sh -gselect=test_damage # extra args are forwarded to GUT
   paid on boot and when a mobile app returns from the background; nothing runs while suspended.
   The device clock is used until the server validates timestamps.
 
+## Skills and spirits
+
+- Skill bar (5 slots): Thunder (stage 1), Meteor (3), Blizzard (5), Fury (8), Shield (12). A
+  button shows the skill name when ready, the seconds left while on cooldown, or `Stage N` while
+  locked. Damage skills need an enemy in front of the hero; Fury and Shield cast any time.
+- Auto-cast unlocks at stage 10. The `Auto-cast` toggle then fires every ready skill during
+  combat; it is not saved and starts on after a restart.
+- Spirits (3 slots): Wisp (stage 2, +10% attack), Ember Fox (stage 6, +5% crit chance), Frost Owl
+  (stage 10, +20% health). Each unlocks permanently from the stage reached and attacks on its own
+  timer while the hero fights.
+- Offline gold counts spirit passives and spirit attacks, never active skills. Unlocks derive from
+  the saved stage, so the save format is unchanged.
+- The panel sits under the upgrades in portrait and in the right column in landscape.
+
 ## Dev run flags
 
 Pass these after `--` (they are ignored otherwise):

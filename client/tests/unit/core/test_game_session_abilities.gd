@@ -122,3 +122,15 @@ func test_tick_combat_without_autocast_unlocked_never_casts() -> void:
 	watch_signals(session.skills)
 	session.tick_combat(1.0, true)
 	assert_signal_not_emitted(session.skills, "cast")
+
+
+func test_manual_cast_uses_the_current_stage_and_combat_state() -> void:
+	watch_signals(session.skills)
+	assert_false(session.cast_skill(0), "thunder needs a target and the hero is not fighting")
+	session.tick_combat(0.0, true)
+	assert_true(session.in_combat)
+	assert_true(session.cast_skill(0))
+	assert_true(session.cast_skill(1), "buffs cast in or out of combat")
+	session.tick_combat(0.0, false)
+	assert_false(session.in_combat)
+	assert_signal_emit_count(session.skills, "cast", 2)

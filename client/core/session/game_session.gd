@@ -23,6 +23,8 @@ var health_track: UpgradeTrack = UpgradeTrack.new(
 var skills: SkillBar
 var spirits: SpiritTeam
 var buffs: BuffTracker = BuffTracker.new(hero_stats)
+## Whether the last combat frame had a living target; manual casts read it.
+var in_combat: bool = false
 
 
 func _init(
@@ -46,10 +48,16 @@ func _init(
 
 ## One combat frame of the ability systems; auto-cast runs after cooldowns tick.
 func tick_combat(delta: float, has_target: bool) -> void:
+	in_combat = has_target
 	skills.tick(delta)
 	buffs.tick(delta)
 	spirits.tick(delta, has_target)
 	skills.autocast(progression.stage, has_target)
+
+
+## Player-pressed cast; the same stage and target rules as auto-cast apply.
+func cast_skill(slot_index: int) -> bool:
+	return skills.try_cast(slot_index, progression.stage, in_combat)
 
 
 func skill_damage(skill: SkillDefinition) -> BigNumber:

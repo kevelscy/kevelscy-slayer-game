@@ -1,7 +1,7 @@
 class_name Main
 extends Control
-## Root screen: moves the battle view, HUD and upgrade panel between the portrait
-## stack (mobile) and the three-column landscape layout (PC) as the window changes.
+## Root screen: moves the battle view, HUD, upgrade and ability panels between the
+## portrait stack (mobile) and the three-column landscape layout (PC) as the window changes.
 
 const DEV_REPORT_ARG: String = "--dev-report"
 const SCREENSHOT_ARG_PREFIX: String = "--screenshot="
@@ -22,10 +22,12 @@ var _toast_tween: Tween
 @onready var landscape_root: HBoxContainer = $SafeArea/Landscape
 @onready var left_column: VBoxContainer = $SafeArea/Landscape/LeftColumn
 @onready var center_column: VBoxContainer = $SafeArea/Landscape/CenterColumn
+@onready var right_column: PanelContainer = $SafeArea/Landscape/RightColumn
 @onready var battle_view: SubViewportContainer = $SafeArea/Portrait/BattleView
 @onready var battle_world: BattleWorld = $SafeArea/Portrait/BattleView/SubViewport/BattleWorld
 @onready var hud: Hud = $SafeArea/Portrait/Hud
 @onready var upgrade_panel: UpgradePanel = $SafeArea/Portrait/UpgradePanel
+@onready var ability_panel: AbilityPanel = $SafeArea/Portrait/AbilityPanel
 @onready var toast: PanelContainer = $Toast
 @onready var toast_label: Label = $Toast/Label
 
@@ -36,6 +38,7 @@ func _ready() -> void:
 	battle_world.start(session)
 	hud.bind(session, battle_world.hero)
 	upgrade_panel.bind(session)
+	ability_panel.bind(session)
 	get_viewport().size_changed.connect(_apply_layout)
 	_apply_layout()
 	GameState.offline_reward_granted.connect(_show_offline_reward)
@@ -100,10 +103,12 @@ func _reparent_panels() -> void:
 		hud.reparent(center_column, false)
 		battle_view.reparent(center_column, false)
 		upgrade_panel.reparent(left_column, false)
+		ability_panel.reparent(right_column, false)
 	else:
 		hud.reparent(portrait, false)
 		battle_view.reparent(portrait, false)
 		upgrade_panel.reparent(portrait, false)
+		ability_panel.reparent(portrait, false)
 
 
 ## Mobile notches: convert the display safe area from window pixels to canvas units.
