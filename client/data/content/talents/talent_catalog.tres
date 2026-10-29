@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="TalentCatalog" format=3]
+
+[ext_resource type="Script" path="res://core/talents/talent_catalog.gd" id="1_vy2cf"]
+[ext_resource type="Script" path="res://core/talents/talent_definition.gd" id="2_dg3l5"]
+
+[sub_resource type="Resource" id="Resource_xh8hg"]
+script = ExtResource("2_dg3l5")
+id = &"might"
+display_name = "Might"
+
+[sub_resource type="Resource" id="Resource_3uea1"]
+script = ExtResource("2_dg3l5")
+id = &"vitality"
+display_name = "Vitality"
+stat = &"health"
+
+[sub_resource type="Resource" id="Resource_j7amy"]
+script = ExtResource("2_dg3l5")
+id = &"greed"
+display_name = "Greed"
+stat = &"gold_gain"
+
+[sub_resource type="Resource" id="Resource_oy8qc"]
+script = ExtResource("2_dg3l5")
+id = &"precision"
+display_name = "Precision"
+stat = &"crit_chance"
+kind = 0
+per_level = 0.01
+requires = &"might"
+
+[sub_resource type="Resource" id="Resource_kcirp"]
+script = ExtResource("2_dg3l5")
+id = &"ferocity"
+display_name = "Ferocity"
+stat = &"crit_damage"
+kind = 0
+requires = &"might"
+
+[sub_resource type="Resource" id="Resource_86ekb"]
+script = ExtResource("2_dg3l5")
+id = &"haste"
+display_name = "Haste"
+stat = &"attack_speed"
+per_level = 0.03
+requires = &"vitality"
+
+[resource]
+script = ExtResource("1_vy2cf")
+talents = Array[ExtResource("2_dg3l5")]([SubResource("Resource_xh8hg"), SubResource("Resource_3uea1"), SubResource("Resource_j7amy"), SubResource("Resource_oy8qc"), SubResource("Resource_kcirp"), SubResource("Resource_86ekb")])
