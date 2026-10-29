@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyRoster" format=3]
+
+[ext_resource type="Resource" path="res://data/content/enemies/spider_boss.tres" id="1_fqk2y"]
+[ext_resource type="Script" path="res://data/definitions/enemy_definition.gd" id="2_erqdv"]
+[ext_resource type="Resource" path="res://data/content/enemies/slime.tres" id="3_bgufq"]
+[ext_resource type="Resource" path="res://data/content/enemies/bat.tres" id="4_n3x7o"]
+[ext_resource type="Resource" path="res://data/content/enemies/skeleton.tres" id="5_cjvaa"]
+[ext_resource type="Script" path="res://data/definitions/enemy_roster.gd" id="6_va1fh"]
+
+[resource]
+script = ExtResource("6_va1fh")
+regular_enemies = Array[ExtResource("2_erqdv")]([ExtResource("3_bgufq"), ExtResource("4_n3x7o"), ExtResource("5_cjvaa")])
+boss = ExtResource("1_fqk2y")

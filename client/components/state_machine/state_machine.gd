@@ -10,6 +10,9 @@ var current_state: State
 
 
 func _ready() -> void:
+	# States usually read the owner's @onready nodes, which exist only after the owner is ready.
+	if owner != null and not owner.is_node_ready():
+		await owner.ready
 	for child: Node in get_children():
 		var state: State = child as State
 		if state != null:

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" format=3]
+
+[ext_resource type="Script" path="res://components/animation/animation_sheet.gd" id="1_1tdi4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/boss/spider.png" id="2_m05jd"]
+[ext_resource type="Script" path="res://data/definitions/enemy_definition.gd" id="3_sebq4"]
+
+[sub_resource type="Resource" id="Resource_demo0"]
+script = ExtResource("1_1tdi4")
+animation_name = &"walk"
+texture = ExtResource("2_m05jd")
+frame_size = Vector2i(138, 138)
+frame_count = 6
+
+[resource]
+script = ExtResource("3_sebq4")
+id = &"spider_boss"
+animation = SubResource("Resource_demo0")
+sprite_scale = 0.75
+tint = Color(1, 0.55, 0.55, 1)
+move_speed = 25.0

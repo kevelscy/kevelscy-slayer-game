@@ -20,6 +20,18 @@ class RecordingState:
 		entries.append("update:" + name)
 
 
+class OwnerProbe:
+	extends Node
+
+	var entries: Array[String]
+
+	func _init(shared_entries: Array[String]) -> void:
+		entries = shared_entries
+
+	func _ready() -> void:
+		entries.append("owner_ready")
+
+
 var machine: StateMachine
 var calls: Array[String] = []
 
@@ -65,3 +77,16 @@ func test_process_updates_only_current_state() -> void:
 func test_states_know_their_machine() -> void:
 	var state: State = machine.get_node("Attack")
 	assert_eq(state.machine, machine)
+
+
+func test_waits_for_owner_ready_before_entering_initial_state() -> void:
+	var owned_calls: Array[String] = []
+	var probe: OwnerProbe = OwnerProbe.new(owned_calls)
+	var owned: StateMachine = StateMachine.new()
+	var state: RecordingState = RecordingState.new("Run", owned_calls)
+	owned.add_child(state)
+	owned.initial_state = NodePath("Run")
+	probe.add_child(owned)
+	owned.owner = probe
+	add_child_autofree(probe)
+	assert_eq(owned_calls, ["owner_ready", "enter:Run"] as Array[String])

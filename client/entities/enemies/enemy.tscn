@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/enemies/enemy.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://components/health_component.gd" id="2_health"]
+[ext_resource type="Script" path="res://components/auto_attack_component.gd" id="3_attack"]
+
+[node name="Enemy" type="Node2D"]
+script = ExtResource("1_enemy")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("2_health")
+
+[node name="AutoAttack" type="Node" parent="."]
+script = ExtResource("3_attack")
