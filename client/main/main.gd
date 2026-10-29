@@ -14,6 +14,9 @@ const TAB_UPGRADES: int = 0
 const TAB_SPIRITS: int = 1
 const TAB_ASCENSION: int = 2
 const TAB_TITLES: PackedStringArray = ["Upgrades", "Spirits", "Ascension"]
+const TAB_ICONS: PackedStringArray = [
+	"res://art/icons/tab_upgrades.png", "res://art/icons/tab_spirits.png", "res://art/icons/tab_ascension.png",
+]
 
 var _landscape: bool = false
 var _layout_applied: bool = false
@@ -57,7 +60,7 @@ func _ready() -> void:
 	spirit_panel.bind(session)
 	ascension_panel.bind(session)
 	hud.ascension_button.pressed.connect(ascension_panel.open)
-	tab_bar.setup(TAB_TITLES, TAB_UPGRADES)
+	tab_bar.setup(TAB_TITLES, TAB_UPGRADES, TAB_ICONS)
 	tab_bar.tab_selected.connect(_on_tab_selected)
 	if _open_ascension:
 		ascension_panel.open()

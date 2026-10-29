@@ -40,6 +40,10 @@ func test_tab_bar_has_upgrades_spirits_and_ascension_with_upgrades_first() -> vo
 	for button: Button in main.tab_bar.buttons:
 		titles.append(button.text)
 	assert_eq(titles, ["Upgrades", "Spirits", "Ascension"] as Array[String])
+	assert_eq(Main.TAB_ICONS.size(), Main.TAB_TITLES.size(), "one icon per tab")
+	for index: int in main.tab_bar.buttons.size():
+		assert_not_null(main.tab_bar.buttons[index].icon, "%s tab has its icon" % titles[index])
+		assert_true(ResourceLoader.exists(Main.TAB_ICONS[index]), Main.TAB_ICONS[index])
 	assert_eq(main.tab_bar.selected, Main.TAB_UPGRADES)
 	assert_true(main.upgrade_panel.visible)
 	assert_false(main.spirit_panel.visible)

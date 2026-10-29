@@ -53,3 +53,37 @@ func test_tabs_are_thumb_sized_and_share_the_width() -> void:
 		assert_eq(button.theme_type_variation, GameTheme.TAB_BUTTON)
 		assert_eq(button.focus_mode, Control.FOCUS_NONE)
 
+
+
+func test_tabs_show_their_icon_above_the_title() -> void:
+	var icons: PackedStringArray = PackedStringArray([
+		"res://art/icons/tab_upgrades.png", "res://art/icons/tab_spirits.png", "res://art/icons/tab_ascension.png",
+	])
+	var iconed: BottomTabBar = BottomTabBar.new()
+	add_child_autofree(iconed)
+	iconed.setup(PackedStringArray(["Upgrades", "Spirits", "Ascension"]), 0, icons)
+	for index: int in iconed.buttons.size():
+		var button: Button = iconed.buttons[index]
+		assert_not_null(button.icon, "tab %d has an icon" % index)
+		assert_eq(button.icon.get_size(), Vector2(48.0, 48.0), "24 px art at 2x")
+		assert_eq(button.vertical_icon_alignment, VERTICAL_ALIGNMENT_TOP)
+		assert_eq(button.icon_alignment, HORIZONTAL_ALIGNMENT_CENTER)
+		assert_false(button.expand_icon, "integer scale, never stretched")
+		assert_eq(button.text, ["Upgrades", "Spirits", "Ascension"][index], "the title stays")
+
+
+func test_tab_icon_is_the_art_scaled_up_without_blending() -> void:
+	var source: Image = (load("res://art/icons/tab_spirits.png") as Texture2D).get_image()
+	var icon: Image = BottomTabBar.icon_texture("res://art/icons/tab_spirits.png").get_image()
+	assert_eq(icon.get_size(), source.get_size() * BottomTabBar.ICON_SCALE)
+	var mismatches: int = 0
+	for y: int in icon.get_height():
+		for x: int in icon.get_width():
+			if icon.get_pixel(x, y) != source.get_pixel(x / BottomTabBar.ICON_SCALE, y / BottomTabBar.ICON_SCALE):
+				mismatches += 1
+	assert_eq(mismatches, 0, "every source pixel becomes a solid 2x2 block")
+
+
+func test_tabs_without_icons_show_only_the_title() -> void:
+	for button: Button in bar.buttons:
+		assert_null(button.icon)

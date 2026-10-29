@@ -101,7 +101,7 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
 - Portrait (mobile): the HUD, the battle and the skill bar stay on screen; below them one
   scrollable page picked from the bottom tab bar: `Upgrades` (default), `Spirits` or `Ascension`
   (opens the ascension panel and keeps the page). The selected tab has a gold frame, the others
-  silver.
+  silver; each tab shows its pixel-art icon above the title.
 - Landscape (PC): skills and spirits in the left column, upgrades in the right one, no tab bar.
 
 ## Ascension and talents
