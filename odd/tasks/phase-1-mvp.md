@@ -25,10 +25,10 @@ Goal: hero runs and auto-attacks waves + timed boss, gold drops, ATK upgrade rai
 - [x] T5 Damage system: StatBlock, DamageCalculator, HealthComponent (TDD) — S3,S6,S8 — inline — commit: a248e27
 - [x] T6 Economy (CostCurve, CurrencyWallet) + OfflineCalculator (TDD) — S3,S6,S9 — inline — commit: f15fc77
 - [x] T7 CC0 placeholder art + CREDITS.md — S5 — inline — commit: d42db3c
-- [ ] T8 Hero: components + StateMachine (Run/Engage/Attack/Dead) + AutoAttack — S6,S8,S11 — worker — commit: _
-- [ ] T9 WaveSpawner + EnemyPool + StageController/StageProgression with boss timer (TDD) — S6,S8 — worker — commit: _
-- [ ] T10 Main scene: LayoutRoot portrait/landscape, battle SubViewport + Parallax2D, HUD, ATK upgrade — S6,S7,S8 — worker — commit: _
-- [ ] T11 Playtest: screenshots portrait 720x1280 and landscape 1600x900, 60 s run without errors — S8,S10 — inline/MCP — commit: n/a
+- [x] T8 Hero: components + StateMachine (Run/Engage/Attack/Dead) + AutoAttack — S6,S8,S11 — inline — commit: 2ff4f75, 350b30a
+- [x] T9 WaveSpawner + EnemyPool + StageController/StageProgression with boss timer (TDD) — S6,S8 — inline — commit: b5ebef0, 44d9d31, 5129ce4
+- [x] T10 Main scene: LayoutRoot portrait/landscape, battle SubViewport + Parallax2D, HUD, ATK upgrade — S6,S7,S8 — inline — commit: 136c836
+- [x] T11 Playtest: screenshots portrait 720x1280 and landscape 1600x900, 60 s run without errors — S8,S10 — inline/MCP — commit: n/a (dev hooks in 136c836)
 
 ## Log
 
@@ -37,3 +37,13 @@ Goal: hero runs and auto-attacks waves + timed boss, gold drops, ATK upgrade rai
 - L2 (user, verbatim): "ok 1. yo descargue godot a nivel instalador de mac, tambien debo hacerlo via brew? 2. si numeros grandes 3. no tengo sprites usa alguno existende de la comunidad o algo por el estilo para usarlo como MVP"
 - L3 Evidence: Godot 4.7.2.stable at `/Users/macbook/Downloads/Godot.app/Contents/MacOS/Godot` (no brew needed). GUT latest tag v9.7.1. MCP toolkit plugin release v1.1.1 zip: https://github.com/NPGameDev/godot-mcp-toolkit/releases/download/v1.1.1/godot-mcp-toolkit-1.1.1.zip. Kenney CC0 zips are behind a donation flow (no direct URL).
 - L4 Evidence: both background gentle-ai-worker runs failed with "assistant reported an error" and wrote nothing; work continues inline. GUT 9.7.1 skips test scripts with parse errors and exits 0 → scripts/test.sh now fails on SCRIPT ERROR/Parse Error/Failed to load script (verified: untyped var test → exit 1). Godot 4.7 replaced warnings/exclude_addons with debug/gdscript/warnings/directory_rules (default {"res://addons": 0}).
+- L5 Progress (session 1 stop, user: "oye para, ya exediste la ventana de contexto, guarda en engram ,status actual y pendientes, arrancamos nueva sesion"):
+  Commits: 90d094c bootstrap, 04ddb2c BigNumber, a248e27 damage, f15fc77 economy+offline, d42db3c CC0 art, b5ebef0 stage progression/balance/upgrade tracks, 2ff4f75 sprite-frames builder/state machine/auto-attack, 44d9d31 GameSession/SpawnScheduler/NodePool. Suite: 136/136 green.
+  UNCOMMITTED + UNVERIFIED (written, never run): data/definitions/{animation_set,enemy_definition,enemy_roster}.gd, tools/generate_mvp_content.gd (ran OK → data/content/**.tres), autoload/{event_bus,game_state}.gd, entities/hero/{hero.gd,hero.tscn,states/*}, entities/enemies/{enemy.gd,enemy.tscn}, world/battle_world.{gd,tscn}, ui/hud/hud.{gd,tscn}, ui/panels/upgrade_panel.{gd,tscn}.
+  PENDING next session, in order:
+  1. StateMachine._ready must `await owner.ready` when owner exists and is not ready (hero states use owner's @onready nodes); keep the no-owner path for tests.
+  2. Write main/main.tscn + main.gd: Control full-rect, SafeArea MarginContainer, Portrait VBox / Landscape HBox (Left 460px, Center, Right placeholder "Skills & Spirits (phase 2)"); reparent BattleView (SubViewportContainer stretch=true, stretch_shrink=k, min size 360k x 192k, SHRINK_CENTER; SubViewport 360x192 with BattleWorld), Hud, UpgradePanel by aspect; k = floor(width/360) portrait, floor(min(center/360, h*0.75/192)) landscape; Theme default_font_size 26; bind battle_world.start(GameState.session), hud.bind(session, hero), upgrade_panel.bind(session).
+  3. project.godot: add EventBus + GameState autoloads (keep plugin-added MCPRuntimeServer, which self-disables in exports via OS.has_feature("editor")), set run/main_scene.
+  4. Run scripts/test.sh (must stay green) + headless soak: godot --headless --path client --fixed-fps 60 --quit-after 3600, grep errors; add a gated dev hook (user args) to print stage/gold and to capture PNG screenshots in 720x1280 and 1600x900 (T11).
+  5. Commit T8/T9/T10 slices; mark tasks; T11 screenshots; restart pi to load godot-mcp tools (needs editor open with plugin).
+- L6 Progress (session 2, user: "retoma la ultima sesion y reomta tu ejecucion"): StateMachine awaits owner.ready (RED→GREEN test). Added main/{layout_rules.gd (TDD, 6 tests), main.gd, main.tscn}, registered EventBus/GameState autoloads and run/main_scene. Suite 143/143 green. Headless soak `--fixed-fps 60 --quit-after 3600 -- --dev-report`: 0 ERROR/WARNING, stage 1 → 2 (boss defeated), gold 0 → 157. Windowed screenshots via `-- --screenshot=<png>` at 720x1280 (portrait stack) and 1600x900 (3 columns, battle ×3) saved under .tmp/ and reviewed. Commits 350b30a entities, 5129ce4 world, 136c836 main. MCP editor tools still unverified (need pi restart with the editor open); T11 used CLI dev hooks instead.
