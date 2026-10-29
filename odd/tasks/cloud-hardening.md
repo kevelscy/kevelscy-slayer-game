@@ -25,11 +25,12 @@ R1-unbounded-save-payload (needs a migration), the 7 ascension advisory findings
 
 ## Tasks
 
-- [ ] T1 S1 auth transient 408/429 — inline — commit
-- [ ] T2 S2, S3 push gate and close flush — inline — commit
-- [ ] T3 S4 tool runs use a scratch save — inline — commit
-- [ ] T4 S5 docs, suite, real-stack check — inline — commit
+- [x] T1 S1 auth transient 408/429 — inline — 9c16983
+- [x] T2 S2, S3 push gate and close flush — inline — 2802a8d
+- [x] T3 S4 tool runs use a scratch save — inline — f0d5165
+- [x] T4 S5 docs, suite, real-stack check — inline — docs(cloud) commit
 
 ## Log
 
 - L1 (user, verbatim selection): "Hardening de cloud-save (recomendado)" — "Nueva feature para corregir los hallazgos que pueden perder datos: un refresh de auth que recibe 4xx o 429 crea un jugador nuevo y se pierde el anterior; un push antes del primer sync puede pisar la nube; el push al cerrar no hace nada si ya hay otro en vuelo. Incluye el bug de scripts/test.sh, que pisa el save.json real."
+- L2 Evidence. T1 9c16983: RED (408/429 sent a sign-up), GREEN. T2 2802a8d: RED for the push gate, tick retry, resume-before-sync and flush (FakeHttpTransport gained hold()/release() to keep a push in flight); the existing tests now boot through `_boot_synced` because a push without a sync sends nothing. T3 f0d5165: RED (`save_path_for` missing), GREEN; a full scripts/test.sh run left the real `user://save.json` and `auth.json` with the same mtime and SHA-1 (before the fix the save's mtime matched the last test run), and the run wrote `user://tool_run/save.json`. Suite 359/359. Real stack (T4): kong paused at boot on a scratch save -> "CloudSync: sync skipped (cloud sign-in unavailable)", no row; gateway unpaused after 12 s -> the 60 s timer retried the sync, signed up player e9ba78cf, pushed (cloud last_seen_at 14:06:09, stage 2) and `cloud_sync.json` acked that server time. S1-S5 verified (S1/S3 by unit tests; the close flush is not exercised against the real stack).

@@ -26,6 +26,9 @@ scripts/test.sh                      # import + full GUT suite, headless; exits 
 scripts/test.sh -gselect=test_damage # extra args are forwarded to GUT
 ```
 
+Test and `--import` runs never touch your save: they start from an empty scratch save in
+`user://tool_run/`.
+
 ## Saves and offline income
 
 - The run is saved to `user://save.json` (versioned JSON, written through a temp file and rename)
@@ -43,7 +46,9 @@ scripts/test.sh -gselect=test_damage # extra args are forwarded to GUT
 
 The game signs in an anonymous Supabase player on first boot (refresh token in `auth.json`
 next to the save) and keeps the save in the cloud. Start the local stack first (see
-`server/README.md`); without it the game simply plays on the local save.
+`server/README.md`); without it the game simply plays on the local save. A refresh that fails,
+times out (408) or is rate limited (429) keeps the same player for the next attempt; only a
+refresh token the server refuses signs up a new player.
 
 - The local save loads first, so the game never waits on the network. Then the cloud save is
   pulled: if it has at least the local progress (ascensions, stage, upgrade levels, talent
@@ -54,8 +59,10 @@ next to the save) and keeps the save in the cloud. Start the local stack first (
   so it survives the OS killing a backgrounded app). Another device's row, or an unreachable
   server, pays nothing.
 - The game pushes after each sync, every 60 s, on focus loss, and when the window is closed
-  (waiting at most 3 s). Requests cannot finish while a mobile app is suspended, so suspend
-  pushes nothing.
+  (after any push already in flight, waiting at most 3 s in total). Requests cannot finish while
+  a mobile app is suspended, so suspend pushes nothing.
+- Nothing is pushed until a sync has pulled the cloud, so a device that booted offline never
+  overwrites progress stored by another one; until then the 60 s timer retries the sync.
 - A hosted project is set with the project settings `cloud/url` and `cloud/api_key`
   (publishable key); the defaults point at the local stack.
 
