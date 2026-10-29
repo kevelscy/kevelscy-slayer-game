@@ -4,10 +4,11 @@ extends VBoxContainer
 ## slots. Built in code because every row comes from the ability catalog.
 
 const REFRESH_SECONDS: float = 0.1
-## Each skill icon sheet has two 32x32 frames: the silver frame, then the gold one
-## shown while the skill is ready. Scaled 2x with nearest filtering so the pixels
-## stay square, and drawn above the button text.
+## Each skill and spirit icon sheet has two 32x32 frames: the silver frame, then the
+## gold one shown while the skill is ready or once the spirit is unlocked. Scaled 2x
+## with nearest filtering so the pixels stay square, and drawn above the text.
 const ICON_PATH: String = "res://art/icons/skill_%s.png"
+const SPIRIT_ICON_PATH: String = "res://art/icons/spirit_%s.png"
 const ICON_FRAME_SIZE: int = 32
 const ICON_SCALE: int = 2
 const SILVER: int = 0
@@ -24,6 +25,10 @@ var skill_buttons: Array[Button] = []
 ## Per skill button: [silver, gold] icon textures.
 var skill_icons: Array[Array] = []
 var autocast_toggle: CheckButton
+var spirit_cards: Array[PanelContainer] = []
+var spirit_icon_rects: Array[TextureRect] = []
+## Per spirit card: [silver, gold] icon textures.
+var spirit_icons: Array[Array] = []
 var spirit_labels: Array[Label] = []
 
 var _session: GameSession
@@ -39,7 +44,7 @@ func bind(session: GameSession) -> void:
 		var button: Button = Button.new()
 		button.theme_type_variation = GameTheme.SKILL_BUTTON
 		button.custom_minimum_size = Vector2(140.0, 88.0)
-		skill_icons.append(_icon_frames(session.skills.slots[index].definition))
+		skill_icons.append(_icon_frames(ICON_PATH % session.skills.slots[index].definition.id))
 		button.icon = skill_icons[index][SILVER]
 		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
@@ -53,16 +58,25 @@ func bind(session: GameSession) -> void:
 	add_child(_title("Spirits"))
 	var spirit_row: HBoxContainer = HBoxContainer.new()
 	add_child(spirit_row)
-	for _slot: SpiritTeam.SpiritSlot in session.spirits.slots:
+	for slot: SpiritTeam.SpiritSlot in session.spirits.slots:
 		var card: PanelContainer = PanelContainer.new()
 		card.theme_type_variation = GameTheme.CARD
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var column: VBoxContainer = VBoxContainer.new()
+		card.add_child(column)
+		spirit_icons.append(_icon_frames(SPIRIT_ICON_PATH % slot.definition.id))
+		var icon: TextureRect = TextureRect.new()
+		icon.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+		column.add_child(icon)
 		var label: Label = Label.new()
 		label.theme_type_variation = GameTheme.CARD_TEXT
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.custom_minimum_size = Vector2(0.0, 60.0)
-		card.add_child(label)
+		column.add_child(label)
 		spirit_row.add_child(card)
+		spirit_cards.append(card)
+		spirit_icon_rects.append(icon)
 		spirit_labels.append(label)
 	refresh()
 
@@ -99,6 +113,7 @@ func refresh() -> void:
 	for index: int in spirit_labels.size():
 		var slot: SpiritTeam.SpiritSlot = _session.spirits.slots[index]
 		spirit_labels[index].text = "%s\n%s" % [slot.definition.display_name, _spirit_status(slot)]
+		spirit_icon_rects[index].texture = spirit_icons[index][GOLD if slot.unlocked else SILVER]
 
 
 static func _spirit_status(slot: SpiritTeam.SpiritSlot) -> String:
@@ -109,8 +124,8 @@ static func _spirit_status(slot: SpiritTeam.SpiritSlot) -> String:
 	return "+%d%% %s" % [roundi(spirit.passive_value * 100.0), STAT_NAMES.get(spirit.passive_stat, String(spirit.passive_stat))]
 
 
-static func _icon_frames(skill: SkillDefinition) -> Array[Texture2D]:
-	var sheet: Image = (load(ICON_PATH % skill.id) as Texture2D).get_image()
+static func _icon_frames(sheet_path: String) -> Array[Texture2D]:
+	var sheet: Image = (load(sheet_path) as Texture2D).get_image()
 	var frames: Array[Texture2D] = []
 	for frame: int in [SILVER, GOLD]:
 		var image: Image = sheet.get_region(Rect2i(frame * ICON_FRAME_SIZE, 0, ICON_FRAME_SIZE, ICON_FRAME_SIZE))

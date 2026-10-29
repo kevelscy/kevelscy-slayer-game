@@ -76,11 +76,11 @@ func test_spirit_slots_show_lock_stage_or_passive() -> void:
 func test_skills_use_skill_buttons_and_spirits_sit_in_framed_cards() -> void:
 	for button: Button in panel.skill_buttons:
 		assert_eq(button.theme_type_variation, GameTheme.SKILL_BUTTON)
-	for label: Label in panel.spirit_labels:
-		var card: Control = label.get_parent()
-		assert_true(card is PanelContainer)
+	assert_eq(panel.spirit_cards.size(), 3)
+	for index: int in panel.spirit_labels.size():
+		var card: PanelContainer = panel.spirit_cards[index]
+		assert_true(card.is_ancestor_of(panel.spirit_labels[index]))
 		assert_eq(card.theme_type_variation, GameTheme.CARD)
-
 
 
 func test_each_skill_button_shows_its_icon_scaled_twice_with_square_pixels() -> void:
@@ -117,3 +117,36 @@ func test_icons_are_drawn_above_the_text_at_their_own_size() -> void:
 	assert_false(button.expand_icon, "never shrunk to a fractional scale")
 	assert_eq(button.vertical_icon_alignment, VERTICAL_ALIGNMENT_TOP)
 	assert_eq(button.icon_alignment, HORIZONTAL_ALIGNMENT_CENTER)
+
+
+func test_each_spirit_card_shows_its_icon_scaled_twice_with_square_pixels() -> void:
+	for index: int in panel.spirit_icon_rects.size():
+		var sheet: Image = (load("res://art/icons/spirit_%s.png" % ABILITIES.spirits[index].id) as Texture2D).get_image()
+		for frame: int in [AbilityPanel.SILVER, AbilityPanel.GOLD]:
+			var icon: Image = (panel.spirit_icons[index][frame] as Texture2D).get_image()
+			assert_eq(icon.get_size(), Vector2i(64, 64))
+			for point: Vector2i in [Vector2i(1, 1), Vector2i(16, 16), Vector2i(30, 29)]:
+				var expected: Color = sheet.get_pixel(frame * 32 + point.x, point.y)
+				assert_eq(icon.get_pixelv(point * 2), expected, "spirit %d frame %d at %s" % [index, frame, point])
+				assert_eq(icon.get_pixelv(point * 2 + Vector2i.ONE), expected, "nearest, not blended")
+
+
+func test_locked_spirits_show_the_silver_frame_and_unlocked_ones_the_gold_frame() -> void:
+	for index: int in 3:
+		assert_eq(panel.spirit_icon_rects[index].texture, panel.spirit_icons[index][AbilityPanel.SILVER])
+	session.progression.restore_stage(6)
+	panel.refresh()
+	assert_eq(panel.spirit_icon_rects[0].texture, panel.spirit_icons[0][AbilityPanel.GOLD])
+	assert_eq(panel.spirit_icon_rects[1].texture, panel.spirit_icons[1][AbilityPanel.GOLD])
+	assert_eq(panel.spirit_icon_rects[2].texture, panel.spirit_icons[2][AbilityPanel.SILVER])
+
+
+func test_spirit_icons_sit_centered_above_the_text_at_their_own_size() -> void:
+	for index: int in panel.spirit_icon_rects.size():
+		var rect: TextureRect = panel.spirit_icon_rects[index]
+		var label: Label = panel.spirit_labels[index]
+		assert_true(panel.spirit_cards[index].is_ancestor_of(rect))
+		assert_eq(rect.get_parent(), label.get_parent())
+		assert_lt(rect.get_index(), label.get_index(), "icon above the text")
+		assert_eq(rect.expand_mode, TextureRect.EXPAND_KEEP_SIZE, "never shrunk to a fractional scale")
+		assert_eq(rect.stretch_mode, TextureRect.STRETCH_KEEP_CENTERED)
