@@ -1,0 +1,33 @@
+# Godot 4 — cache and imported data are regenerated on import.
+# NOTE: *.import and *.uid files are intentionally NOT ignored: Godot 4 needs
+# them versioned to keep resource UIDs and import settings stable.
+.godot/
+client/.godot/
+
+# Builds and exports
+/build/
+client/build/
+android/build/
+*.apk
+*.aab
+*.ipa
+*.dmg
+*.exe
+*.pck
+
+# Secrets — never commit signing material
+*.keystore
+*.jks
+export_credentials.cfg
+.env
+.env.*
+
+# Temp / scratch
+.tmp/
+.assets-scratch/
+*.tmp
+*.translation
+
+# OS / tooling
+.DS_Store
+node_modules/
