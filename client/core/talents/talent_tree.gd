@@ -5,6 +5,8 @@ extends RefCounted
 ## its level changes; the gold talent feeds gold_multiplier() instead.
 
 signal leveled_up(talent_id: StringName, level: int)
+## Only a purchase; restoring saved levels emits leveled_up alone.
+signal bought(talent_id: StringName)
 
 var shards: int = 0
 
@@ -60,6 +62,7 @@ func try_buy(talent_id: StringName) -> bool:
 		return false
 	shards -= cost
 	_set_level(talent_id, level(talent_id) + 1)
+	bought.emit(talent_id)
 	return true
 
 

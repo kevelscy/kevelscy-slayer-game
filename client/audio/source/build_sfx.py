@@ -196,6 +196,107 @@ SOUNDS = {
             ),
         ],
     },
+    # Upgrade bought: quick rising square arpeggio (G5 C6 E6 G6), a classic power-up.
+    "upgrade": {
+        "length_ms": 350,
+        "tracks": [
+            track(
+                "subtractive_synth",
+                [(79, 0, 60, 100), (84, 60, 60, 105), (88, 120, 60, 110), (91, 180, 150, 115)],
+                pluck(140, osc1_wave=SQUARE, osc2_wave=SQUARE, osc2_semitones=12, osc2_detune=0, osc_mix=30, cutoff=8000, resonance=0, filter_env_amount=0),
+                [("plate_reverb", {"mix": 15, "decay": 0.5})],
+            ),
+        ],
+    },
+    # UI tap: a dry closed-hat tick over a tiny sine blip.
+    "ui_tap": {
+        "length_ms": 60,
+        "tracks": [
+            track("drum_synth", [(HAT, 0, 30, 90)], {"hat_decay": 25}),
+            track(
+                "subtractive_synth",
+                [(84, 0, 25, 90)],
+                pluck(30, release_ms=10, osc1_wave=SINE, osc2_wave=SINE, osc2_detune=0, cutoff=8000, resonance=0, filter_env_amount=0),
+                volume_db=-4,
+            ),
+        ],
+    },
+    # Boss appears: low detuned saw stab (C2 + F#2 tritone) over a rolling low tom.
+    "boss_start": {
+        "length_ms": 1000,
+        "tracks": [
+            track(
+                "subtractive_synth",
+                [(36, 0, 850, 120), (42, 0, 850, 110)],
+                {"osc1_wave": SAW, "osc2_wave": SAW, "osc2_detune": 18, "cutoff": 500, "resonance": 40,
+                 "filter_env_amount": 50, "filter_attack": 200, "filter_decay": 600, "filter_sustain": 20,
+                 "amp_attack": 10, "amp_decay": 900, "amp_sustain": 50, "amp_release": 120},
+                [("saturator", {"drive": 14, "mix": 60}), ("room_reverb", {"mix": 25, "decay": 1.5, "size": 85})],
+                volume_db=-2,
+            ),
+            track(
+                "drum_synth",
+                [(TOM, 0, 120, 120), (TOM, 120, 120, 100), (TOM, 240, 120, 110), (KICK, 360, 500, 127)],
+                {"tom_tune": -10, "tom_decay": 250, "kick_tune": -10, "kick_decay": 600},
+            ),
+        ],
+    },
+    # Boss defeated: square fanfare G4 C5 E5 then a held G5 over a C major bed, with a crash.
+    "boss_defeat": {
+        "length_ms": 1200,
+        "tracks": [
+            track(
+                "subtractive_synth",
+                [(67, 0, 110, 110), (72, 120, 110, 110), (76, 240, 110, 115), (79, 360, 700, 120)],
+                {"osc1_wave": SQUARE, "osc2_wave": SAW, "osc2_detune": 8, "osc_mix": 40, "cutoff": 5000, "resonance": 0,
+                 "filter_env_amount": 0, "amp_attack": 5, "amp_decay": 500, "amp_sustain": 60, "amp_release": 150},
+                [("plate_reverb", {"mix": 25, "decay": 1.2})],
+            ),
+            track(
+                "subtractive_synth",
+                [(48, 360, 700, 90), (55, 360, 700, 85), (64, 360, 700, 85)],
+                {"osc1_wave": TRIANGLE, "osc2_wave": SAW, "osc2_detune": 10, "osc_mix": 30, "cutoff": 2500, "resonance": 0,
+                 "filter_env_amount": 0, "amp_attack": 20, "amp_decay": 600, "amp_sustain": 60, "amp_release": 150},
+                volume_db=-6,
+            ),
+            track("drum_synth", [(CRASH, 360, 700, 100), (KICK, 360, 200, 110)], {"cymbal_decay": 1200, "kick_decay": 200}, volume_db=-4),
+        ],
+    },
+    # Hero dies: sad descending triangle line (E4 C4 A3) gliding into a low thud.
+    "hero_death": {
+        "length_ms": 800,
+        "tracks": [
+            track(
+                "subtractive_synth",
+                [(64, 0, 180, 110), (60, 170, 180, 105), (57, 340, 380, 100)],
+                {"osc1_wave": TRIANGLE, "osc2_wave": SQUARE, "osc2_semitones": -12, "osc2_detune": 0, "osc_mix": 30, "glide": 60,
+                 "cutoff": 2500, "resonance": 10, "filter_env_amount": 0, "amp_attack": 5, "amp_decay": 600,
+                 "amp_sustain": 50, "amp_release": 80},
+                [("plate_reverb", {"mix": 25, "decay": 1.0})],
+            ),
+            track("drum_synth", [(KICK, 340, 300, 110)], {"kick_tune": -12, "kick_decay": 300}, volume_db=-4),
+        ],
+    },
+    # Ascension: shimmering rising C major arpeggio to a wide held chord, crash and a long plate.
+    "ascension": {
+        "length_ms": 1500,
+        "tracks": [
+            track(
+                "subtractive_synth",
+                [(60, 0, 1200, 90), (64, 90, 1110, 90), (67, 180, 1020, 95), (72, 270, 930, 100), (76, 360, 840, 100), (79, 450, 750, 105), (84, 540, 660, 110)],
+                {"osc1_wave": TRIANGLE, "osc2_wave": SINE, "osc2_semitones": 12, "osc2_detune": 0, "cutoff": 9000,
+                 "resonance": 0, "filter_env_amount": 0, "amp_attack": 15, "amp_decay": 900, "amp_sustain": 50, "amp_release": 250},
+                [("chorus", {"rate": 1.0, "depth": 50, "mix": 40}), ("plate_reverb", {"mix": 40, "decay": 2.5, "size": 90})],
+            ),
+            track(
+                "drum_synth",
+                [(CRASH, 540, 900, 90), (KICK, 540, 400, 110)],
+                {"cymbal_decay": 2000, "kick_tune": -6, "kick_decay": 500},
+                [("plate_reverb", {"mix": 30, "decay": 2.0})],
+                volume_db=-8,
+            ),
+        ],
+    },
 }
 
 

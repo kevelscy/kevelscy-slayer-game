@@ -20,6 +20,12 @@ const SOUNDS: Dictionary[StringName, Array] = {
 	&"blizzard": [0.2, 1, -9.0, 1.0],
 	&"fury": [0.2, 1, -9.0, 1.0],
 	&"shield": [0.2, 1, -9.0, 1.0],
+	&"upgrade": [0.05, 2, -10.0, 1.0],
+	&"ui_tap": [0.05, 1, -14.0, 1.0],
+	&"boss_start": [0.5, 1, -8.0, 1.0],
+	&"boss_defeat": [0.5, 1, -8.0, 1.0],
+	&"hero_death": [0.5, 1, -8.0, 1.0],
+	&"ascension": [0.5, 1, -6.0, 1.0],
 }
 
 ## Milliseconds clock, replaceable in tests.

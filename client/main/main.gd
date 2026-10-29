@@ -68,7 +68,7 @@ func _ready() -> void:
 	sfx.load_catalog()
 	sfx_director.name = "SfxDirector"
 	add_child(sfx_director)
-	sfx_director.bind(sfx, session, battle_world)
+	sfx_director.bind(sfx, session, battle_world, tab_bar)
 	hud.bind(session, battle_world.hero)
 	upgrade_panel.bind(session)
 	ability_panel.bind(session)
