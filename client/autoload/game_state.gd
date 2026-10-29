@@ -45,15 +45,12 @@ func _init() -> void:
 
 func _ready() -> void:
 	var save_path: String = save_path_for(OS.get_cmdline_args(), OS.get_cmdline_user_args())
-	if clears_scratch_save(OS.get_cmdline_args(), OS.get_cmdline_user_args()):
-		var cleared: Error = clear_save(save_path)
-		if cleared != OK:
-			push_error("GameState: could not clear the scratch save '%s' (%s)" % [save_path, error_string(cleared)])
+	var load_existing: bool = prepare_save(save_path, OS.get_cmdline_args(), OS.get_cmdline_user_args())
 	saves = SaveController.new(session, SaveStore.new(save_path), _device_clock)
 	saves.offline_reward_granted.connect(offline_reward_granted.emit)
 	var cloud_on: bool = cloud_enabled(OS.get_cmdline_args(), OS.get_cmdline_user_args())
 	saves.device_clock_offline = not cloud_on
-	boot_reward = saves.boot()
+	boot_reward = saves.boot(load_existing)
 	if cloud_on:
 		cloud = _make_cloud(save_path)
 		cloud.offline_reward_granted.connect(offline_reward_granted.emit)
@@ -166,6 +163,22 @@ static func save_path_for(args: PackedStringArray, user_args: PackedStringArray)
 ## given with `--save-path` belongs to the caller and is never deleted.
 static func clears_scratch_save(args: PackedStringArray, user_args: PackedStringArray) -> bool:
 	return _is_tool_run(args) and _explicit_save_path(user_args).is_empty()
+
+
+## Clears a tool run's scratch save and tells whether the run may load the save
+## at `save_path`. A scratch save that cannot be cleared is reported and not
+## loaded, so the run starts a new game instead of the previous run's.
+static func prepare_save(save_path: String, args: PackedStringArray, user_args: PackedStringArray) -> bool:
+	if not clears_scratch_save(args, user_args):
+		return true
+	var cleared: Error = clear_save(save_path)
+	if cleared == OK:
+		return true
+	push_error(
+		"GameState: could not clear the scratch save '%s' (%s); starting a new game"
+		% [save_path, error_string(cleared)]
+	)
+	return false
 
 
 ## Deletes the save at `path` (creating its folder), so the run starts a new

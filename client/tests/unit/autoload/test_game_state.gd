@@ -135,21 +135,69 @@ func test_clear_save_removes_the_save_and_creates_its_folder() -> void:
 
 
 func test_clear_save_reports_a_save_it_cannot_remove() -> void:
+	if not _can_lock_a_folder():
+		return
+	var save_path: String = _locked_save()
+	var cleared: Error = GameStateScript.clear_save(save_path)
+	_unlock_and_remove(save_path)
+	assert_ne(cleared, OK)
+	assert_eq(_unlocked_contents, "{}", "the save is left as it was")
+
+
+func test_a_tool_run_loads_the_scratch_save_only_after_clearing_it() -> void:
+	var gut: PackedStringArray = PackedStringArray(["-s", "addons/gut/gut_cmdln.gd"])
+	var none: PackedStringArray = PackedStringArray()
+	var dir_path: String = "user://test_game_state/%d" % randi()
+	var save_path: String = dir_path.path_join("save.json")
+	assert_true(GameStateScript.prepare_save(save_path, gut, none), "a cleared scratch save loads")
+	DirAccess.remove_absolute(dir_path)
+	assert_true(GameStateScript.prepare_save("user://unused/save.json", none, none), "a play session loads")
+	assert_false(DirAccess.dir_exists_absolute("user://unused"), "a play session clears nothing")
+
+
+func test_a_scratch_save_that_cannot_be_cleared_is_reported_and_not_loaded() -> void:
+	if not _can_lock_a_folder():
+		return
+	var gut: PackedStringArray = PackedStringArray(["-s", "addons/gut/gut_cmdln.gd"])
+	var save_path: String = _locked_save()
+	var loads: bool = GameStateScript.prepare_save(save_path, gut, PackedStringArray())
+	_unlock_and_remove(save_path)
+	assert_false(loads, "the earlier run's save is not loaded")
+	assert_push_error("could not clear the scratch save")
+
+
+var _unlocked_contents: String
+
+
+## Root ignores folder permissions and Windows has no chmod, so a locked folder
+## cannot be simulated there.
+func _can_lock_a_folder() -> bool:
 	if OS.get_name() == "Windows":
 		pending("needs chmod")
-		return
+		return false
+	var output: Array = []
+	OS.execute("id", ["-u"], output)
+	if output.size() > 0 and str(output[0]).strip_edges() == "0":
+		pending("root ignores folder permissions")
+		return false
+	return true
+
+
+## A save in a read-only folder, so it cannot be removed.
+func _locked_save() -> String:
 	var dir_path: String = "user://test_game_state/%d" % randi()
 	DirAccess.make_dir_recursive_absolute(dir_path)
 	var save_path: String = dir_path.path_join("save.json")
 	FileAccess.open(save_path, FileAccess.WRITE).store_string("{}")
-	var folder: String = ProjectSettings.globalize_path(dir_path)
-	OS.execute("chmod", ["555", folder])
-	var cleared: Error = GameStateScript.clear_save(save_path)
-	OS.execute("chmod", ["755", folder])
-	assert_ne(cleared, OK)
-	assert_eq(FileAccess.get_file_as_string(save_path), "{}", "the save is left as it was")
+	OS.execute("chmod", ["555", ProjectSettings.globalize_path(dir_path)])
+	return save_path
+
+
+func _unlock_and_remove(save_path: String) -> void:
+	OS.execute("chmod", ["755", ProjectSettings.globalize_path(save_path.get_base_dir())])
+	_unlocked_contents = FileAccess.get_file_as_string(save_path)
 	DirAccess.remove_absolute(save_path)
-	DirAccess.remove_absolute(dir_path)
+	DirAccess.remove_absolute(save_path.get_base_dir())
 
 
 func test_cloud_config_defaults_to_the_local_stack() -> void:

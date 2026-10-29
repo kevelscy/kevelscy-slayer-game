@@ -28,7 +28,8 @@ scripts/test.sh -gselect=test_damage # extra args are forwarded to GUT
 
 Test and `--import` runs never touch your save: they start from an empty scratch save in
 `user://tool_run/`. A save given with `--save-path` is never cleared, and a scratch save that
-cannot be deleted is reported as an error (which fails a GUT run) before the run loads it.
+cannot be deleted is reported as an error (which fails a GUT run) and is not loaded: the run
+starts a new game instead.
 
 ## Saves and offline income
 

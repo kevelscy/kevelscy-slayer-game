@@ -40,6 +40,14 @@ func test_boot_without_save_starts_new_game_and_writes_one() -> void:
 	assert_eq(store.load_save().data.last_seen_unix, T0)
 
 
+func test_boot_without_loading_starts_a_new_game_over_an_existing_save() -> void:
+	_seed_save(4, T0 - HOUR)
+	var reward: OfflineReward = controller.boot(false)
+	assert_true(reward.is_empty(), "the earlier run pays nothing")
+	assert_eq(session.progression.stage, 1)
+	assert_eq(store.load_save().data.stage, 1, "the new game replaces the earlier save")
+
+
 func test_boot_restores_save_and_pays_time_away() -> void:
 	_seed_save(4, T0 - HOUR)
 	var reward: OfflineReward = controller.boot()
