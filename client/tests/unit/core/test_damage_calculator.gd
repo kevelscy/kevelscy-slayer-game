@@ -79,3 +79,10 @@ func test_damage_beyond_float_range() -> void:
 	var result: DamageResult = DamageCalculator.compute(stats, _rng())
 	assert_almost_eq(result.amount.mantissa, 1.2, 1e-9)
 	assert_eq(result.amount.exponent, 501)
+
+
+func test_expected_dps_accounts_for_speed_and_average_crit() -> void:
+	var stats: StatBlock = _stats(100.0, 0.5, 3.0)
+	stats.set_base_rate(StatBlock.ATTACK_SPEED, 2.0)
+	# 100 attack * 2 hits/s * (1 + 0.5 * (3 - 1))
+	assert_almost_eq(DamageCalculator.expected_dps(stats).to_float(), 400.0, 1e-9)

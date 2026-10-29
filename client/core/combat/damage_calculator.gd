@@ -16,3 +16,13 @@ static func compute(
 	if is_critical:
 		multiplier *= attacker.get_rate(StatBlock.CRIT_DAMAGE)
 	return DamageResult.new(attacker.get_big(StatBlock.ATTACK).mul_float(multiplier), is_critical)
+
+
+## Average damage per second: attack * attack_speed * (1 + crit_chance * (crit_damage - 1)).
+## Used for offline income and balancing, never for actual hits.
+static func expected_dps(attacker: StatBlock) -> BigNumber:
+	var crit_chance: float = attacker.get_rate(StatBlock.CRIT_CHANCE)
+	var crit_damage: float = attacker.get_rate(StatBlock.CRIT_DAMAGE)
+	var average_crit_factor: float = 1.0 + crit_chance * (crit_damage - 1.0)
+	var speed: float = attacker.get_rate(StatBlock.ATTACK_SPEED)
+	return attacker.get_big(StatBlock.ATTACK).mul_float(speed * average_crit_factor)

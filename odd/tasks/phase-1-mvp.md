@@ -22,7 +22,7 @@ Goal: hero runs and auto-attacks waves + timed boss, gold drops, ATK upgrade rai
 - [x] T2 Godot project.godot (S7 settings) + GUT v9.7.1 + MCP toolkit plugin v1.1.1 + headless smoke test — S2,S3,S7,S10 — inline (worker failed) — commit: 90d094c
 - [x] T3 Register godot-mcp server in ~/.gentle-shell/agent/mcp.json (user-authorized) — S10 — inline — commit: n/a
 - [x] T4 BigNumber core + NumberFormat (TDD) — S3,S4 — inline — commit: 04ddb2c
-- [ ] T5 Damage system: StatBlock, DamageCalculator, HealthComponent (TDD) — S3,S6,S8 — worker — commit: _
+- [x] T5 Damage system: StatBlock, DamageCalculator, HealthComponent (TDD) — S3,S6,S8 — inline — commit: a248e27
 - [ ] T6 Economy (CostCurve, CurrencyWallet) + OfflineCalculator (TDD) — S3,S6,S9 — worker — commit: _
 - [ ] T7 CC0 placeholder art + CREDITS.md — S5 — worker — commit: _
 - [ ] T8 Hero: components + StateMachine (Run/Engage/Attack/Dead) + AutoAttack — S6,S8,S11 — worker — commit: _
