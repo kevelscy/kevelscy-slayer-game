@@ -110,7 +110,7 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
 Pass these after `--` (they are ignored otherwise):
 
 ```bash
-scripts/godot.sh --headless --path client --fixed-fps 60 --quit-after 3600 -- --dev-report --save-path=/tmp/soak.json
+scripts/godot.sh --headless --path client --fixed-fps 60 --quit-after 3600 -- --dev-report --save-path=/tmp/soak.json --no-cloud
 scripts/godot.sh --path client --resolution 720x1280 -- --screenshot=$PWD/.tmp/portrait.png
 ```
 
@@ -120,7 +120,9 @@ scripts/godot.sh --path client --resolution 720x1280 -- --screenshot=$PWD/.tmp/p
 | `--screenshot=<abs png>` | saves a screenshot after 120 frames and quits |
 | `--ascension-panel` | opens the ascension panel on start (for screenshots) |
 | `--save-path=<path>` | uses a scratch save file instead of `user://save.json` (and its own `auth.json` next to it) |
-| `--no-cloud` | local save only, offline gold from the device clock (GUT runs are always local) |
+| `--no-cloud` | local save only, offline gold from the device clock (GUT and `--import` runs are always local) |
+
+Soak runs with `--fixed-fps` need `--no-cloud`: the engine timer that bounds cloud requests then runs on game time, so requests time out before the server replies.
 
 ## MCP (Godot MCP Toolkit)
 
