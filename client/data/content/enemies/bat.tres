@@ -1,21 +1,22 @@
 [gd_resource type="Resource" script_class="EnemyDefinition" format=3]
 
 [ext_resource type="Script" path="res://components/animation/animation_sheet.gd" id="1_45fvu"]
-[ext_resource type="Texture2D" path="res://assets/sprites/enemies/bat/bat.png" id="2_sq4ds"]
+[ext_resource type="Texture2D" path="res://art/sprites/bat_fly.png" id="2_sq4ds"]
 [ext_resource type="Script" path="res://data/definitions/enemy_definition.gd" id="3_igier"]
 
 [sub_resource type="Resource" id="Resource_7gtct"]
 script = ExtResource("1_45fvu")
 animation_name = &"fly"
 texture = ExtResource("2_sq4ds")
-frame_size = Vector2i(127, 138)
-frame_count = 3
+frame_size = Vector2i(40, 32)
+frame_count = 4
+fps = 12.0
 
 [resource]
 script = ExtResource("3_igier")
 id = &"bat"
 animation = SubResource("Resource_7gtct")
-sprite_scale = 0.3
+sprite_scale = 1.0
 hover_height = 18.0
 health_multiplier = 0.7
 move_speed = 55.0

@@ -2,9 +2,10 @@ extends SceneTree
 ## One-shot generator for the MVP content resources (.tres). Run it after changing the
 ## tables below, then tune the generated files in the editor:
 ##   scripts/godot.sh --headless --path client -s res://tools/generate_mvp_content.gd
-## Pack enemy frame data comes from assets/ASSETS.md; the hero and the slime are original art
-## from art/sprites/ (art/STYLE.md): hero frames are 48 px tall (the attack is 96 px wide so the
-## swing fits), slime frames are 32x32 and it idles while it stands at the hero.
+## Pack enemy frame data comes from assets/ASSETS.md; the hero, the slime and the bat are original
+## art from art/sprites/ (art/STYLE.md): hero frames are 48 px tall (the attack is 96 px wide so the
+## swing fits), slime frames are 32x32 and it idles while it stands at the hero, bat frames are
+## 40x32 (wide wings) and it flies in place at the hero.
 
 const ART_DIR: String = "res://art/sprites/"
 const ENEMY_DIR: String = "res://assets/sprites/enemies/"
@@ -29,8 +30,8 @@ func _init() -> void:
 	)
 	slime.idle_animation = _sheet(&"idle", ART_DIR + "slime_idle.png", Vector2i(32, 32), 0, 4, 10.0, true)
 	var bat: EnemyDefinition = _enemy(
-		&"bat", _sheet(&"fly", ENEMY_DIR + "bat/bat.png", Vector2i(127, 138), 0, 3, 10.0, true),
-		0.3, 18.0, 0.7, 1.0, 55.0
+		&"bat", _sheet(&"fly", ART_DIR + "bat_fly.png", Vector2i(40, 32), 0, 4, 12.0, true),
+		1.0, 18.0, 0.7, 1.0, 55.0
 	)
 	var skeleton: EnemyDefinition = _enemy(
 		&"skeleton", _sheet(&"walk", ENEMY_DIR + "skeleton/skeleton.png", Vector2i(138, 138), 0, 4, 8.0, true),

@@ -1,6 +1,6 @@
 extends GutTest
-## The slime plays the original Pixelorama art from art/sprites/ (32x32 frames, 10-12 fps):
-## its move animation while it advances and its idle animation while it stands at the hero.
+## Enemies play the original Pixelorama art from art/sprites/ (10-12 fps). The slime (32x32
+## frames) moves while it advances and idles at the hero; the bat (40x32 frames) only flies.
 
 const SLIME: EnemyDefinition = preload("res://data/content/enemies/slime.tres")
 const BAT: EnemyDefinition = preload("res://data/content/enemies/bat.tres")
@@ -15,18 +15,20 @@ func _spawn(definition: EnemyDefinition) -> Enemy:
 	return enemy
 
 
-func _assert_sheet(sheet: AnimationSheet, anim_name: StringName, path: String, count: int) -> void:
+func _assert_sheet(
+	sheet: AnimationSheet, anim_name: StringName, path: String, count: int, size: Vector2i = Vector2i(32, 32)
+) -> void:
 	assert_not_null(sheet, "%s sheet" % anim_name)
 	if sheet == null:
 		return
 	assert_eq(sheet.animation_name, anim_name)
 	assert_eq(sheet.texture.resource_path, path)
-	assert_eq(sheet.frame_size, Vector2i(32, 32))
+	assert_eq(sheet.frame_size, size)
 	assert_eq(sheet.first_frame, 0)
 	assert_eq(sheet.frame_count, count)
 	assert_true(sheet.loop, "%s loops" % anim_name)
 	assert_between(sheet.fps, 10.0, 12.0, "%s fps" % anim_name)
-	assert_eq(sheet.texture.get_size(), Vector2(32 * count, 32))
+	assert_eq(sheet.texture.get_size(), Vector2(size.x * count, size.y))
 
 
 func test_slime_uses_the_original_art() -> void:
@@ -34,6 +36,14 @@ func test_slime_uses_the_original_art() -> void:
 	_assert_sheet(SLIME.idle_animation, &"idle", "res://art/sprites/slime_idle.png", 4)
 	# 32 px art is drawn at its native size, like the 48 px hero.
 	assert_eq(SLIME.sprite_scale, 1.0)
+
+
+func test_bat_uses_the_original_art() -> void:
+	_assert_sheet(BAT.animation, &"fly", "res://art/sprites/bat_fly.png", 4, Vector2i(40, 32))
+	assert_eq(BAT.animation.fps, 12.0)
+	assert_null(BAT.idle_animation, "the bat flies in place at the hero")
+	assert_eq(BAT.sprite_scale, 1.0)
+	assert_eq(BAT.hover_height, 18.0)
 
 
 func test_slime_moves_while_it_advances_and_idles_at_the_hero() -> void:
