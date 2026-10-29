@@ -1,29 +1,10 @@
 # Asset technical sheet
 
-Sizes measured with `sips`. Frame contents were checked by counting opaque pixels per cell.
-Frames are numbered left to right, then top to bottom, starting at 0.
+Third-party art kept in the game. Every character sprite (hero, enemies, boss) is original art
+in `client/art/` (see `client/art/STYLE.md`). Sizes measured with `sips`.
 
-## Sprites
-
-| Path | Sheet size | Frame | Grid (cols x rows) | Animations | Facing | FPS |
-|---|---|---|---|---|---|---|
-| `sprites/hero/hero_idle.png` | 64x128 | 64x64 | 1x2 | idle: 0-1 | right | 4 |
-| `sprites/hero/hero_run.png` | 192x192 | 64x64 | 3x3 | run: 0-7 (cell 8 empty) | right | 12 |
-| `sprites/hero/hero_attack.png` | 384x64 | 64x64 | 6x1 | attack: 0-5 | right | 14 |
-| `sprites/hero/hero_hurt_die.png` | 192x256 | 64x64 | 3x4 | hurt: 0-2 (white flash), die: 3-11 (fades out) | right | 12 |
-| `sprites/enemies/slime/slime.png` | 296x86 | 74x86 | 4x1 | move: 0-3 | left | 8 |
-| `sprites/enemies/bat/bat.png` | 381x138 | 127x138 | 3x1 | fly: 0-2 | left | 10 |
-| `sprites/enemies/skeleton/skeleton.png` | 552x138 | 138x138 | 4x1 | walk: 0-3 | left | 8 |
-| `sprites/boss/spider.png` | 828x138 | 138x138 | 6x1 | walk: 0-5 | left | 10 |
-
-Enemies come from the right, so their left-facing art needs no flipping.
-
-**Scale.** The hero is drawn at 64 px and the enemies at roughly 2x that density. In the
-360x192 battle viewport, scale regular enemies by 0.5. Scale the boss by 0.75–1.0 and tint it.
-
-**Not in the packs.** There are no enemy hurt or death frames: use a white-flash shader or
-`modulate` and a fade tween. There is also no boss-specific art: the boss is the spider,
-scaled and tinted.
+Sprite sheets are horizontal: frames are numbered left to right (then top to bottom when a sheet
+has several rows), starting at 0.
 
 ## Backgrounds
 
