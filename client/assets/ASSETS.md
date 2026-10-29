@@ -18,3 +18,13 @@ Order from back to front (parallax speed relative to the hero's run in brackets)
 
 The battle viewport is 192 px tall: the three 160 px layers are anchored to the top and the
 ground strip fills the bottom 32 px (y 160 to 192).
+
+## Damage number fonts
+
+`client/art/fonts/` has two bitmap fonts imported as Godot image fonts (`font_data_image`, one row
+of 41 cells 9x11, drawn 1:1 at font size 11). Glyph order, which the import's `character_ranges`
+must match: `0-9 . K M B T a-z` (every character `NumberFormat.format` prints for damage;
+lowercase letters are small caps).
+
+- `damage_font.png` 369x11, red (Rojo vivo #f4170b) with a dark outline: normal hits
+- `damage_font_crit.png` 369x11, gold: critical hits, drawn at 2x

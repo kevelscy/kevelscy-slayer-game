@@ -11,7 +11,8 @@ characters or assets.
 - Palette: `client/art/palettes/paleta_juego.gpl` (35 colors; swatch sheet `paleta_juego.png`), also
   installed in Pixelorama's `Palettes/` folder.
 - Sources: `client/art/source/*.pxo`. Exports: transparent PNG; animations as horizontal
-  spritesheets in `client/art/sprites/`, tiles in `client/art/tiles/`. Audio: `.ogg` in `client/audio/sfx/` or
+  spritesheets in `client/art/sprites/`, tiles in `client/art/tiles/`, icons in
+  `client/art/icons/`, bitmap fonts in `client/art/fonts/`. Audio: `.ogg` in `client/audio/sfx/` or
   `client/audio/music/`.
 - Before each asset: state what it is and its size. Review it with `get_image` before
   exporting. When done: list the files created and their dimensions.

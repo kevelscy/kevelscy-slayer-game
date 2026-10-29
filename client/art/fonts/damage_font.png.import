@@ -1,0 +1,25 @@
+[remap]
+
+importer="font_data_image"
+type="FontFile"
+uid="uid://c1y6l55nuta2q"
+path="res://.godot/imported/damage_font.png-b715ba71ab8a50df23f616f721a0dd5c.fontdata"
+
+[deps]
+
+source_file="res://art/fonts/damage_font.png"
+dest_files=["res://.godot/imported/damage_font.png-b715ba71ab8a50df23f616f721a0dd5c.fontdata"]
+
+[params]
+
+character_ranges=PackedStringArray("0x30-0x39", "0x2E", "0x4B", "0x4D", "0x42", "0x54", "0x61-0x7A")
+kerning_pairs=PackedStringArray()
+columns=41
+rows=1
+image_margin=Rect2i(0, 0, 0, 0)
+character_margin=Rect2i(0, 0, 0, 0)
+ascent=0
+descent=0
+fallbacks=[]
+compress=false
+scaling_mode=2
