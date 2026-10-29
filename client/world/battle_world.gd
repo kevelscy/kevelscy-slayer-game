@@ -12,7 +12,7 @@ const LAYER_SPEED_FACTORS: Array[float] = [0.1, 0.3, 0.6, 1.0]
 @export var roster: EnemyRoster
 
 var session: GameSession
-var scheduler: SpawnScheduler = SpawnScheduler.new(1.2, 4)
+var scheduler: SpawnScheduler = SpawnScheduler.new(GameSession.SPAWN_INTERVAL_SECONDS, 4)
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var _world_speed: float = -1.0

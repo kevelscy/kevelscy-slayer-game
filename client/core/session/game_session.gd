@@ -5,6 +5,9 @@ extends RefCounted
 
 const GOLD: StringName = &"gold"
 const BOSS_DAMAGE_MULTIPLIER: float = 2.0
+## Seconds between regular enemy spawns; also caps the offline kill rate.
+const SPAWN_INTERVAL_SECONDS: float = 1.2
+const OFFLINE_CAP_SECONDS: int = 8 * 3600
 
 var wallet: CurrencyWallet = CurrencyWallet.new()
 var balance: StageBalance
@@ -69,6 +72,26 @@ func apply_save(data: SaveData) -> void:
 	attack_track.set_level(data.attack_level)
 	health_track.set_level(data.health_level)
 	_refresh_hero_stats()
+
+
+## Gold per second while away: regular kills the hero sustains on the current
+## stage times their gold. Offline time never advances the stage.
+func offline_gold_rate() -> BigNumber:
+	var kills: float = OfflineCalculator.kills_per_second(
+		DamageCalculator.expected_dps(hero_stats), enemy_health(false), SPAWN_INTERVAL_SECONDS
+	)
+	return balance.gold_reward(progression.stage).mul_float(kills)
+
+
+## Pays offline gold for the validated time between the two timestamps.
+func grant_offline(last_seen_unix: int, now_unix: int) -> OfflineReward:
+	var rates: Dictionary[StringName, BigNumber] = {GOLD: offline_gold_rate()}
+	var reward: OfflineReward = OfflineCalculator.compute(
+		rates, last_seen_unix, now_unix, OFFLINE_CAP_SECONDS
+	)
+	if not reward.is_empty():
+		wallet.add(GOLD, reward.amounts[GOLD])
+	return reward
 
 
 func enemy_health(is_boss: bool) -> BigNumber:
