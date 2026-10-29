@@ -12,6 +12,9 @@ const AUTOSAVE_SECONDS: float = 30.0
 
 var session: GameSession
 var store: SaveStore
+## Pays offline time measured by the injected clock. CloudSync turns this off and
+## pays offline time from the server clock instead.
+var device_clock_offline: bool = true
 var _clock: Callable
 var _last_seen_unix: int = 0
 var _autosave_elapsed: float = 0.0
@@ -63,6 +66,8 @@ func save_now() -> Error:
 
 
 func _grant_since(last_seen_unix: int) -> OfflineReward:
+	if not device_clock_offline:
+		return OfflineReward.new(0, {})
 	var reward: OfflineReward = session.grant_offline(last_seen_unix, _now())
 	if not reward.is_empty():
 		offline_reward_granted.emit(reward)

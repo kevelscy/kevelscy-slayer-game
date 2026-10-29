@@ -50,6 +50,19 @@ func test_boot_restores_save_and_pays_time_away() -> void:
 	assert_eq(store.load_save().data.last_seen_unix, T0)
 
 
+func test_without_device_clock_offline_boot_and_resume_pay_nothing() -> void:
+	_seed_save(4, T0 - HOUR)
+	controller.device_clock_offline = false
+	watch_signals(controller)
+	assert_true(controller.boot().is_empty())
+	assert_eq(session.progression.stage, 4)
+	assert_true(session.wallet.get_amount(GameSession.GOLD).is_equal_approx(BigNumber.from_float(100.0)))
+	now = T0 + HOUR
+	assert_true(controller.resume().is_empty())
+	assert_signal_not_emitted(controller, "offline_reward_granted")
+	assert_eq(store.load_save().data.last_seen_unix, T0 + HOUR, "saves still happen")
+
+
 func test_boot_with_rejected_save_starts_new_game_and_keeps_the_bad_file() -> void:
 	var file: FileAccess = FileAccess.open(store.path, FileAccess.WRITE)
 	file.store_string("{broken")
