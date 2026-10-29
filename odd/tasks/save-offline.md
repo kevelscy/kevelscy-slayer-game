@@ -19,7 +19,7 @@ Cloud save and server time validation stay for the `/server` slice; this slice k
 - [x] T2 SaveStore atomic read/write with injectable path (TDD) — S4 — inline — commit: 71ba887
 - [x] T3 Offline income: GameSession.offline_gold_rate + grant via OfflineCalculator (TDD) — S1 — inline — commit: 9341473
 - [x] T4 GameState wiring (load/offline on boot+resume, autosave, clock seam) + welcome-back toast + README — S1,S2,S5,S6 — inline — commit: 144579d
-- [ ] T5 Verify: suite, soak, restart persistence, faked last_seen offline grant, corrupt-save rejection — S1–S6 — verify — commit: n/a
+- [x] T5 Verify: suite, soak, restart persistence, faked last_seen offline grant, corrupt-save rejection — S1–S6 — inline (gentle-ai-verify unavailable) — commit: n/a
 
 ## Log
 
@@ -29,3 +29,4 @@ Cloud save and server time validation stay for the `/server` slice; this slice k
 - L4 Decision: S4 refined — a rejected save is moved to `save.rejected.json` instead of being overwritten by the fresh game.
 - L5 Slice boundary: slice 1 = T1+T2 (4e1f187, 71ba887, ~430 lines, save foundation); slice 2 = T3+T4. Push/PR stays the user decision.
 - L6 Evidence (inline, before independent verify): suite 176/176. Real runs with --save-path=/tmp/slayer-verify/save.json: run1 fresh 60 s → 0 ERROR/WARNING, save stage 2 gold 151 (found + fixed: --quit-after/quit() skipped the close-request save → GameState now saves in _exit_tree); run2 last_seen −2 h → "Welcome back! +26.5K gold (2h 00m away)", stage 2 kept; run3 corrupt save → "SaveController: save rejected (save is not a JSON object); starting a new game", save.rejected.json holds the bad bytes, fresh save written; run4 last_seen +1 day (clock moved back) → no reward, gold unchanged 50. Toast screenshot .tmp/toast_720x1280.png reviewed; upgrade buttons confirmed enabled (grey is the default theme).
+- L7 Verify: gentle-ai-verify subagent failed ("assistant reported an error"), not retried. Native RDD assess (base origin/main, 844 lines): tier medium, reviewDue false, no independent verifier required → inline evidence in L6 stands. Known limitation (S2): moving the device clock forward still pays up to 8 h; fixed only by server-validated time.
