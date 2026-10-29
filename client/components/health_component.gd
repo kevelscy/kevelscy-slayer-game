@@ -9,16 +9,54 @@ signal died
 
 var max_health: BigNumber = BigNumber.one()
 var current: BigNumber = BigNumber.one()
+## Absorbs damage before health until it is used up or expires.
+var shield: BigNumber = BigNumber.zero()
+var shield_seconds: float = 0.0
+
+
+func _process(delta: float) -> void:
+	tick_shield(delta)
 
 
 func setup(new_max_health: BigNumber) -> void:
 	max_health = new_max_health
 	current = new_max_health
+	clear_shield()
 
 
+## Replaces any active shield.
+func set_shield(amount: BigNumber, seconds: float) -> void:
+	shield = amount
+	shield_seconds = seconds
+
+
+func clear_shield() -> void:
+	shield = BigNumber.zero()
+	shield_seconds = 0.0
+
+
+func has_shield() -> bool:
+	return shield_seconds > 0.0 and not shield.is_zero()
+
+
+func tick_shield(delta: float) -> void:
+	if shield_seconds <= 0.0:
+		return
+	shield_seconds -= delta
+	if shield_seconds <= 1e-6:
+		clear_shield()
+
+
+## Only the part of a hit that gets past the shield emits `damaged`.
 func take_damage(result: DamageResult) -> void:
 	if is_dead():
 		return
+	if has_shield():
+		if shield.gte(result.amount):
+			shield = shield.sub(result.amount)
+			return
+		result = DamageResult.new(result.amount.sub(shield), result.is_critical)
+		clear_shield()
 	current = current.sub(result.amount)
 	if current.is_negative():
 		current = BigNumber.zero()

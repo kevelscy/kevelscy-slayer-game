@@ -71,3 +71,37 @@ func test_ratio_with_huge_values() -> void:
 	health.setup(BigNumber.of(1.0, 500))
 	health.take_damage(DamageResult.new(BigNumber.of(2.5, 499), false))
 	assert_almost_eq(health.get_ratio(), 0.75, 1e-9)
+
+
+func test_shield_absorbs_damage_before_health() -> void:
+	health.set_shield(BigNumber.from_float(40.0), 8.0)
+	_hit(30.0)
+	assert_almost_eq(health.current.to_float(), 100.0, 1e-9)
+	assert_almost_eq(health.shield.to_float(), 10.0, 1e-9)
+	assert_signal_emit_count(health, "damaged", 0)
+
+
+func test_damage_beyond_the_shield_reaches_health() -> void:
+	health.set_shield(BigNumber.from_float(40.0), 8.0)
+	_hit(55.0, true)
+	assert_true(health.shield.is_zero())
+	assert_almost_eq(health.current.to_float(), 85.0, 1e-9)
+	var result: DamageResult = get_signal_parameters(health, "damaged")[0]
+	assert_almost_eq(result.amount.to_float(), 15.0, 1e-9)
+	assert_true(result.is_critical)
+
+
+func test_shield_expires_after_its_duration() -> void:
+	health.set_shield(BigNumber.from_float(40.0), 8.0)
+	health.tick_shield(7.9)
+	assert_true(health.has_shield())
+	health.tick_shield(0.1)
+	assert_false(health.has_shield())
+	_hit(30.0)
+	assert_almost_eq(health.current.to_float(), 70.0, 1e-9)
+
+
+func test_setup_clears_the_shield() -> void:
+	health.set_shield(BigNumber.from_float(40.0), 8.0)
+	health.setup(BigNumber.from_float(100.0))
+	assert_false(health.has_shield())
