@@ -15,6 +15,11 @@ const SOUNDS: Dictionary[StringName, Array] = {
 	&"crit": [0.08, 2, -6.0, 1.05],
 	&"coin": [0.08, 3, -12.0, 1.0],
 	&"spirit": [0.1, 2, -14.0, 1.1],
+	&"thunder": [0.2, 1, -8.0, 1.0],
+	&"meteor": [0.2, 1, -8.0, 1.0],
+	&"blizzard": [0.2, 1, -9.0, 1.0],
+	&"fury": [0.2, 1, -9.0, 1.0],
+	&"shield": [0.2, 1, -9.0, 1.0],
 }
 
 ## Milliseconds clock, replaceable in tests.

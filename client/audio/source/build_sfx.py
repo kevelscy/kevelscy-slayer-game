@@ -29,6 +29,8 @@ FADE_OUT_MS = 10
 KICK, SNARE, HAT, OPEN_HAT, TOM, CRASH = 36, 38, 42, 46, 45, 49
 # Subtractive Synth waveforms (osc1_wave / osc2_wave).
 SAW, SQUARE, SINE, TRIANGLE = 0, 1, 2, 3
+# EQ 1-Band filter types.
+LOW_PASS, BAND_PASS = 4, 6
 
 
 def track(instrument, notes, params=None, inserts=None, volume_db=0.0):
@@ -100,6 +102,97 @@ SOUNDS = {
                 [(76, 0, 40, 100), (88, 30, 90, 100)],
                 pluck(110, release_ms=20, osc1_wave=TRIANGLE, osc2_wave=SINE, osc2_semitones=12, osc2_detune=0, glide=50, cutoff=6000, resonance=10, filter_env_amount=0),
                 [("plate_reverb", {"mix": 20, "decay": 0.4})],
+            ),
+        ],
+    },
+    # Thunder (Trueno): saturated noise crack, then a low-passed rumble of kick, tom and crash.
+    "thunder": {
+        "length_ms": 600,
+        "tracks": [
+            track(
+                "drum_synth",
+                [(SNARE, 0, 150, 127), (HAT, 0, 60, 127)],
+                {"snare_tune": -4, "snare_snappy": 100, "snare_decay": 180, "hat_decay": 60},
+                [("saturator", {"drive": 20, "mix": 80})],
+            ),
+            track(
+                "drum_synth",
+                [(KICK, 30, 500, 127), (TOM, 70, 450, 110), (CRASH, 20, 550, 120)],
+                {"kick_tune": -12, "kick_decay": 600, "tom_tune": -12, "tom_decay": 500, "cymbal_decay": 700},
+                [("eq_1band", {"type": LOW_PASS, "freq": 450, "q": 0.7}), ("room_reverb", {"mix": 30, "decay": 1.2, "size": 80})],
+                volume_db=3,
+            ),
+        ],
+    },
+    # Meteor (Meteoro): resonant saw whistle gliding down, then a saturated explosion.
+    "meteor": {
+        "length_ms": 800,
+        "tracks": [
+            track(
+                "subtractive_synth",
+                [(84, 0, 330, 100), (45, 300, 80, 100)],
+                {"osc1_wave": SAW, "osc2_wave": SAW, "osc2_detune": 20, "glide": 300, "cutoff": 2500, "resonance": 45,
+                 "filter_env_amount": 0, "amp_attack": 20, "amp_decay": 400, "amp_sustain": 70, "amp_release": 40, "level": 6},
+                volume_db=2,
+            ),
+            track(
+                "drum_synth",
+                [(KICK, 370, 400, 127), (SNARE, 370, 300, 127), (CRASH, 370, 420, 110)],
+                {"kick_tune": -10, "kick_decay": 450, "snare_tune": -8, "snare_snappy": 100, "snare_decay": 350, "cymbal_decay": 600},
+                [("saturator", {"drive": 22, "mix": 70}), ("room_reverb", {"mix": 25, "decay": 1.0, "size": 70})],
+                volume_db=-6,
+            ),
+        ],
+    },
+    # Blizzard (Ventisca): band-passed swirling noise wind under falling-ice triangle tinkles.
+    "blizzard": {
+        "length_ms": 700,
+        "tracks": [
+            track(
+                "drum_synth",
+                [(OPEN_HAT, 0, 650, 110), (CRASH, 60, 600, 90)],
+                {"open_hat_decay": 700, "cymbal_decay": 700},
+                [("eq_1band", {"type": BAND_PASS, "freq": 1800, "q": 0.8}), ("phaser", {"rate": 3, "depth": 80, "feedback": 50, "mix": 60})],
+            ),
+            track(
+                "subtractive_synth",
+                [(98, 40, 90, 100), (103, 170, 90, 90), (100, 300, 90, 85), (105, 430, 120, 80)],
+                pluck(130, osc1_wave=TRIANGLE, osc2_wave=SINE, osc2_semitones=12, osc2_detune=0, cutoff=10000, resonance=0, filter_env_amount=0),
+                [("plate_reverb", {"mix": 35, "decay": 1.0})],
+                volume_db=-8,
+            ),
+        ],
+    },
+    # Fury (Furia): detuned saw growl rising a fifth through a resonant filter, with a punch.
+    "fury": {
+        "length_ms": 500,
+        "tracks": [
+            track(
+                "subtractive_synth",
+                [(40, 0, 130, 120), (47, 110, 330, 120)],
+                {"osc1_wave": SAW, "osc2_wave": SAW, "osc2_detune": 25, "glide": 150, "cutoff": 900, "resonance": 55,
+                 "filter_env_amount": 60, "filter_attack": 120, "filter_decay": 300, "filter_sustain": 30,
+                 "amp_attack": 5, "amp_decay": 400, "amp_sustain": 60, "amp_release": 50},
+                [("saturator", {"drive": 20, "mix": 70})],
+                volume_db=-4,
+            ),
+            track(
+                "drum_synth",
+                [(KICK, 0, 250, 127), (SNARE, 0, 150, 90)],
+                {"kick_tune": -4, "kick_decay": 250, "snare_snappy": 60, "snare_decay": 150},
+            ),
+        ],
+    },
+    # Shield (Escudo): bright rising major arpeggio (C5 E5 G5 C6) shimmering through chorus and plate.
+    "shield": {
+        "length_ms": 500,
+        "tracks": [
+            track(
+                "subtractive_synth",
+                [(72, 0, 380, 100), (76, 50, 330, 100), (79, 100, 280, 100), (84, 150, 230, 110)],
+                {"osc1_wave": TRIANGLE, "osc2_wave": SINE, "osc2_semitones": 12, "osc2_detune": 0, "cutoff": 7000,
+                 "resonance": 0, "filter_env_amount": 0, "amp_attack": 8, "amp_decay": 350, "amp_sustain": 20, "amp_release": 80},
+                [("chorus", {"rate": 1.5, "depth": 40, "mix": 40}), ("plate_reverb", {"mix": 35, "decay": 1.2})],
             ),
         ],
     },

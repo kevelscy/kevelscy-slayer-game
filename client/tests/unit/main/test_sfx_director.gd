@@ -46,6 +46,20 @@ func test_spirit_attack_plays_spirit() -> void:
 	assert_eq(_played(), [&"spirit"] as Array[StringName])
 
 
+func test_every_catalog_skill_has_a_sound() -> void:
+	for skill: SkillDefinition in ABILITIES.skills:
+		assert_true(SfxPlayer.SOUNDS.has(skill.id), "%s has a sound" % skill.id)
+
+
+func test_each_skill_cast_plays_its_own_sound() -> void:
+	var expected: Array[StringName] = []
+	for slot_index: int in ABILITIES.skills.size():
+		var skill: SkillDefinition = ABILITIES.skills[slot_index]
+		GameState.session.skills.cast.emit(slot_index, skill)
+		expected.append(skill.id)
+	assert_eq(_played(), expected)
+
+
 func test_battle_world_signals_every_damage_an_enemy_takes() -> void:
 	var world: BattleWorld = main.battle_world
 	world._spawn(world.roster.regular_enemies[0], false)
