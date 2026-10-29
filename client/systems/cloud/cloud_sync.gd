@@ -184,9 +184,10 @@ func _owns(pulled: CloudPullResult) -> bool:
 ## device's last acknowledged push plus the play before the pull was sent, so play
 ## here is never paid as time away (an owned row's last_seen is that push).
 ## An owned row then counts the time up to the server's now as accounted so a
-## later resume pays only the next absence. Play while the pull was in flight
-## happened after that now, so it is not subtracted here and still counts as play
-## afterwards.
+## later resume pays only the next absence. Play while the pull was in flight is
+## not subtracted here and all counts as play after that now, although the part
+## before the server stamped its now came earlier: this can only lower the next
+## absence's reward, by at most the time between sending the pull and that stamp.
 func _grant(pulled: CloudPullResult, owned: bool, played_at_pull: float) -> OfflineReward:
 	var stopped_unix: int = pulled.last_seen_unix
 	if _acked_unix > 0:
