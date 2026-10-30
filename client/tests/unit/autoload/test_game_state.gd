@@ -217,6 +217,30 @@ func test_the_auth_file_sits_next_to_the_save() -> void:
 	assert_eq(GameStateScript.auth_path("/tmp/soak/save.json"), "/tmp/soak/auth.json")
 
 
+func test_the_settings_file_sits_next_to_the_save() -> void:
+	assert_eq(GameStateScript.settings_path("user://save.json"), "user://settings.cfg")
+	assert_eq(GameStateScript.settings_path("/tmp/soak/save.json"), "/tmp/soak/settings.cfg")
+
+
+func test_the_running_game_loads_its_settings_next_to_its_save() -> void:
+	assert_not_null(GameState.settings)
+	assert_eq(GameState.settings.path, GameStateScript.settings_path(GameState.saves.store.path))
+
+
+func test_set_sfx_muted_mutes_the_bus_and_saves_the_choice() -> void:
+	GameState.set_sfx_muted(true)
+	var reloaded: SettingsStore = SettingsStore.new(GameState.settings.path)
+	reloaded.load_settings()
+	var muted_saved: bool = reloaded.sfx_muted
+	var muted_bus: bool = SfxPlayer.is_muted()
+	GameState.set_sfx_muted(false)
+	assert_true(muted_bus, "the SFX bus is muted")
+	assert_true(muted_saved, "the mute is saved")
+	reloaded.load_settings()
+	assert_false(reloaded.sfx_muted, "unmuting is saved too")
+	assert_false(SfxPlayer.is_muted())
+
+
 func test_with_cloud_pause_resume_and_focus_loss_also_reach_the_cloud() -> void:
 	state.cloud = SpyCloud.new(spy.calls)
 	state._notification(Node.NOTIFICATION_APPLICATION_PAUSED)

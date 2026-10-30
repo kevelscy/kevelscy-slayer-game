@@ -23,6 +23,7 @@ const NO_CLOUD_FEATURE: String = "no_cloud"
 const GUT_RUNNER: String = "gut_cmdln.gd"
 const IMPORT_ARG: String = "--import"
 const AUTH_FILE: String = "auth.json"
+const SETTINGS_FILE: String = "settings.cfg"
 const TOOL_RUN_SAVE_PATH: String = "user://tool_run/save.json"
 const SYNC_MARKER_FILE: String = "cloud_sync.json"
 ## Project settings that point a build at a hosted project; the defaults are the
@@ -37,6 +38,7 @@ const CLOSE_PUSH_TIMEOUT_SECONDS: float = 3.0
 var session: GameSession = GameSession.new(STAGE_BALANCE, 10, 30.0, ABILITIES, TALENTS)
 var saves: SaveController
 var cloud: CloudSync
+var settings: SettingsStore
 ## Reward paid on boot, kept until the main screen can show it.
 var boot_reward: OfflineReward
 var quit_game: Callable
@@ -50,6 +52,9 @@ func _ready() -> void:
 	var save_path: String = save_path_for(OS.get_cmdline_args(), OS.get_cmdline_user_args())
 	var load_existing: bool = prepare_save(save_path, OS.get_cmdline_args(), OS.get_cmdline_user_args())
 	saves = SaveController.new(session, SaveStore.new(save_path), _device_clock)
+	settings = SettingsStore.new(settings_path(save_path))
+	settings.load_settings()
+	SfxPlayer.set_muted(settings.sfx_muted)
 	saves.offline_reward_granted.connect(offline_reward_granted.emit)
 	var cloud_on: bool = cloud_enabled(
 		OS.get_cmdline_args(), OS.get_cmdline_user_args(), OS.has_feature(NO_CLOUD_FEATURE)
@@ -145,6 +150,18 @@ static func cloud_config() -> CloudConfig:
 ## their own player.
 static func auth_path(save_path: String) -> String:
 	return save_path.get_base_dir().path_join(AUTH_FILE)
+
+
+## Mutes or unmutes the sound effects now and keeps the choice in the settings file.
+func set_sfx_muted(muted: bool) -> void:
+	settings.sfx_muted = muted
+	settings.save_settings()
+	SfxPlayer.set_muted(muted)
+
+
+## Settings belong to the save next to them, so scratch saves get their own.
+static func settings_path(save_path: String) -> String:
+	return save_path.get_base_dir().path_join(SETTINGS_FILE)
 
 
 func _make_cloud(save_path: String) -> CloudSync:

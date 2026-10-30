@@ -68,6 +68,15 @@ func register(id: StringName, stream: AudioStream, min_interval: float, polyphon
 	_last_played_msec.erase(id)
 
 
+## Mutes or unmutes the whole SFX bus (the master bus is untouched).
+static func set_muted(muted: bool) -> void:
+	AudioServer.set_bus_mute(AudioServer.get_bus_index(BUS), muted)
+
+
+static func is_muted() -> bool:
+	return AudioServer.is_bus_mute(AudioServer.get_bus_index(BUS))
+
+
 func stream_player(id: StringName) -> AudioStreamPlayer:
 	return _players.get(id) as AudioStreamPlayer
 

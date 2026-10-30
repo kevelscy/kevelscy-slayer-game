@@ -23,6 +23,21 @@ func before_each() -> void:
 	player.register(&"hit", _stream(), 0.05, 3, -6.0)
 
 
+func after_each() -> void:
+	SfxPlayer.set_muted(false)
+
+
+func test_set_muted_mutes_and_unmutes_the_sfx_bus() -> void:
+	var bus: int = AudioServer.get_bus_index(SfxPlayer.BUS)
+	SfxPlayer.set_muted(true)
+	assert_true(AudioServer.is_bus_mute(bus))
+	assert_true(SfxPlayer.is_muted())
+	assert_false(AudioServer.is_bus_mute(0), "the master bus stays on")
+	SfxPlayer.set_muted(false)
+	assert_false(AudioServer.is_bus_mute(bus))
+	assert_false(SfxPlayer.is_muted())
+
+
 func test_sfx_bus_exists_in_the_default_layout() -> void:
 	assert_ne(AudioServer.get_bus_index(SfxPlayer.BUS), -1, "the SFX bus is part of default_bus_layout.tres")
 	assert_eq(AudioServer.get_bus_send(AudioServer.get_bus_index(SfxPlayer.BUS)), &"Master")
