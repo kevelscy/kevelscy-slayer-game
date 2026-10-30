@@ -53,3 +53,9 @@ polyphony, volume and random pitch. They play on the `SFX` bus (`client/default_
 | `boss_defeat.wav` | boss defeated | 1.20 s |
 | `hero_death.wav` | hero dies | 0.80 s |
 | `ascension.wav` | ascension confirmed | 1.50 s |
+
+## HUD icons
+
+`client/art/icons/sound_on.png` and `sound_off.png`, 24x24, one frame, transparent (sources
+`client/art/source/sound_on.pxo`, `sound_off.pxo`): a silver speaker with two sound waves or with a
+red cross. The HUD sound button draws them at 2x with nearest sampling (`BottomTabBar.icon_texture`).

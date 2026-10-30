@@ -70,6 +70,8 @@ func _ready() -> void:
 	add_child(sfx_director)
 	sfx_director.bind(sfx, session, battle_world, tab_bar)
 	hud.bind(session, battle_world.hero)
+	hud.show_sfx_muted(GameState.settings.sfx_muted)
+	hud.sfx_muted_toggled.connect(GameState.set_sfx_muted)
 	upgrade_panel.bind(session)
 	ability_panel.bind(session)
 	spirit_panel.bind(session)

@@ -108,6 +108,10 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
 - Every player-facing text is Spanish (the target audience), with a decimal comma
   (`1,23K`); code, docs and dev logs stay English.
 - Landscape (PC): skills and spirits in the left column, upgrades in the right one, no tab bar.
+- Sound effects (original, synthesized in SoundCraft) play on hits, kills, skills, spirits,
+  purchases, tab changes, bosses, the hero's death and ascension. The speaker button in the HUD
+  mutes and unmutes them; the choice is kept in `settings.cfg` next to the save (local to the
+  device, never synced to the cloud).
 
 ## Ascension and talents
 

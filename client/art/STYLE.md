@@ -12,8 +12,8 @@ characters or assets.
   installed in Pixelorama's `Palettes/` folder.
 - Sources: `client/art/source/*.pxo`. Exports: transparent PNG; animations as horizontal
   spritesheets in `client/art/sprites/`, tiles in `client/art/tiles/`, icons in
-  `client/art/icons/`, bitmap fonts in `client/art/fonts/`. Audio: `.ogg` in `client/audio/sfx/` or
-  `client/audio/music/`.
+  `client/art/icons/`, bitmap fonts in `client/art/fonts/`. Audio: `.wav` in `client/audio/sfx/` (recipes
+  in `client/audio/source/`) or `client/audio/music/`.
 - Before each asset: state what it is and its size. Review it with `get_image` before
   exporting. When done: list the files created and their dimensions.
 - Godot import: Nearest filter, no mipmaps.
