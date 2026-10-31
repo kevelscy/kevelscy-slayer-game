@@ -8,6 +8,8 @@ extends Button
 
 const TITLE_FONT_SIZE: int = 18
 const LEVEL_FONT_SIZE: int = 16
+## Long titles shrink down to this size so they stay inside the title band.
+const TITLE_MIN_FONT_SIZE: int = 11
 const TITLE_OUTLINE: int = 6
 ## Space left at the sides of the title band so it stays inside the metal frame.
 const TITLE_INSET: float = 6.0
@@ -64,7 +66,7 @@ func _init(silver_art: Texture2D, gold_art: Texture2D) -> void:
 func show_locked(title: String, unlock_stage: int) -> void:
 	art.texture = silver_grey
 	cooldown_mask.value = 0.0
-	title_label.text = "%s\nEtapa %d" % [title, unlock_stage]
+	_set_title("%s\nEtapa %d" % [title, unlock_stage])
 	level_label.visible = false
 
 
@@ -72,7 +74,7 @@ func show_locked(title: String, unlock_stage: int) -> void:
 func show_unowned(title: String) -> void:
 	art.texture = silver_grey
 	cooldown_mask.value = 0.0
-	title_label.text = title
+	_set_title(title)
 	level_label.visible = false
 
 
@@ -81,9 +83,30 @@ func show_unowned(title: String) -> void:
 func show_cooldown(title: String, cooldown_ratio: float, level: int = 1) -> void:
 	art.texture = gold if cooldown_ratio <= 0.0 else silver
 	cooldown_mask.value = cooldown_ratio
-	title_label.text = title
+	_set_title(title)
 	level_label.text = "Nv %d" % level
 	level_label.visible = true
+
+
+## Sets the title and the largest font size, down to TITLE_MIN_FONT_SIZE, whose widest
+## line fits the band.
+func _set_title(text: String) -> void:
+	if text == title_label.text:
+		return
+	title_label.text = text
+	var band_width: float = custom_minimum_size.x - 2.0 * TITLE_INSET
+	var font: Font = title_label.get_theme_font(&"font")
+	var font_size: int = TITLE_FONT_SIZE
+	while font_size > TITLE_MIN_FONT_SIZE and _widest_line(font, text, font_size) > band_width:
+		font_size -= 1
+	title_label.add_theme_font_size_override("font_size", font_size)
+
+
+static func _widest_line(font: Font, text: String, font_size: int) -> float:
+	var widest: float = 0.0
+	for line: String in text.split("\n"):
+		widest = maxf(widest, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
+	return widest
 
 
 ## The texture in greyscale scaled by brightness, alpha untouched.

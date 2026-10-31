@@ -322,3 +322,20 @@ func test_widening_after_a_scroll_keeps_the_last_cards_in_view() -> void:
 	assert_eq(_shown(), _span(count - 2, count))
 	panel.fit_cards(720.0)
 	assert_eq(_shown(), _span(count - 4, count), "no empty space after the last skill")
+
+
+func _title_width(card: SkillCard, line: String) -> float:
+	var font: Font = card.title_label.get_theme_font(&"font")
+	var font_size: int = card.title_label.get_theme_font_size(&"font_size")
+	return font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+
+
+func test_every_title_fits_inside_its_card_band() -> void:
+	for card: SkillCard in panel.skill_buttons:
+		var band_width: float = card.custom_minimum_size.x - 2.0 * SkillCard.TITLE_INSET
+		for line: String in card.title_label.text.split("\n"):
+			assert_lte(_title_width(card, line), band_width, line)
+
+
+func test_a_short_title_keeps_the_full_font_size() -> void:
+	assert_eq(_card(0).title_label.get_theme_font_size(&"font_size"), SkillCard.TITLE_FONT_SIZE)
