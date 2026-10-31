@@ -208,6 +208,33 @@ func test_burning_sword_makes_sword_hits_half_stronger_while_it_burns() -> void:
 	assert_false(world.hero.sword_flame.emitting, "the fire goes out with the buff")
 
 
+## skill-branches S6.5: Curación heals half the max health over four seconds.
+func test_heal_restores_half_the_max_health_over_four_seconds() -> void:
+	var skill: SkillDefinition = _skill(&"heal")
+	var health: HealthComponent = world.hero.health
+	health.current = health.max_health.mul_float(0.1)
+	assert_false(skill.needs_target(), "it heals with no enemy around")
+	world.resolve_skill(skill)
+	assert_true(session.heal_amount(skill).is_equal_approx(health.max_health.mul_float(0.5)))
+	health.tick_regen(2.0)
+	assert_true(health.current.is_equal_approx(health.max_health.mul_float(0.35)))
+	health.tick_regen(2.0)
+	assert_true(health.current.is_equal_approx(health.max_health.mul_float(0.6)))
+
+
+## skill-branches S6.6: Bloque de Hielo hits the front enemy only, thrown by the hero.
+func test_ice_block_hits_only_the_front_enemy() -> void:
+	var skill: SkillDefinition = _skill(&"ice_block")
+	assert_true(skill.needs_target())
+	world.resolve_skill(skill)
+	assert_true(_lost(enemies[0]).is_equal_approx(session.skill_damage(skill)))
+	assert_true(_lost(enemies[1]).is_zero())
+	assert_true(_lost(enemies[2]).is_zero())
+	var shot: AbilityEffects.Flash = world.effects.last_flash()
+	assert_eq(shot.kind, SkillDefinition.Effect.THROW_FRONT)
+	assert_true(shot.from.distance_to(world.hero.position) < 40.0, "thrown from the hero, not the sky")
+
+
 func test_shield_protects_the_hero() -> void:
 	var skill: SkillDefinition = _skill(&"shield")
 	world.resolve_skill(skill)

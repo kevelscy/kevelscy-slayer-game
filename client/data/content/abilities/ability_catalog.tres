@@ -93,6 +93,32 @@ base_cost = 4800.0
 
 [sub_resource type="Resource" id="Resource_hlbvy"]
 script = ExtResource("2_3qjhl")
+id = &"ice_block"
+display_name = "Bloque de Hielo"
+effect = 7
+branch = 2
+unlock_stage = 20
+power = 8.0
+color = Color(0.41568628, 0.9019608, 0.94509804, 1)
+sound = &"blizzard"
+base_cost = 9600.0
+
+[sub_resource type="Resource" id="Resource_cen6a"]
+script = ExtResource("2_3qjhl")
+id = &"heal"
+display_name = "Curación"
+effect = 6
+branch = 4
+unlock_stage = 22
+cooldown_seconds = 30.0
+power = 0.5
+duration_seconds = 4.0
+color = Color(0.07450981, 0.8, 0.7411765, 1)
+sound = &"shield"
+base_cost = 19200.0
+
+[sub_resource type="Resource" id="Resource_iwv7q"]
+script = ExtResource("2_3qjhl")
 id = &"burning_sword"
 display_name = "Espada Ardiente"
 effect = 3
@@ -105,14 +131,14 @@ buff_stats = Array[StringName]([&"sword_damage"])
 sound = &"meteor"
 base_cost = 38400.0
 
-[sub_resource type="Resource" id="Resource_cen6a"]
+[sub_resource type="Resource" id="Resource_y1wub"]
 script = ExtResource("3_l2ac6")
 id = &"wisp"
 display_name = "Fuego fatuo"
 unlock_stage = 2
 color = Color(0.07450981, 0.8, 0.7411765, 1)
 
-[sub_resource type="Resource" id="Resource_iwv7q"]
+[sub_resource type="Resource" id="Resource_7vakn"]
 script = ExtResource("3_l2ac6")
 id = &"ember_fox"
 display_name = "Zorro ígneo"
@@ -124,7 +150,7 @@ attack_interval_seconds = 4.0
 attack_power = 2.0
 color = Color(1, 0.55, 0.2, 1)
 
-[sub_resource type="Resource" id="Resource_y1wub"]
+[sub_resource type="Resource" id="Resource_unj4v"]
 script = ExtResource("3_l2ac6")
 id = &"frost_owl"
 display_name = "Búho de escarcha"
@@ -137,5 +163,5 @@ color = Color(0.7, 0.85, 1, 1)
 
 [resource]
 script = ExtResource("1_ua7em")
-skills = Array[ExtResource("2_3qjhl")]([SubResource("Resource_djlwg"), SubResource("Resource_15cle"), SubResource("Resource_ppcxk"), SubResource("Resource_6q7ef"), SubResource("Resource_xwe56"), SubResource("Resource_dy8vw"), SubResource("Resource_y45cc"), SubResource("Resource_hlbvy")])
-spirits = Array[ExtResource("3_l2ac6")]([SubResource("Resource_cen6a"), SubResource("Resource_iwv7q"), SubResource("Resource_y1wub")])
+skills = Array[ExtResource("2_3qjhl")]([SubResource("Resource_djlwg"), SubResource("Resource_15cle"), SubResource("Resource_ppcxk"), SubResource("Resource_6q7ef"), SubResource("Resource_xwe56"), SubResource("Resource_dy8vw"), SubResource("Resource_y45cc"), SubResource("Resource_hlbvy"), SubResource("Resource_cen6a"), SubResource("Resource_iwv7q")])
+spirits = Array[ExtResource("3_l2ac6")]([SubResource("Resource_y1wub"), SubResource("Resource_7vakn"), SubResource("Resource_unj4v")])

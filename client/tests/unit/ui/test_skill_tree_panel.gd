@@ -84,6 +84,19 @@ func test_the_equip_button_unequips_and_equips_a_bought_skill() -> void:
 	assert_eq(thunder.icon.texture, thunder.gold_icon)
 
 
+## skill-branches S4: at most eight skills equipped.
+func test_the_equip_button_waits_for_a_free_slot_once_eight_are_equipped() -> void:
+	for slot: SkillSlot in session.skills.slots:
+		slot.level = 1
+	session.skills.equip_owned()
+	assert_eq(session.skills.equipped.size(), SkillBar.EQUIP_LIMIT)
+	var spare: SkillTreePanel.Entry = _entry(&"burning_sword")
+	assert_eq(spare.equip_button.text, "Equipar")
+	assert_true(spare.equip_button.disabled, "the bar is full")
+	_entry(&"thunder").equip_button.pressed.emit()
+	assert_false(spare.equip_button.disabled, "a slot is free again")
+
+
 func test_entries_follow_changes_made_elsewhere() -> void:
 	session.skills.slots[0].level = 1
 	session.skills.equip(0)

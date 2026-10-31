@@ -115,6 +115,11 @@ func shield_amount(skill: SkillDefinition) -> BigNumber:
 	return hero_max_health().mul_float(_skill_power(skill))
 
 
+## Curación: a fraction of max health, healed over the skill's duration.
+func heal_amount(skill: SkillDefinition) -> BigNumber:
+	return hero_max_health().mul_float(_skill_power(skill))
+
+
 ## Fury-style buff: the skill power raises both attack and attack speed.
 func activate_buff(skill: SkillDefinition) -> void:
 	var power: float = _skill_power(skill)

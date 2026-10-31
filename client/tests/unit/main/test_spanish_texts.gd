@@ -64,6 +64,7 @@ func test_skill_and_spirit_names_are_spanish() -> void:
 	for spirit: SpiritDefinition in CATALOG.spirits:
 		names.append(spirit.display_name)
 	assert_eq(names, [
-		"Trueno", "Meteoro", "Ventisca", "Furia", "Escudo", "Viento", "Espada Veloz", "Espada Ardiente",
+		"Trueno", "Meteoro", "Ventisca", "Furia", "Escudo", "Viento", "Espada Veloz", "Bloque de Hielo", "Curación",
+		"Espada Ardiente",
 		"Fuego fatuo", "Zorro ígneo", "Búho de escarcha",
 	] as Array[String])

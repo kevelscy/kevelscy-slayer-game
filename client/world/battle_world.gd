@@ -104,7 +104,7 @@ func resolve_skill(skill: SkillDefinition) -> void:
 	match skill.effect:
 		SkillDefinition.Effect.DAMAGE_ALL, SkillDefinition.Effect.FREEZE_ALL:
 			targets = enemies
-		SkillDefinition.Effect.DAMAGE_FRONT:
+		SkillDefinition.Effect.DAMAGE_FRONT, SkillDefinition.Effect.THROW_FRONT:
 			if not enemies.is_empty():
 				targets = [enemies[0]]
 		SkillDefinition.Effect.DASH:
@@ -115,6 +115,8 @@ func resolve_skill(skill: SkillDefinition) -> void:
 			session.activate_buff(skill)
 		SkillDefinition.Effect.SHIELD:
 			hero.health.set_shield(session.shield_amount(skill), skill.duration_seconds)
+		SkillDefinition.Effect.HEAL:
+			hero.health.heal_over_time(session.heal_amount(skill), skill.duration_seconds)
 	var damage: BigNumber = session.skill_damage(skill)
 	var positions: Array[Vector2] = []
 	for enemy: Enemy in targets:

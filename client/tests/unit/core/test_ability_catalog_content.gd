@@ -11,9 +11,10 @@ func test_six_skills_in_slot_order_with_their_unlock_stages() -> void:
 		ids.append(skill.id)
 		stages.append(skill.unlock_stage)
 	assert_eq(ids, [
-		&"thunder", &"meteor", &"blizzard", &"fury", &"shield", &"wind", &"speed_sword", &"burning_sword",
+		&"thunder", &"meteor", &"blizzard", &"fury", &"shield", &"wind", &"speed_sword", &"ice_block", &"heal",
+		&"burning_sword",
 	] as Array[StringName])
-	assert_eq(stages, [1, 3, 5, 8, 12, 15, 18, 25] as Array[int])
+	assert_eq(stages, [1, 3, 5, 8, 12, 15, 18, 20, 22, 25] as Array[int])
 
 
 func test_each_skill_matches_its_element() -> void:
@@ -25,7 +26,8 @@ func test_each_skill_matches_its_element() -> void:
 	assert_eq(effects, [
 		SkillDefinition.Effect.DAMAGE_ALL, SkillDefinition.Effect.DAMAGE_FRONT,
 		SkillDefinition.Effect.FREEZE_ALL, SkillDefinition.Effect.BUFF, SkillDefinition.Effect.SHIELD,
-		SkillDefinition.Effect.DASH, SkillDefinition.Effect.BUFF, SkillDefinition.Effect.BUFF,
+		SkillDefinition.Effect.DASH, SkillDefinition.Effect.BUFF, SkillDefinition.Effect.THROW_FRONT,
+		SkillDefinition.Effect.HEAL, SkillDefinition.Effect.BUFF,
 	] as Array[SkillDefinition.Effect])
 
 
@@ -43,6 +45,8 @@ func test_each_skill_belongs_to_its_branch() -> void:
 	assert_eq(branches[&"wind"], SkillDefinition.Branch.AIR)
 	assert_eq(branches[&"speed_sword"], SkillDefinition.Branch.BOOST)
 	assert_eq(branches[&"burning_sword"], SkillDefinition.Branch.FIRE)
+	assert_eq(branches[&"ice_block"], SkillDefinition.Branch.ICE)
+	assert_eq(branches[&"heal"], SkillDefinition.Branch.DEFENSIVE)
 
 
 func _catalog_skill(id: StringName) -> SkillDefinition:
@@ -78,6 +82,27 @@ func test_burning_sword_raises_sword_damage_fifty_percent() -> void:
 	assert_eq(skill.buff_stats, [StatBlock.SWORD_DAMAGE] as Array[StringName])
 
 
+## skill-branches S6.5.
+func test_heal_restores_half_the_max_health_in_four_seconds() -> void:
+	var skill: SkillDefinition = _catalog_skill(&"heal")
+	assert_eq(skill.display_name, "Curación")
+	assert_eq(skill.unlock_stage, 22)
+	assert_eq(skill.base_cost, 19200.0)
+	assert_eq(skill.power, 0.5)
+	assert_eq(skill.duration_seconds, 4.0)
+	assert_eq(skill.cooldown_seconds, 30.0)
+
+
+## skill-branches S6.6.
+func test_ice_block_hits_the_front_enemy_for_eight_times_attack() -> void:
+	var skill: SkillDefinition = _catalog_skill(&"ice_block")
+	assert_eq(skill.display_name, "Bloque de Hielo")
+	assert_eq(skill.unlock_stage, 20)
+	assert_eq(skill.base_cost, 9600.0)
+	assert_eq(skill.power, 8.0)
+	assert_eq(skill.cooldown_seconds, 10.0)
+
+
 func test_fury_still_raises_attack_and_attack_speed() -> void:
 	assert_eq(_catalog_skill(&"fury").buff_stats, [StatBlock.ATTACK, StatBlock.ATTACK_SPEED] as Array[StringName])
 
@@ -109,7 +134,7 @@ func test_skill_prices_rise_with_their_unlock_stage() -> void:
 		prices[skill.id] = skill.base_cost
 		assert_eq(skill.cost_growth, 1.35, String(skill.id))
 	assert_eq(prices, {&"thunder": 30.0, &"meteor": 150.0, &"blizzard": 300.0, &"fury": 600.0, &"shield": 1200.0, &"wind": 2400.0,
-		&"speed_sword": 4800.0, &"burning_sword": 38400.0,
+		&"speed_sword": 4800.0, &"ice_block": 9600.0, &"heal": 19200.0, &"burning_sword": 38400.0,
 	})
 
 

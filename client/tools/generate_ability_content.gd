@@ -18,6 +18,10 @@ func _init() -> void:
 		_skill(&"wind", "Viento", SkillDefinition.Effect.DASH, SkillDefinition.Branch.AIR, 15, 5.0, 2.5, 0.0, Color("#13ccbd"), 2400.0),
 		# skill-branches S6.3: +40% attack speed only.
 		_buff(_skill(&"speed_sword", "Espada Veloz", SkillDefinition.Effect.BUFF, SkillDefinition.Branch.BOOST, 18, 22.0, 0.4, 8.0, Color8(232, 189, 75), 4800.0), [StatBlock.ATTACK_SPEED], &"fury"),
+		# skill-branches S6.6: a thrown ice block on the front enemy.
+		_sound(_skill(&"ice_block", "Bloque de Hielo", SkillDefinition.Effect.THROW_FRONT, SkillDefinition.Branch.ICE, 20, 10.0, 8.0, 0.0, Color8(106, 230, 241), 9600.0), &"blizzard"),
+		# skill-branches S6.5: half the max health healed over 4 s.
+		_sound(_skill(&"heal", "Curación", SkillDefinition.Effect.HEAL, SkillDefinition.Branch.DEFENSIVE, 22, 30.0, 0.5, 4.0, Color8(19, 204, 189), 19200.0), &"shield"),
 		# skill-branches S6.1: +50% on the hero's own sword hits only.
 		_buff(_skill(&"burning_sword", "Espada Ardiente", SkillDefinition.Effect.BUFF, SkillDefinition.Branch.FIRE, 25, 25.0, 0.5, 10.0, Color8(240, 133, 13), 38400.0), [StatBlock.SWORD_DAMAGE], &"meteor"),
 	]
@@ -55,6 +59,11 @@ func _skill(
 
 func _buff(skill: SkillDefinition, stats: Array[StringName], sound: StringName) -> SkillDefinition:
 	skill.buff_stats = stats
+	return _sound(skill, sound)
+
+
+## New skills borrow an existing cast sound until they get their own.
+func _sound(skill: SkillDefinition, sound: StringName) -> SkillDefinition:
 	skill.sound = sound
 	return skill
 

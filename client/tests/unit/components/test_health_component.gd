@@ -101,6 +101,49 @@ func test_shield_expires_after_its_duration() -> void:
 	assert_almost_eq(health.current.to_float(), 70.0, 1e-9)
 
 
+## skill-branches S6.5: Curación spreads its heal over a few seconds.
+func test_heal_over_time_spreads_the_heal_over_its_seconds() -> void:
+	_hit(80.0)
+	health.heal_over_time(BigNumber.from_float(50.0), 4.0)
+	assert_true(health.is_regenerating())
+	health.tick_regen(2.0)
+	assert_almost_eq(health.current.to_float(), 45.0, 1e-6, "half the heal after half the time")
+	health.tick_regen(2.0)
+	assert_almost_eq(health.current.to_float(), 70.0, 1e-6)
+	assert_false(health.is_regenerating())
+	health.tick_regen(1.0)
+	assert_almost_eq(health.current.to_float(), 70.0, 1e-6, "nothing once it ends")
+
+
+func test_a_tick_past_the_end_heals_only_what_is_left() -> void:
+	_hit(80.0)
+	health.heal_over_time(BigNumber.from_float(50.0), 4.0)
+	health.tick_regen(10.0)
+	assert_almost_eq(health.current.to_float(), 70.0, 1e-6)
+
+
+func test_heal_over_time_never_goes_past_max_health() -> void:
+	_hit(10.0)
+	health.heal_over_time(BigNumber.from_float(50.0), 4.0)
+	health.tick_regen(4.0)
+	assert_almost_eq(health.current.to_float(), 100.0, 1e-9)
+
+
+func test_a_new_heal_over_time_replaces_the_running_one() -> void:
+	_hit(80.0)
+	health.heal_over_time(BigNumber.from_float(40.0), 4.0)
+	health.heal_over_time(BigNumber.from_float(8.0), 2.0)
+	health.tick_regen(4.0)
+	assert_almost_eq(health.current.to_float(), 28.0, 1e-6)
+
+
+func test_setup_clears_the_heal_over_time() -> void:
+	_hit(80.0)
+	health.heal_over_time(BigNumber.from_float(50.0), 4.0)
+	health.setup(BigNumber.from_float(100.0))
+	assert_false(health.is_regenerating())
+
+
 func test_setup_clears_the_shield() -> void:
 	health.set_shield(BigNumber.from_float(40.0), 8.0)
 	health.setup(BigNumber.from_float(100.0))

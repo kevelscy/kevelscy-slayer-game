@@ -1,10 +1,16 @@
 class_name AbilityEffects
 extends Node2D
 ## Placeholder VFX drawn with primitives: lightning bolts, meteors, frost bursts,
-## wind slashes, spirit shots and the hero's shield ring. Effects are short-lived and visual only.
+## wind slashes, thrown ice blocks, spirit shots, the hero's shield ring and heal crosses. Effects are short-lived and visual only.
 
 const EFFECT_SECONDS: float = 0.35
 const SKY_Y: float = -10.0
+## Thrown skills (ice block) leave from the hero's hand.
+const HAND_OFFSET: Vector2 = Vector2(10.0, -18.0)
+const ICE_BLOCK_SIZE: float = 9.0
+## Heal crosses rising around the hero while Curación lasts (palette Turquesa).
+const HEAL_COLOR: Color = Color8(19, 204, 189)
+const HEAL_CROSS_OFFSETS: Array[Vector2] = [Vector2(-12.0, -10.0), Vector2(12.0, -18.0), Vector2(-4.0, -30.0)]
 
 
 class Flash:
@@ -25,10 +31,17 @@ func play_skill(skill: SkillDefinition, targets: Array[Vector2]) -> void:
 		var flash: Flash = Flash.new()
 		flash.kind = skill.effect
 		flash.from = Vector2(target.x, SKY_Y)
+		if skill.effect == SkillDefinition.Effect.THROW_FRONT and hero != null:
+			flash.from = hero.position + HAND_OFFSET
 		flash.to = target
 		flash.color = skill.color
 		_flashes.append(flash)
 	queue_redraw()
+
+
+## The newest effect still playing, or null.
+func last_flash() -> Flash:
+	return null if _flashes.is_empty() else _flashes.back()
 
 
 func play_spirit_shot(from: Vector2, to: Vector2, color: Color) -> void:
@@ -51,6 +64,8 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if hero != null and hero.health.has_shield():
 		draw_arc(hero.position + Vector2(0.0, -20.0), 22.0, 0.0, TAU, 32, Color(1.0, 0.85, 0.3, 0.8), 2.0)
+	if hero != null and hero.health.is_regenerating():
+		_draw_heal_crosses(hero.health.regen_seconds)
 	for flash: Flash in _flashes:
 		var alpha: float = clampf(flash.ttl / EFFECT_SECONDS, 0.0, 1.0)
 		var color: Color = Color(flash.color, alpha)
@@ -67,6 +82,8 @@ func _draw() -> void:
 				draw_circle(flash.to, 16.0 * (1.5 - alpha), Color(color, alpha * 0.5))
 			SkillDefinition.Effect.DASH:
 				_draw_wind_slash(flash.to, color, 1.0 - alpha)
+			SkillDefinition.Effect.THROW_FRONT:
+				_draw_ice_block(flash.from.lerp(flash.to + Vector2(0.0, -12.0), minf((1.0 - alpha) * 2.0, 1.0)), color)
 
 
 func _draw_bolt(from: Vector2, to: Vector2, color: Color) -> void:
@@ -76,6 +93,25 @@ func _draw_bolt(from: Vector2, to: Vector2, color: Color) -> void:
 		points.append(point + Vector2(6.0 if step % 2 == 0 else -6.0, 0.0))
 	points.append(to)
 	draw_polyline(points, color, 2.0)
+
+
+## A square block with a white top-left light and a dark outline.
+func _draw_ice_block(center: Vector2, color: Color) -> void:
+	var half: float = ICE_BLOCK_SIZE / 2.0
+	var block: Rect2 = Rect2(center - Vector2(half, half), Vector2(ICE_BLOCK_SIZE, ICE_BLOCK_SIZE))
+	draw_rect(block, color)
+	draw_rect(Rect2(block.position + Vector2(1.0, 1.0), Vector2(3.0, 2.0)), Color(Color.WHITE, color.a))
+	draw_rect(block, Color(0.03, 0.28, 0.37, color.a), false, 1.0)
+
+
+## Three plus signs drifting up around the hero, looping every second.
+func _draw_heal_crosses(seconds_left: float) -> void:
+	for index: int in HEAL_CROSS_OFFSETS.size():
+		var phase: float = fposmod(seconds_left + index / 3.0, 1.0)
+		var at: Vector2 = hero.position + HEAL_CROSS_OFFSETS[index] + Vector2(0.0, -10.0 * (1.0 - phase))
+		var color: Color = Color(HEAL_COLOR, phase)
+		draw_rect(Rect2(at - Vector2(1.0, 3.0), Vector2(2.0, 6.0)), color)
+		draw_rect(Rect2(at - Vector2(3.0, 1.0), Vector2(6.0, 2.0)), color)
 
 
 ## Three speed lines trailing the stab plus a diagonal cut across the enemy.
