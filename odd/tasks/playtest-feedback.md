@@ -19,7 +19,7 @@ Seven changes from the user's first playtest of the bonuses feature (chests and 
 - [x] T2 S1 bigger skill cards in a one-row carousel with gold arrows, grey at the ends — inline — commit: d5b7db6
 - [x] T3 S3 chest icon over enemies that will drop a chest (drop rolled at spawn) — inline — commit: 19f53a8
 - [x] T4 S5 hero hit: red tint, small knockback left and back — inline — commit: 36ed223
-- [ ] T5 S4 wind dash moves forward and the world scrolls with it (no return) — inline — commit:
+- [x] T5 S4 wind dash moves forward and the world scrolls with it (no return) — inline — commit: 12ea91e
 - [ ] T6 S6 S8 damage boost x2/x4 rewards on Raro/Épico, sword icon — inline — commit:
 - [ ] T7 S7 modifier timers top-right of the battle view, remove the HUD boost label — inline — commit:
 
@@ -33,3 +33,4 @@ Seven changes from the user's first playtest of the bonuses feature (chests and 
 - L6 T2: AbilityPanel.CARD_SCALE 4 (128 px cards); carousel_row [left_arrow][cards_row][right_arrow], fit_cards(width) shows as many cards as fit (portrait 720 -> 4, landscape column -> 3), scroll(step) one skill per arrow press, arrows procedural white triangle tinted GameTheme.TITLE_GOLD, ARROW_GREY + disabled at the ends. RED (parse error, missing carousel) -> GREEN 575/575; screenshots checked. Commit d5b7db6.
 - L7 T3: BattleWorld._spawn rolls session.chest_drops at spawn -> Enemy.carry_chest; Enemy.chest_marker (chest.png 16 px, native size over any sprite_scale, CHEST_MARKER_GAP 3 above the frame top) hidden on death; _on_enemy_defeated drops only when enemy.carries_chest. RED (missing carries_chest) -> GREEN 579/579; README chests line updated; screenshot checked. Commit 19f53a8.
 - L8 T4: Hero._on_damaged (only damage past the shield, never the killing hit) starts HURT_SECONDS 0.3: Hero.modulate HURT_TINT (1, 0.45, 0.45) easing to white, sprite x offset -HURT_KNOCKBACK 6 * sin(PI*progress) added to the dash offset in _place_sprite; restart and death clear it. RED (missing HURT_TINT) -> GREEN 584/584; screenshot checked. Commit 36ed223.
+- L9 T5: BattleWorld.DASH_SECONDS 0.3; _start_dash adds (front.x - contact_x)/DASH_SECONDS extra world speed (parallax, enemies, chests) for exactly the dash distance (_dash_step_speed clips the last frame); the front enemy stops at contact via advance's min_x; the slash effect lands at the contact point; Hero.dash_to/is_dashing/DASH_* removed, Hero.stab() only plays attack; _restart_run clears the dash. RED (missing BattleWorld.DASH_SECONDS) -> GREEN 587/587. README: wind line + the T2 carousel line that T2 missed. Commit 12ea91e.
