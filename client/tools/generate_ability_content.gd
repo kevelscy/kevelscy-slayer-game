@@ -14,6 +14,8 @@ func _init() -> void:
 		_skill(&"blizzard", "Ventisca", SkillDefinition.Effect.FREEZE_ALL, 5, 15.0, 1.5, 3.0, Color(0.55, 0.95, 1.0), 300.0),
 		_skill(&"fury", "Furia", SkillDefinition.Effect.BUFF, 8, 20.0, 0.5, 6.0, Color(1.0, 0.3, 0.25), 600.0),
 		_skill(&"shield", "Escudo", SkillDefinition.Effect.SHIELD, 12, 25.0, 0.5, 8.0, Color(1.0, 0.85, 0.3), 1200.0),
+		# Faster than thunder but a little weaker, and on one enemy only (L1 bonuses).
+		_skill(&"wind", "Viento", SkillDefinition.Effect.DASH, 15, 5.0, 2.5, 0.0, Color("#13ccbd"), 2400.0),
 	]
 	catalog.spirits = [
 		_spirit(&"wisp", "Fuego fatuo", 2, StatBlock.ATTACK, StatModifier.Kind.PERCENT, 0.1, 3.0, 1.0, Color("#13ccbd")),

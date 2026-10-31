@@ -28,20 +28,20 @@ func before_each() -> void:
 	watch_signals(bar)
 
 
-func test_bar_has_five_slots_in_catalog_order() -> void:
-	assert_eq(SkillBar.SLOT_COUNT, 5)
+func test_bar_has_six_slots_and_fills_them_in_catalog_order() -> void:
+	assert_eq(SkillBar.SLOT_COUNT, 6)
 	assert_eq(bar.slots.size(), 5)
 	assert_eq(bar.slots[0].definition.id, &"thunder")
 	assert_eq(bar.slots[4].definition.id, &"shield")
 
 
-func test_more_than_five_definitions_are_rejected_beyond_the_fifth() -> void:
+func test_more_than_six_definitions_are_rejected_beyond_the_sixth() -> void:
 	var definitions: Array[SkillDefinition] = []
-	for index: int in 6:
+	for index: int in 7:
 		definitions.append(_skill(StringName("s%d" % index), SkillDefinition.Effect.DAMAGE_ALL, 1, 1.0))
 	var oversized: SkillBar = SkillBar.new(definitions)
 	assert_push_error("SkillBar")
-	assert_eq(oversized.slots.size(), 5)
+	assert_eq(oversized.slots.size(), 6)
 
 
 func test_cast_starts_cooldown_and_emits_cast() -> void:

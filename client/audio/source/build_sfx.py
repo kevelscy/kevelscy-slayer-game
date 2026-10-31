@@ -163,6 +163,25 @@ SOUNDS = {
             ),
         ],
     },
+    # Wind (Viento): a short band-passed noise whoosh rising through a phaser, then a bright sword shing.
+    "wind": {
+        "length_ms": 400,
+        "tracks": [
+            track(
+                "drum_synth",
+                [(OPEN_HAT, 0, 260, 120)],
+                {"open_hat_decay": 280},
+                [("eq_1band", {"type": BAND_PASS, "freq": 2600, "q": 1.2}), ("phaser", {"rate": 6, "depth": 90, "feedback": 40, "mix": 70})],
+            ),
+            track(
+                "subtractive_synth",
+                [(100, 150, 60, 110), (107, 170, 140, 90)],
+                pluck(160, osc1_wave=TRIANGLE, osc2_wave=SAW, osc2_semitones=12, osc2_detune=8, cutoff=9000, resonance=20, filter_env_amount=0),
+                [("plate_reverb", {"mix": 25, "decay": 0.6})],
+                volume_db=-10,
+            ),
+        ],
+    },
     # Fury (Furia): detuned saw growl rising a fifth through a resonant filter, with a punch.
     "fury": {
         "length_ms": 500,

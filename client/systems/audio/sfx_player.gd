@@ -20,6 +20,7 @@ const SOUNDS: Dictionary[StringName, Array] = {
 	&"blizzard": [0.2, 1, -12.0, 1.0],
 	&"fury": [0.2, 1, -15.0, 1.0],
 	&"shield": [0.2, 1, -12.0, 1.0],
+	&"wind": [0.2, 1, -14.0, 1.0],
 	&"upgrade": [0.05, 2, -13.0, 1.0],
 	&"ui_tap": [0.05, 1, -17.0, 1.0],
 	&"boss_start": [0.5, 1, -11.0, 1.0],

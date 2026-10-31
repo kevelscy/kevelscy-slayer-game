@@ -53,6 +53,37 @@ func test_meteor_hits_only_the_front_enemy() -> void:
 	assert_true(_lost(enemies[2]).is_zero())
 
 
+func test_wind_dash_hits_only_the_nearest_enemy() -> void:
+	var skill: SkillDefinition = _skill(&"wind")
+	world.resolve_skill(skill)
+	assert_true(_lost(enemies[0]).is_equal_approx(session.skill_damage(skill)))
+	assert_true(_lost(enemies[1]).is_zero())
+	assert_true(_lost(enemies[2]).is_zero())
+
+
+func test_wind_dash_lunges_the_hero_to_the_enemy_and_back() -> void:
+	for index: int in enemies.size():
+		enemies[index].position.x = 200.0 + 40.0 * index
+	var home: Vector2 = world.hero.position
+	var sprite_home: Vector2 = world.hero.sprite.position
+	world.resolve_skill(_skill(&"wind"))
+	assert_true(world.hero.is_dashing())
+	world.hero._process(Hero.DASH_SECONDS * 0.5)
+	var reach: float = enemies[0].position.x - home.x
+	assert_gt(world.hero.sprite.position.x - sprite_home.x, reach * 0.5, "the stab reaches the enemy")
+	world.hero._process(Hero.DASH_SECONDS)
+	assert_false(world.hero.is_dashing())
+	assert_eq(world.hero.sprite.position, sprite_home, "back in place")
+	assert_eq(world.hero.position, home, "the lane never moves")
+
+
+func test_wind_without_enemies_does_not_dash() -> void:
+	for enemy: Enemy in enemies:
+		enemy.vanish()
+	world.resolve_skill(_skill(&"wind"))
+	assert_false(world.hero.is_dashing())
+
+
 func test_blizzard_damages_and_freezes_every_enemy() -> void:
 	var skill: SkillDefinition = _skill(&"blizzard")
 	world.resolve_skill(skill)

@@ -46,7 +46,7 @@ polyphony, volume and random pitch. They play on the `SFX` bus (`client/default_
 | `crit.wav` | critical hit | 0.30 s |
 | `coin.wav` | enemy killed (gold) | 0.25 s |
 | `spirit.wav` | spirit attack | 0.15 s |
-| `thunder.wav`, `meteor.wav`, `blizzard.wav`, `fury.wav`, `shield.wav` | skill cast (named after the skill id) | 0.60, 0.80, 0.70, 0.50, 0.50 s |
+| `thunder.wav`, `meteor.wav`, `blizzard.wav`, `fury.wav`, `shield.wav`, `wind.wav` | skill cast (named after the skill id) | 0.60, 0.80, 0.70, 0.50, 0.50, 0.40 s |
 | `upgrade.wav` | gold upgrade or talent bought | 0.35 s |
 | `ui_tap.wav` | bottom tab changed | 0.06 s |
 | `boss_start.wav` | boss appears | 1.00 s |

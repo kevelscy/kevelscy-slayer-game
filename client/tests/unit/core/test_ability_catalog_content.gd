@@ -4,14 +4,14 @@ extends GutTest
 const CATALOG: AbilityCatalog = preload("res://data/content/abilities/ability_catalog.tres")
 
 
-func test_five_skills_in_slot_order_with_their_unlock_stages() -> void:
+func test_six_skills_in_slot_order_with_their_unlock_stages() -> void:
 	var ids: Array[StringName] = []
 	var stages: Array[int] = []
 	for skill: SkillDefinition in CATALOG.skills:
 		ids.append(skill.id)
 		stages.append(skill.unlock_stage)
-	assert_eq(ids, [&"thunder", &"meteor", &"blizzard", &"fury", &"shield"] as Array[StringName])
-	assert_eq(stages, [1, 3, 5, 8, 12] as Array[int])
+	assert_eq(ids, [&"thunder", &"meteor", &"blizzard", &"fury", &"shield", &"wind"] as Array[StringName])
+	assert_eq(stages, [1, 3, 5, 8, 12, 15] as Array[int])
 
 
 func test_each_skill_matches_its_element() -> void:
@@ -23,6 +23,7 @@ func test_each_skill_matches_its_element() -> void:
 	assert_eq(effects, [
 		SkillDefinition.Effect.DAMAGE_ALL, SkillDefinition.Effect.DAMAGE_FRONT,
 		SkillDefinition.Effect.FREEZE_ALL, SkillDefinition.Effect.BUFF, SkillDefinition.Effect.SHIELD,
+		SkillDefinition.Effect.DASH,
 	] as Array[SkillDefinition.Effect])
 
 
@@ -43,7 +44,7 @@ func test_wisp_orb_uses_the_palette_turquoise_not_green() -> void:
 
 
 func test_game_state_session_uses_the_catalog() -> void:
-	assert_eq(GameState.session.skills.slots.size(), 5)
+	assert_eq(GameState.session.skills.slots.size(), 6)
 	assert_eq(GameState.session.spirits.slots.size(), 3)
 
 
@@ -52,4 +53,20 @@ func test_skill_prices_rise_with_their_unlock_stage() -> void:
 	for skill: SkillDefinition in CATALOG.skills:
 		prices[skill.id] = skill.base_cost
 		assert_eq(skill.cost_growth, 1.35, String(skill.id))
-	assert_eq(prices, {&"thunder": 30.0, &"meteor": 150.0, &"blizzard": 300.0, &"fury": 600.0, &"shield": 1200.0})
+	assert_eq(prices, {&"thunder": 30.0, &"meteor": 150.0, &"blizzard": 300.0, &"fury": 600.0, &"shield": 1200.0, &"wind": 2400.0})
+
+
+func test_wind_cools_faster_and_hits_a_little_less_than_thunder() -> void:
+	var thunder: SkillDefinition = CATALOG.skills[0]
+	var wind: SkillDefinition = CATALOG.skills[5]
+	assert_eq(wind.display_name, "Viento")
+	assert_lt(wind.cooldown_seconds, thunder.cooldown_seconds)
+	assert_lt(wind.power, thunder.power)
+	assert_gt(wind.power, thunder.power * 0.75, "only a little less")
+	assert_true(wind.needs_target(), "the dash is wasted without an enemy")
+
+
+func test_every_skill_has_a_cast_sound_and_an_icon() -> void:
+	for skill: SkillDefinition in CATALOG.skills:
+		assert_true(SfxPlayer.SOUNDS.has(skill.id), String(skill.id))
+		assert_true(ResourceLoader.exists(AbilityPanel.ICON_PATH % skill.id), String(skill.id))

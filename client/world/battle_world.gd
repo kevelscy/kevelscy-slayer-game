@@ -92,6 +92,10 @@ func resolve_skill(skill: SkillDefinition) -> void:
 		SkillDefinition.Effect.DAMAGE_FRONT:
 			if not enemies.is_empty():
 				targets = [enemies[0]]
+		SkillDefinition.Effect.DASH:
+			if not enemies.is_empty():
+				targets = [enemies[0]]
+				hero.dash_to(enemies[0].position.x)
 		SkillDefinition.Effect.BUFF:
 			session.activate_buff(skill)
 		SkillDefinition.Effect.SHIELD:

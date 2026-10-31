@@ -2,10 +2,11 @@ class_name SkillDefinition
 extends Resource
 ## One active skill of the skill bar. `power` reads per effect: a multiple of hero
 ## attack for damage skills, a percent bonus (0.5 = +50%) for buffs and a fraction
-## of max health for shields. Skills are bought with gold and leveled: each level
+## of max health for shields. A dash (wind) stabs the nearest enemy. Skills are bought with gold and leveled: each level
 ## above the first adds LEVEL_POWER_STEP of the base power.
 
-enum Effect { DAMAGE_ALL, DAMAGE_FRONT, FREEZE_ALL, BUFF, SHIELD }
+## New effects go last: the catalog stores them as integers.
+enum Effect { DAMAGE_ALL, DAMAGE_FRONT, FREEZE_ALL, BUFF, SHIELD, DASH }
 
 const LEVEL_POWER_STEP: float = 0.15
 
@@ -30,4 +31,4 @@ func power_at(level: int) -> float:
 
 ## Damage and freeze skills are wasted without an enemy to hit.
 func needs_target() -> bool:
-	return effect in [Effect.DAMAGE_ALL, Effect.DAMAGE_FRONT, Effect.FREEZE_ALL]
+	return effect in [Effect.DAMAGE_ALL, Effect.DAMAGE_FRONT, Effect.FREEZE_ALL, Effect.DASH]

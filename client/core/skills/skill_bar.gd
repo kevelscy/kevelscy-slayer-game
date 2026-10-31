@@ -1,12 +1,12 @@
 class_name SkillBar
 extends RefCounted
-## Five active skill slots with cooldowns, levels and auto-cast. Only bought skills
+## Six active skill slots with cooldowns, levels and auto-cast. Only bought skills
 ## fire. It only decides when a skill fires; listeners of `cast` resolve the effect.
 
 signal cast(slot_index: int, definition: SkillDefinition)
 signal leveled_up(slot_index: int, level: int)
 
-const SLOT_COUNT: int = 5
+const SLOT_COUNT: int = 6
 const AUTOCAST_UNLOCK_STAGE: int = 10
 
 var slots: Array[SkillSlot] = []

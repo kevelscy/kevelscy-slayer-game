@@ -60,6 +60,17 @@ duration_seconds = 8.0
 color = Color(1, 0.85, 0.3, 1)
 base_cost = 1200.0
 
+[sub_resource type="Resource" id="Resource_w1nd5"]
+script = ExtResource("2_3qjhl")
+id = &"wind"
+display_name = "Viento"
+effect = 5
+unlock_stage = 15
+cooldown_seconds = 5.0
+power = 2.5
+color = Color(0.07450981, 0.8, 0.7411765, 1)
+base_cost = 2400.0
+
 [sub_resource type="Resource" id="Resource_dy8vw"]
 script = ExtResource("3_l2ac6")
 id = &"wisp"
@@ -92,5 +103,5 @@ color = Color(0.7, 0.85, 1, 1)
 
 [resource]
 script = ExtResource("1_ua7em")
-skills = Array[ExtResource("2_3qjhl")]([SubResource("Resource_djlwg"), SubResource("Resource_15cle"), SubResource("Resource_ppcxk"), SubResource("Resource_6q7ef"), SubResource("Resource_xwe56")])
+skills = Array[ExtResource("2_3qjhl")]([SubResource("Resource_djlwg"), SubResource("Resource_15cle"), SubResource("Resource_ppcxk"), SubResource("Resource_6q7ef"), SubResource("Resource_xwe56"), SubResource("Resource_w1nd5")])
 spirits = Array[ExtResource("3_l2ac6")]([SubResource("Resource_dy8vw"), SubResource("Resource_y45cc"), SubResource("Resource_hlbvy")])

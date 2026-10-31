@@ -16,7 +16,7 @@ func before_each() -> void:
 
 
 func test_one_button_per_skill() -> void:
-	assert_eq(panel.skill_buttons.size(), 5)
+	assert_eq(panel.skill_buttons.size(), 6)
 
 
 func _card(index: int) -> SkillCard:
@@ -138,7 +138,7 @@ func _gold(amount: float) -> void:
 
 
 func test_each_skill_has_a_buy_button_with_its_gold_cost_and_the_coin() -> void:
-	assert_eq(panel.buy_buttons.size(), 5)
+	assert_eq(panel.buy_buttons.size(), 6)
 	for index: int in 5:
 		var button: Button = panel.buy_buttons[index]
 		assert_eq(button.text, NumberFormat.format(session.skills.slots[index].cost()))
