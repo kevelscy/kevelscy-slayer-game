@@ -130,3 +130,59 @@ func test_skill_on_cooldown_goes_back_to_the_silver_frame_until_ready() -> void:
 	session.tick_combat(8.0, true)
 	panel.refresh()
 	assert_eq(_card(0).art.texture, panel.skill_icons[0][AbilityPanel.GOLD])
+
+
+func _gold(amount: float) -> void:
+	session.wallet.restore(GameSession.GOLD, BigNumber.from_float(amount))
+	panel.refresh()
+
+
+func test_each_skill_has_a_buy_button_with_its_gold_cost_and_the_coin() -> void:
+	assert_eq(panel.buy_buttons.size(), 5)
+	for index: int in 5:
+		var button: Button = panel.buy_buttons[index]
+		assert_eq(button.text, NumberFormat.format(session.skills.slots[index].cost()))
+		assert_not_null(button.icon, "coin next to the cost")
+		assert_eq(button.icon_alignment, HORIZONTAL_ALIGNMENT_RIGHT)
+		assert_eq(button.theme_type_variation, GameTheme.BUY_BUTTON)
+
+
+func test_buy_button_needs_the_gold_and_the_unlock_stage() -> void:
+	_gold(0.0)
+	assert_true(panel.buy_buttons[0].disabled, "no gold")
+	_gold(1e9)
+	assert_false(panel.buy_buttons[0].disabled)
+	assert_true(panel.buy_buttons[1].disabled, "the meteor needs stage 3")
+	session.progression.restore_stage(3)
+	panel.refresh()
+	assert_false(panel.buy_buttons[1].disabled)
+
+
+func test_a_reached_skill_not_bought_is_grey_with_its_name_and_no_level() -> void:
+	session.progression.restore_stage(3)
+	panel.refresh()
+	assert_eq(_card(1).title_label.text, "Meteoro")
+	assert_eq(_card(1).art.texture, _card(1).silver_grey)
+	assert_true(_card(1).disabled)
+	assert_false(_card(1).level_label.visible)
+
+
+func test_buying_spends_the_gold_and_shows_the_new_level() -> void:
+	session.progression.restore_stage(3)
+	var cost: BigNumber = session.skills.slots[1].cost()
+	_gold(cost.to_float() + 5.0)
+	panel.buy_buttons[1].pressed.emit()
+	assert_eq(session.skills.slots[1].level, 1)
+	assert_almost_eq(session.wallet.get_amount(GameSession.GOLD).to_float(), 5.0, 1e-6)
+	assert_true(_card(1).level_label.visible)
+	assert_eq(_card(1).level_label.text, "Nv 1")
+	assert_eq(_card(1).art.texture, panel.skill_icons[1][AbilityPanel.GOLD])
+	assert_eq(panel.buy_buttons[1].text, NumberFormat.format(session.skills.slots[1].cost()))
+
+
+func test_an_owned_skill_shows_its_level_in_the_corner() -> void:
+	session.skills.slots[0].level = 7
+	panel.refresh()
+	assert_eq(_card(0).level_label.text, "Nv 7")
+	assert_eq(_card(0).level_label.get_parent(), _card(0))
+	assert_eq(_card(0).level_label.position, Vector2(SkillCard.TITLE_INSET, SkillCard.TITLE_INSET))

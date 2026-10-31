@@ -3,9 +3,11 @@ extends Button
 ## One skill of the skill bar drawn as a card: the icon art fills it, the title sits
 ## over its bottom edge, and the cooldown is a clock mask. Casting turns the whole
 ## card grey and the grey is swept away clockwise until the skill is ready again.
+## A bought skill shows its level in the top-left corner.
 ## Built in code; the button keeps the press handling and the disabled state.
 
 const TITLE_FONT_SIZE: int = 18
+const LEVEL_FONT_SIZE: int = 16
 const TITLE_OUTLINE: int = 6
 ## Space left at the sides of the title band so it stays inside the metal frame.
 const TITLE_INSET: float = 6.0
@@ -18,6 +20,7 @@ var art: TextureRect
 ## Value 1 right after a cast and 0 when ready; draws the grey icon over that share.
 var cooldown_mask: TextureProgressBar
 var title_label: Label
+var level_label: Label
 var silver: Texture2D
 var gold: Texture2D
 var silver_grey: Texture2D
@@ -42,6 +45,15 @@ func _init(silver_art: Texture2D, gold_art: Texture2D) -> void:
 	cooldown_mask.step = 0.0
 	add_child(_fill(cooldown_mask))
 	add_child(_title_band())
+	level_label = Label.new()
+	level_label.position = Vector2(TITLE_INSET, TITLE_INSET)
+	level_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	level_label.add_theme_font_size_override("font_size", LEVEL_FONT_SIZE)
+	level_label.add_theme_constant_override("outline_size", TITLE_OUTLINE)
+	level_label.add_theme_color_override("font_outline_color", GameTheme.TEXT_OUTLINE)
+	level_label.add_theme_color_override("font_color", GameTheme.TEXT)
+	level_label.visible = false
+	add_child(level_label)
 
 
 ## Locked: grey art and the unlock stage under the title.
@@ -49,13 +61,25 @@ func show_locked(title: String, unlock_stage: int) -> void:
 	art.texture = silver_grey
 	cooldown_mask.value = 0.0
 	title_label.text = "%s\nEtapa %d" % [title, unlock_stage]
+	level_label.visible = false
 
 
-## Unlocked: gold frame when ready, silver frame under the clock mask while cooling.
-func show_cooldown(title: String, cooldown_ratio: float) -> void:
+## Reached but not bought yet: grey art under the plain title.
+func show_unowned(title: String) -> void:
+	art.texture = silver_grey
+	cooldown_mask.value = 0.0
+	title_label.text = title
+	level_label.visible = false
+
+
+## Bought: gold frame when ready, silver frame under the clock mask while cooling,
+## and the level in the corner.
+func show_cooldown(title: String, cooldown_ratio: float, level: int = 1) -> void:
 	art.texture = gold if cooldown_ratio <= 0.0 else silver
 	cooldown_mask.value = cooldown_ratio
 	title_label.text = title
+	level_label.text = "Nv %d" % level
+	level_label.visible = true
 
 
 ## The texture in greyscale and a little darker, alpha untouched.

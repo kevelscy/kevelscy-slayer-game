@@ -1,6 +1,7 @@
 class_name AbilityPanel
 extends VBoxContainer
-## Skill bar: one SkillCard per skill and the auto-cast toggle. Built in code because
+## Skill bar: one SkillCard per skill with its gold buy button under it, and the
+## auto-cast toggle. Built in code because
 ## every card comes from the ability catalog. Also owns the icon sheet helpers the
 ## spirit panel shares.
 
@@ -14,7 +15,12 @@ const ICON_SCALE: int = 2
 const CARD_SCALE: int = 3
 const SILVER: int = 0
 const GOLD: int = 1
+const BUY_FONT_SIZE: int = 16
+## Coin on the narrow buy buttons at its native 16 px, smaller than the stat upgrade one.
+const BUY_COIN_SIZE: int = 16
 var skill_buttons: Array[Button] = []
+## Per skill: buys its first level, then the next ones, with gold.
+var buy_buttons: Array[Button] = []
 ## Per skill button: [silver, gold] icon textures.
 var skill_icons: Array[Array] = []
 var autocast_toggle: CheckButton
@@ -30,10 +36,21 @@ func bind(session: GameSession) -> void:
 	for index: int in session.skills.slots.size():
 		var frames: Array[Texture2D] = icon_frames(ICON_PATH % session.skills.slots[index].definition.id, CARD_SCALE)
 		skill_icons.append(frames)
+		var column: VBoxContainer = VBoxContainer.new()
+		skill_row.add_child(column)
 		var button: SkillCard = SkillCard.new(frames[SILVER], frames[GOLD])
 		button.pressed.connect(func() -> void: _on_skill_pressed(index))
-		skill_row.add_child(button)
+		column.add_child(button)
 		skill_buttons.append(button)
+		var buy: Button = Button.new()
+		buy.theme_type_variation = GameTheme.BUY_BUTTON
+		buy.focus_mode = Control.FOCUS_NONE
+		buy.icon = GameTheme.coin_texture(BUY_COIN_SIZE)
+		buy.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		buy.add_theme_font_size_override("font_size", BUY_FONT_SIZE)
+		buy.pressed.connect(func() -> void: _on_buy_pressed(index))
+		column.add_child(buy)
+		buy_buttons.append(buy)
 	autocast_toggle = CheckButton.new()
 	autocast_toggle.button_pressed = session.skills.autocast_enabled
 	autocast_toggle.toggled.connect(_on_autocast_toggled)
@@ -57,10 +74,15 @@ func refresh() -> void:
 		var card: SkillCard = skill_buttons[index] as SkillCard
 		var title: String = slot.definition.display_name
 		if slot.is_owned():
-			card.show_cooldown(title, slot.cooldown_ratio())
+			card.show_cooldown(title, slot.cooldown_ratio(), slot.level)
+		elif slot.can_buy(stage):
+			card.show_unowned(title)
 		else:
 			card.show_locked(title, slot.definition.unlock_stage)
 		card.disabled = not slot.is_ready()
+		var cost: BigNumber = slot.cost()
+		buy_buttons[index].text = NumberFormat.format(cost)
+		buy_buttons[index].disabled = not slot.can_buy(stage) or not _session.wallet.can_afford(GameSession.GOLD, cost)
 	var autocast_unlocked: bool = _session.skills.is_autocast_unlocked(stage)
 	autocast_toggle.disabled = not autocast_unlocked
 	autocast_toggle.text = "Automático" if autocast_unlocked else (
@@ -81,6 +103,11 @@ static func icon_frames(sheet_path: String, scale: int = ICON_SCALE) -> Array[Te
 
 func _on_skill_pressed(index: int) -> void:
 	if _session.cast_skill(index):
+		refresh()
+
+
+func _on_buy_pressed(index: int) -> void:
+	if _session.try_buy_skill(index):
 		refresh()
 
 
