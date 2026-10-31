@@ -25,23 +25,92 @@ func before_each() -> void:
 	bar = SkillBar.new(definitions)
 	for slot: SkillSlot in bar.slots:
 		slot.level = 1
+	bar.equip_owned()
 	watch_signals(bar)
 
 
-func test_bar_has_six_slots_and_fills_them_in_catalog_order() -> void:
-	assert_eq(SkillBar.SLOT_COUNT, 6)
+## A bar of `count` skills, all unlocked at stage 1.
+func _wide_bar(count: int) -> SkillBar:
+	var definitions: Array[SkillDefinition] = []
+	for index: int in count:
+		definitions.append(_skill(StringName("s%d" % index), SkillDefinition.Effect.DAMAGE_ALL, 1, 1.0))
+	return SkillBar.new(definitions)
+
+
+func test_the_bar_holds_every_catalog_skill_in_catalog_order() -> void:
 	assert_eq(bar.slots.size(), 5)
 	assert_eq(bar.slots[0].definition.id, &"thunder")
 	assert_eq(bar.slots[4].definition.id, &"shield")
+	var wide: SkillBar = _wide_bar(12)
+	assert_eq(wide.slots.size(), 12, "no slot limit: every skill of the catalog is on the bar")
 
 
-func test_more_than_six_definitions_are_rejected_beyond_the_sixth() -> void:
-	var definitions: Array[SkillDefinition] = []
-	for index: int in 7:
-		definitions.append(_skill(StringName("s%d" % index), SkillDefinition.Effect.DAMAGE_ALL, 1, 1.0))
-	var oversized: SkillBar = SkillBar.new(definitions)
-	assert_push_error("SkillBar")
-	assert_eq(oversized.slots.size(), 6)
+## skill-branches S4: up to 8 equipped skills; only they cast.
+func test_equip_owned_equips_the_first_eight_owned_skills_in_catalog_order() -> void:
+	assert_eq(SkillBar.EQUIP_LIMIT, 8)
+	var wide: SkillBar = _wide_bar(12)
+	for index: int in 12:
+		if index != 1:
+			wide.slots[index].level = 1
+	wide.equip_owned()
+	assert_eq(wide.equipped, [0, 2, 3, 4, 5, 6, 7, 8] as Array[int])
+	assert_false(wide.is_equipped(1), "not bought")
+	assert_false(wide.is_equipped(9), "no slot left")
+
+
+func test_an_unequipped_skill_neither_casts_nor_autocasts() -> void:
+	assert_true(bar.unequip(0))
+	assert_false(bar.is_equipped(0))
+	assert_false(bar.try_cast(0, true))
+	assert_eq(bar.autocast(10, true), 4)
+	assert_eq(bar.slots[0].cooldown_remaining, 0.0, "thunder stayed off the bar")
+
+
+func test_equip_needs_a_bought_unequipped_skill_and_a_free_slot() -> void:
+	var wide: SkillBar = _wide_bar(10)
+	watch_signals(wide)
+	assert_false(wide.equip(0), "not bought")
+	for index: int in 10:
+		wide.slots[index].level = 1
+	for index: int in 8:
+		assert_true(wide.equip(index))
+	assert_false(wide.equip(3), "already equipped")
+	assert_false(wide.equip(8), "all 8 slots taken")
+	assert_false(wide.equip(42), "no such skill")
+	assert_true(wide.unequip(3))
+	assert_false(wide.unequip(3), "already unequipped")
+	assert_true(wide.equip(9))
+	assert_eq(wide.equipped, [0, 1, 2, 4, 5, 6, 7, 9] as Array[int], "equipping appends")
+	assert_signal_emit_count(wide, "equipment_changed", 10)
+
+
+func test_buying_the_first_level_equips_the_skill_when_a_slot_is_free() -> void:
+	var wide: SkillBar = _wide_bar(10)
+	var wallet: CurrencyWallet = CurrencyWallet.new()
+	wallet.add(&"gold", BigNumber.from_float(1e9))
+	for index: int in 9:
+		assert_true(wide.try_buy(index, 1, wallet, &"gold"))
+	assert_eq(wide.equipped, [0, 1, 2, 3, 4, 5, 6, 7] as Array[int])
+	assert_false(wide.is_equipped(8), "bought while the bar was full")
+	assert_true(wide.try_buy(0, 1, wallet, &"gold"))
+	assert_eq(wide.equipped.size(), 8, "a later level changes nothing")
+	wide.unequip(7)
+	wide.grant_level(9)
+	assert_true(wide.is_equipped(9), "a free first level from a chest equips too")
+
+
+func test_equipped_ids_round_trip_keeping_only_bought_known_skills_once() -> void:
+	bar.slots[2].level = 0
+	bar.set_equipped(["meteor", "ghost", "blizzard", "meteor", "thunder"])
+	assert_eq(bar.equipped, [1, 0] as Array[int])
+	assert_eq(bar.equipped_ids(), [&"meteor", &"thunder"] as Array[StringName])
+	var wide: SkillBar = _wide_bar(10)
+	var ids: Array[String] = []
+	for index: int in 10:
+		wide.slots[index].level = 1
+		ids.append("s%d" % index)
+	wide.set_equipped(ids)
+	assert_eq(wide.equipped.size(), 8, "never more than 8")
 
 
 func test_cast_starts_cooldown_and_emits_cast() -> void:

@@ -14,6 +14,8 @@ func _sample() -> SaveData:
 	data.ascension_count = 2
 	data.talents = {"might": 3, "greed": 1}
 	data.skills = {"thunder": 4, "meteor": 0}
+	data.equipped = ["thunder"] as Array[String]
+	data.has_equipped = true
 	data.last_seen_unix = 1_800_000_000
 	return data
 
@@ -41,7 +43,28 @@ func test_round_trip_keeps_every_field_beyond_float_range() -> void:
 	assert_eq(result.data.talents, {"might": 3, "greed": 1})
 	assert_eq(result.data.skills, {"thunder": 4, "meteor": 0})
 	assert_true(result.data.has_skill_levels)
+	assert_eq(result.data.equipped, ["thunder"] as Array[String])
+	assert_true(result.data.has_equipped)
 	assert_eq(result.data.last_seen_unix, 1_800_000_000)
+
+
+## skill-branches S4: `equipped` is optional, so older saves keep the same version.
+func test_a_save_without_equipped_skills_loads_with_has_equipped_false() -> void:
+	var fields: Dictionary = _valid_dict()
+	fields.erase("equipped")
+	var result: SaveDecodeResult = _decode_dict(fields)
+	assert_true(result.is_ok(), result.error)
+	assert_eq(result.data.equipped, [] as Array[String])
+	assert_false(result.data.has_equipped)
+
+
+func test_rejects_equipped_skills_that_are_not_a_list_of_ids() -> void:
+	for bad: Variant in ["thunder", {"thunder": 1}, [1], ["thunder", null], 3]:
+		var fields: Dictionary = _valid_dict()
+		fields["equipped"] = bad
+		var result: SaveDecodeResult = _decode_dict(fields)
+		assert_false(result.is_ok(), str(bad))
+		assert_eq(result.error, "save field 'equipped' is not a list of skill ids")
 
 
 func test_encode_writes_current_version() -> void:

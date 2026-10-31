@@ -7,12 +7,17 @@ extends Resource
 
 ## New effects go last: the catalog stores them as integers.
 enum Effect { DAMAGE_ALL, DAMAGE_FRONT, FREEZE_ALL, BUFF, SHIELD, DASH }
+## Skill tree branch; BRANCH_NAMES holds the shown names in the same order.
+enum Branch { FIRE, ELECTRIC, ICE, BOOST, DEFENSIVE, AIR }
+
+const BRANCH_NAMES: Array[String] = ["Fuego", "Eléctrico", "Hielo", "Incremento", "Defensivo", "Aire"]
 
 const LEVEL_POWER_STEP: float = 0.15
 
 @export var id: StringName
 @export var display_name: String
 @export var effect: Effect = Effect.DAMAGE_ALL
+@export var branch: Branch = Branch.FIRE
 @export var unlock_stage: int = 1
 @export_range(0.1, 600.0) var cooldown_seconds: float = 10.0
 @export var power: float = 1.0

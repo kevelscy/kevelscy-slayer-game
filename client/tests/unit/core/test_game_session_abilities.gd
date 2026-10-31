@@ -38,6 +38,7 @@ func before_each() -> void:
 func _own_all() -> void:
 	for slot: SkillSlot in session.skills.slots:
 		slot.level = 1
+	session.skills.equip_owned()
 
 
 func _restore(stage: int) -> void:
@@ -127,15 +128,42 @@ func test_save_round_trip_keeps_skill_levels() -> void:
 	assert_eq(loaded.skills.slots[2].level, 1)
 
 
+## skill-branches S4: the equipped list is saved.
+func test_save_round_trip_keeps_the_equipped_skills() -> void:
+	_own_all()
+	session.skills.unequip(0)
+	session.skills.equip(0)
+	var data: SaveData = session.to_save(0)
+	assert_eq(data.equipped, ["fury", "shield", "thunder"] as Array[String])
+	assert_true(data.has_equipped)
+	var loaded: GameSession = GameSession.new(StageBalance.new(), 10, 30.0, _catalog())
+	loaded.apply_save(data)
+	assert_eq(loaded.skills.equipped_ids(), [&"fury", &"shield", &"thunder"] as Array[StringName])
+	loaded.skills.unequip(2)
+	loaded.apply_save(loaded.to_save(0))
+	assert_eq(loaded.skills.equipped_ids(), [&"fury", &"thunder"] as Array[StringName], "an unequipped skill stays off")
+
+
+func test_a_save_without_an_equipped_list_equips_its_bought_skills() -> void:
+	var data: SaveData = session.to_save(0)
+	data.skills = {"thunder": 2, "fury": 0, "shield": 1}
+	data.equipped = []
+	data.has_equipped = false
+	session.apply_save(data)
+	assert_eq(session.skills.equipped_ids(), [&"thunder", &"shield"] as Array[StringName])
+
+
 func test_a_save_without_skill_levels_owns_the_skills_its_stage_reached() -> void:
 	var data: SaveData = session.to_save(0)
 	data.stage = 2
 	data.skills = {}
 	data.has_skill_levels = false
+	data.has_equipped = false
 	session.apply_save(data)
 	assert_eq(session.skills.slots[0].level, 1)
 	assert_eq(session.skills.slots[1].level, 1)
 	assert_eq(session.skills.slots[2].level, 0, "the shield needs stage 3")
+	assert_eq(session.skills.equipped_ids(), [&"thunder", &"fury"] as Array[StringName])
 
 
 func test_spirit_damage_scales_with_hero_attack() -> void:

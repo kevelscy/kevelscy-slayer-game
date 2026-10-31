@@ -39,6 +39,7 @@ static func encode(data: SaveData) -> String:
 		"ascension_count": data.ascension_count,
 		"talents": data.talents,
 		"skills": data.skills,
+		"equipped": data.equipped,
 		"last_seen_unix": data.last_seen_unix,
 	}, "\t")
 
@@ -84,6 +85,14 @@ static func decode(text: String) -> SaveDecodeResult:
 		if not error.is_empty():
 			return SaveDecodeResult.new(null, error)
 
+	# Optional in every version: saves from before the skill tree have no list.
+	var equipped: Array[String] = []
+	if fields.has("equipped"):
+		var saved: Variant = fields["equipped"]
+		if not saved is Array or (saved as Array).any(func(id: Variant) -> bool: return not id is String):
+			return SaveDecodeResult.new(null, "save field 'equipped' is not a list of skill ids")
+		equipped.assign(saved as Array)
+
 	var gold_text: Variant = fields.get("gold")
 	var pattern: RegEx = RegEx.create_from_string(NUMBER_PATTERN)
 	if not gold_text is String or pattern.search(gold_text as String) == null:
@@ -105,6 +114,8 @@ static func decode(text: String) -> SaveDecodeResult:
 	data.talents = talents
 	data.skills = skills
 	data.has_skill_levels = int(version) >= SKILLS_VERSION
+	data.equipped = equipped
+	data.has_equipped = fields.has("equipped")
 	data.last_seen_unix = integers["last_seen_unix"]
 	return SaveDecodeResult.new(data)
 

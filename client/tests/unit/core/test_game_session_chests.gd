@@ -85,6 +85,19 @@ func test_free_fury_buffs_the_hero_even_if_fury_is_not_bought() -> void:
 	assert_false(_slot(&"fury").is_owned(), "a free cast does not buy the skill")
 
 
+func test_free_fury_casts_fury_even_when_another_buff_comes_first() -> void:
+	var speed: SkillDefinition = SkillDefinition.new()
+	speed.id = &"speed_sword"
+	speed.effect = SkillDefinition.Effect.BUFF
+	var catalog: AbilityCatalog = AbilityCatalog.new()
+	catalog.skills = [speed] as Array[SkillDefinition]
+	catalog.skills.append_array(ABILITIES.skills)
+	session = GameSession.new(StageBalance.new(), 10, 30.0, catalog)
+	session.grant_chest_reward(_reward(ChestTable.Rarity.RARE, 1))
+	assert_true(session.buffs.is_active(&"fury"), "the free buff is Furia")
+	assert_false(session.buffs.is_active(&"speed_sword"))
+
+
 func test_recharge_makes_every_cooling_skill_ready() -> void:
 	for slot: SkillSlot in session.skills.slots:
 		slot.level = 1

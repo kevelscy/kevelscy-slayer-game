@@ -1,24 +1,26 @@
 class_name SkillBar
 extends RefCounted
-## Six active skill slots with cooldowns, levels and auto-cast. Only bought skills
-## fire. It only decides when a skill fires; listeners of `cast` resolve the effect.
+## One slot per catalog skill with cooldowns, levels and auto-cast. Up to EQUIP_LIMIT
+## bought skills are equipped and only they fire. It only decides when a skill fires;
+## listeners of `cast` resolve the effect.
 
 signal cast(slot_index: int, definition: SkillDefinition)
 signal leveled_up(slot_index: int, level: int)
+signal equipment_changed
 
-const SLOT_COUNT: int = 6
+const EQUIP_LIMIT: int = 8
 const AUTOCAST_UNLOCK_STAGE: int = 10
 
 var slots: Array[SkillSlot] = []
+## Slot indices of the equipped skills, in the order they were equipped.
+var equipped: Array[int] = []
 ## Player toggle; only takes effect once auto-cast is unlocked.
 var autocast_enabled: bool = true
 
 
 func _init(definitions: Array[SkillDefinition] = []) -> void:
-	if definitions.size() > SLOT_COUNT:
-		push_error("SkillBar: %d skills given, only the first %d fit" % [definitions.size(), SLOT_COUNT])
-	for index: int in mini(definitions.size(), SLOT_COUNT):
-		slots.append(SkillSlot.new(definitions[index]))
+	for definition: SkillDefinition in definitions:
+		slots.append(SkillSlot.new(definition))
 
 
 func tick(delta: float) -> void:
@@ -30,7 +32,7 @@ func try_cast(slot_index: int, has_target: bool) -> bool:
 	if slot_index < 0 or slot_index >= slots.size():
 		return false
 	var slot: SkillSlot = slots[slot_index]
-	if not slot.is_ready() or (slot.definition.needs_target() and not has_target):
+	if not is_equipped(slot_index) or not slot.is_ready() or (slot.definition.needs_target() and not has_target):
 		return false
 	slot.start_cooldown()
 	cast.emit(slot_index, slot.definition)
@@ -46,6 +48,7 @@ func try_buy(slot_index: int, stage: int, wallet: CurrencyWallet, currency: Stri
 	if not slot.can_buy(stage) or not wallet.try_spend(currency, slot.cost()):
 		return false
 	slot.level += 1
+	_equip_first_level(slot_index)
 	leveled_up.emit(slot_index, slot.level)
 	return true
 
@@ -55,7 +58,71 @@ func grant_level(slot_index: int) -> void:
 	if slot_index < 0 or slot_index >= slots.size():
 		return
 	slots[slot_index].level += 1
+	_equip_first_level(slot_index)
 	leveled_up.emit(slot_index, slots[slot_index].level)
+
+
+func is_equipped(slot_index: int) -> bool:
+	return slot_index in equipped
+
+
+## Equips a bought, unequipped skill when a slot is free. False otherwise.
+func equip(slot_index: int) -> bool:
+	if slot_index < 0 or slot_index >= slots.size() or not slots[slot_index].is_owned():
+		return false
+	if is_equipped(slot_index) or equipped.size() >= EQUIP_LIMIT:
+		return false
+	equipped.append(slot_index)
+	equipment_changed.emit()
+	return true
+
+
+func unequip(slot_index: int) -> bool:
+	if not is_equipped(slot_index):
+		return false
+	equipped.erase(slot_index)
+	equipment_changed.emit()
+	return true
+
+
+## Equips the first EQUIP_LIMIT bought skills in catalog order (saves without an
+## equipped list).
+func equip_owned() -> void:
+	equipped.clear()
+	for index: int in slots.size():
+		if slots[index].is_owned() and equipped.size() < EQUIP_LIMIT:
+			equipped.append(index)
+	equipment_changed.emit()
+
+
+## Restores a saved equipped list: unknown, unbought and repeated ids are skipped,
+## and only the first EQUIP_LIMIT are kept.
+func set_equipped(saved: Array[String]) -> void:
+	equipped.clear()
+	for skill_id: String in saved:
+		var index: int = _index_of(StringName(skill_id))
+		if index >= 0 and slots[index].is_owned() and not is_equipped(index) and equipped.size() < EQUIP_LIMIT:
+			equipped.append(index)
+	equipment_changed.emit()
+
+
+func equipped_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for index: int in equipped:
+		result.append(slots[index].definition.id)
+	return result
+
+
+func _index_of(skill_id: StringName) -> int:
+	for index: int in slots.size():
+		if slots[index].definition.id == skill_id:
+			return index
+	return -1
+
+
+func _equip_first_level(slot_index: int) -> void:
+	if slots[slot_index].level == 1:
+		equip(slot_index)
 
 
 ## The bought slot with the lowest level (the first one on a tie), or slot 0 when

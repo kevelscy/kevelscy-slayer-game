@@ -27,6 +27,20 @@ func test_each_skill_matches_its_element() -> void:
 	] as Array[SkillDefinition.Effect])
 
 
+## skill-branches S3.
+func test_each_skill_belongs_to_its_branch() -> void:
+	assert_eq(SkillDefinition.BRANCH_NAMES, ["Fuego", "Eléctrico", "Hielo", "Incremento", "Defensivo", "Aire"])
+	var branches: Dictionary[StringName, SkillDefinition.Branch] = {}
+	for skill: SkillDefinition in CATALOG.skills:
+		branches[skill.id] = skill.branch
+	assert_eq(branches[&"thunder"], SkillDefinition.Branch.ELECTRIC)
+	assert_eq(branches[&"meteor"], SkillDefinition.Branch.FIRE)
+	assert_eq(branches[&"blizzard"], SkillDefinition.Branch.ICE)
+	assert_eq(branches[&"fury"], SkillDefinition.Branch.BOOST)
+	assert_eq(branches[&"shield"], SkillDefinition.Branch.DEFENSIVE)
+	assert_eq(branches[&"wind"], SkillDefinition.Branch.AIR)
+
+
 func test_three_spirits_with_their_unlock_stages_and_passives() -> void:
 	var stages: Array[int] = []
 	var stats: Array[StringName] = []

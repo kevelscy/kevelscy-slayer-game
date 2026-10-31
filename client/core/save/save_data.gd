@@ -19,4 +19,9 @@ var skills: Dictionary[String, int] = {}
 ## False for saves older than version 4, which kept no skill levels: loading one
 ## gives level 1 to the skills its stage reached.
 var has_skill_levels: bool = true
+## Ids of the equipped skills, in bar order.
+var equipped: Array[String] = []
+## False for saves without an equipped list: loading one equips the first bought
+## skills in catalog order.
+var has_equipped: bool = false
 var last_seen_unix: int = 0

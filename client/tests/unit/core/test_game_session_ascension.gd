@@ -97,6 +97,7 @@ func test_skill_cooldowns_restart_ready_after_ascending() -> void:
 	session.skills.autocast_enabled = false
 	session.tick_combat(0.0, true)
 	session.skills.slots[0].level = 1
+	session.skills.equip(0)
 	assert_true(session.cast_skill(0))
 	assert_false(session.skills.slots[0].is_ready())
 	session.ascend()

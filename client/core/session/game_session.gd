@@ -11,6 +11,8 @@ signal ascended(shards_gained: int)
 signal save_applied
 
 const GOLD: StringName = &"gold"
+## The skill a FREE_FURY chest reward casts.
+const FURY_ID: StringName = &"fury"
 const BOSS_DAMAGE_MULTIPLIER: float = 2.0
 ## Seconds between regular enemy spawns; also caps the offline kill rate.
 const SPAWN_INTERVAL_SECONDS: float = 1.2
@@ -167,7 +169,7 @@ func grant_chest_reward(reward: ChestReward) -> void:
 			wallet.add(GOLD, kill_gold.mul_float(reward.bag_kills))
 		ChestReward.Kind.FREE_FURY:
 			for slot: SkillSlot in skills.slots:
-				if slot.definition.effect == SkillDefinition.Effect.BUFF:
+				if slot.definition.id == FURY_ID:
 					activate_buff(slot.definition)
 					break
 		ChestReward.Kind.RECHARGE_SKILLS:
@@ -236,6 +238,9 @@ func to_save(now_unix: int) -> SaveData:
 	var skill_levels: Dictionary[StringName, int] = skills.levels()
 	for skill_id: StringName in skill_levels:
 		data.skills[String(skill_id)] = skill_levels[skill_id]
+	for skill_id: StringName in skills.equipped_ids():
+		data.equipped.append(String(skill_id))
+	data.has_equipped = true
 	data.last_seen_unix = now_unix
 	return data
 
@@ -264,6 +269,10 @@ func apply_save(data: SaveData) -> void:
 	skills.set_levels(data.skills)
 	if not data.has_skill_levels:
 		skills.grant_reached(data.stage)
+	if data.has_equipped:
+		skills.set_equipped(data.equipped)
+	else:
+		skills.equip_owned()
 	_refresh_hero_stats()
 	save_applied.emit()
 

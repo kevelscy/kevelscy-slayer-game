@@ -15,6 +15,7 @@ func before_each() -> void:
 	session.progression.restore_stage(STAGE)
 	for slot: SkillSlot in session.skills.slots:
 		slot.level = 1
+	session.skills.equip_owned()
 	world = BATTLE_WORLD.instantiate()
 	add_child_autofree(world)
 	world.start(session)
