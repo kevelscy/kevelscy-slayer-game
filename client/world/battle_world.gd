@@ -207,6 +207,7 @@ func _spawn(
 		Vector2(x, GROUND_Y),
 		gold_scale
 	)
+	enemy.carry_chest(session.chest_drops(is_boss))
 
 
 ## Every hit an enemy takes floats up as a pixel number above its head.
@@ -265,7 +266,7 @@ func _set_world_speed(speed: float) -> void:
 
 func _on_enemy_defeated(enemy: Enemy) -> void:
 	session.on_enemy_killed(enemy.is_boss, enemy.gold_multiplier)
-	if session.chest_drops(enemy.is_boss):
+	if enemy.carries_chest:
 		_drop_chest(enemy.position.x)
 	EventBus.enemy_killed.emit(enemy.is_boss)
 

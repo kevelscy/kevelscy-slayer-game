@@ -63,3 +63,57 @@ func test_a_new_run_clears_the_chests_without_picking_them() -> void:
 	assert_true(world.chests.is_empty())
 	assert_true(chest.is_queued_for_deletion())
 	assert_signal_not_emitted(world, "chest_picked")
+
+
+func _spawn_regular(carries_chest_roll_seed: int) -> Enemy:
+	session.chest_rng.seed = carries_chest_roll_seed
+	world._spawn(world.roster.pick_regular(world.rng), false, 200.0)
+	return world.enemy_pool.active_nodes().back() as Enemy
+
+
+func _seed_with_drop(wanted: bool) -> int:
+	var probe: RandomNumberGenerator = RandomNumberGenerator.new()
+	for seed_value: int in 10000:
+		probe.seed = seed_value
+		if ChestTable.drops(false, probe.randf()) == wanted:
+			return seed_value
+	return -1
+
+
+## Bosses always carry one (S3).
+func test_a_boss_shows_a_chest_icon_over_its_head_from_its_spawn() -> void:
+	world._spawn(world.roster.boss, true, 200.0)
+	var boss: Enemy = world.enemy_pool.active_nodes().back() as Enemy
+	assert_true(boss.carries_chest)
+	assert_true(boss.chest_marker.visible)
+	assert_eq(boss.chest_marker.texture, load(ChestPickup.TEXTURE_PATH))
+	var head_y: float = -boss.definition.animation.frame_size.y
+	assert_lt(boss.chest_marker.position.y, head_y, "above the head")
+	assert_eq(boss.chest_marker.global_scale, Vector2.ONE, "native 16 px, whatever the enemy scale")
+
+
+func test_the_chest_drop_is_rolled_when_the_enemy_spawns() -> void:
+	var with_chest: Enemy = _spawn_regular(_seed_with_drop(true))
+	assert_true(with_chest.carries_chest)
+	assert_true(with_chest.chest_marker.visible)
+	var without_chest: Enemy = _spawn_regular(_seed_with_drop(false))
+	assert_false(without_chest.carries_chest)
+	assert_false(without_chest.chest_marker.visible)
+
+
+func test_only_an_enemy_with_the_icon_drops_a_chest() -> void:
+	var with_chest: Enemy = _spawn_regular(_seed_with_drop(true))
+	var without_chest: Enemy = _spawn_regular(_seed_with_drop(false))
+	for index: int in 200:
+		session.chest_rng.seed = _seed_with_drop(true)
+		without_chest.health.take_damage(DamageResult.new(BigNumber.from_float(1e30), false))
+	assert_true(world.chests.is_empty(), "no icon, no chest, whatever the kill roll")
+	with_chest.health.take_damage(DamageResult.new(BigNumber.from_float(1e30), false))
+	assert_eq(world.chests.size(), 1)
+	assert_eq(world.chests[0].position.x, with_chest.position.x)
+
+
+func test_the_icon_goes_away_when_the_enemy_dies() -> void:
+	var with_chest: Enemy = _spawn_regular(_seed_with_drop(true))
+	with_chest.health.take_damage(DamageResult.new(BigNumber.from_float(1e30), false))
+	assert_false(with_chest.chest_marker.visible, "the chest is on the ground now")

@@ -9,6 +9,8 @@ signal despawn_requested(enemy: Enemy)
 const DEATH_FADE_SECONDS: float = 0.35
 const HIT_FLASH_SECONDS: float = 0.08
 const FROZEN_TINT: Color = Color(0.55, 0.85, 1.6)
+## Gap between the head and the chest icon shown over an enemy that drops a chest.
+const CHEST_MARKER_GAP: float = 3.0
 
 static var _frames_cache: Dictionary[StringName, SpriteFrames] = {}
 
@@ -20,6 +22,10 @@ var is_alive: bool = false
 var damage: BigNumber = BigNumber.zero()
 ## While above zero the enemy neither walks nor attacks.
 var frozen_seconds: float = 0.0
+## Rolled at spawn: this enemy drops a chest when killed and shows chest_marker
+## over its head until then.
+var carries_chest: bool = false
+var chest_marker: Sprite2D
 
 var _fade_tween: Tween
 ## True while the enemy stands at min_x (the hero), where it plays its idle animation.
@@ -31,6 +37,10 @@ var _at_contact: bool = false
 
 
 func _ready() -> void:
+	chest_marker = Sprite2D.new()
+	chest_marker.texture = load(ChestPickup.TEXTURE_PATH)
+	chest_marker.visible = false
+	add_child(chest_marker)
 	health.died.connect(_on_died)
 	health.damaged.connect(_on_damaged)
 
@@ -61,6 +71,18 @@ func spawn(
 	sprite.offset = Vector2(0.0, -definition.animation.frame_size.y * 0.5)
 	_at_contact = false
 	sprite.play(definition.animation.animation_name)
+	# The icon keeps its native size over any enemy scale.
+	chest_marker.scale = Vector2.ONE / definition.sprite_scale
+	var marker_half: float = chest_marker.texture.get_height() * 0.5
+	chest_marker.position = Vector2(
+		0.0, -definition.animation.frame_size.y - (CHEST_MARKER_GAP + marker_half) / definition.sprite_scale
+	)
+	carry_chest(false)
+
+
+func carry_chest(carries: bool) -> void:
+	carries_chest = carries
+	chest_marker.visible = carries
 
 
 func body_half_width() -> float:
@@ -136,6 +158,7 @@ func _on_damaged(_result: DamageResult) -> void:
 func _on_died() -> void:
 	is_alive = false
 	defeated.emit(self)
+	chest_marker.visible = false
 	_fade_tween = create_tween()
 	_fade_tween.tween_property(self, "modulate:a", 0.0, DEATH_FADE_SECONDS)
 	_fade_tween.tween_callback(func() -> void: despawn_requested.emit(self))

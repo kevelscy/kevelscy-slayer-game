@@ -124,7 +124,8 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
 
 - Waves: now and then a due spawn brings 6 enemies at once, packed tight or spread at random
   gaps. Wave enemies have 25% more health and pay 25% more gold. Offline gold has no waves.
-- Chests: 4% of the regular kills and every boss drop a chest on the ground. It scrolls with the
+- Chests: 4% of the regular enemies and every boss carry a chest, rolled as they spawn and shown
+  as a chest icon over their head; killing them drops it on the ground. It scrolls with the
   lane and the hero picks it up when it runs over it. A new run (ascension or loaded save)
   clears the lane's chests. Offline time gives no chests.
 - Each picked chest spins a roulette over the battle for 2 s through every possible reward, lands

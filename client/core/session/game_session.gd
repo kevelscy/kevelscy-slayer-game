@@ -131,7 +131,8 @@ func on_enemy_killed(was_boss: bool, gold_multiplier: float = 1.0) -> void:
 		progression.register_kill()
 
 
-## Whether this kill drops a chest; the hero picks it up and the roulette rolls it.
+## Whether an enemy drops a chest when killed, rolled as it spawns so it can show a
+## chest icon over its head; the hero picks the chest up and the roulette rolls it.
 func chest_drops(was_boss: bool) -> bool:
 	return ChestTable.drops(was_boss, chest_rng.randf())
 
