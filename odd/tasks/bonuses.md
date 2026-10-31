@@ -34,7 +34,7 @@ Out of scope (L1/L2): map change every 10 stages ("luego haremos"), hero XP, iPh
 - [x] T2 S5 skill card: icon fills the card, title over the bottom, radial clock cooldown mask instead of seconds — inline — commit: 39a7a5f
 - [x] T3 S6 random waves of up to 6 enemies, tight or spread, +25% health and gold — inline — commit: c3f4325
 - [x] T4 S7 S9 S4 skills bought and leveled with gold, kept on ascension, saved (backward-compatible save) — inline — commit: 78f4d4f, 52517c9
-- [ ] T5 S8 S10 wind skill: dash-stab to the nearest enemy, icon, catalog entry — inline — commit:
+- [x] T5 S8 S10 wind skill: dash-stab to the nearest enemy, icon, catalog entry — inline — commit: aff0144
 - [ ] T6 S1 S2 S3 chest core: drop roll, rarity table, rewards, gold multiplier rule, tests — inline — commit:
 - [ ] T7 S1 S3 S10 chest pickup in the lane, roulette overlay, chest and reward icons — inline — commit:
 
@@ -52,3 +52,4 @@ Out of scope (L1/L2): map change every 10 stages ("luego haremos"), hero XP, iPh
 - L10 T4 UI (UNCOMMITTED, GREEN 521/521): ability_panel.gd buy_buttons (BuyButton, coin 20 px right, cost text, disabled without gold or before stage), column card + buy; skill_card.gd level_label "Nv N" top-left, show_unowned(title). Screenshot NOT taken yet. Note: coin 16 px resized to 20 px is a non-integer nearest scale (uneven pixels) — consider 16 or 32.
 - L11 (user) "para, se acaba la ventana de contexto, guarda todo en engram status actual y pendientes, retomamos en la siguiente sesion".
 - L12 Resume (2026-10-30): buy coin set to 16 px (native, integer scale) instead of 20; suite 521/521; screenshot .tmp/shot/t4_400.png (save v4, stage 12, thunder 3, meteor 1) reviewed: level badge, clock mask, greyed unowned cards with titles, buy buttons with cost + coin (thunder 73 = 30*1.35^3).
+- L13 T5: Viento = Effect.DASH (appended, enum ints stable), stage 15, base_cost 2400, CD 5 s (thunder 8), power 2.5 on the nearest enemy (thunder 3.0 on all); SkillBar.SLOT_COUNT 5 -> 6; Hero.dash_to lunges only the sprite (0.3 s out and back, stops 14 px short), lane position unchanged; AbilityEffects wind slash; wind.wav (SoundCraft, 0.40 s); art/icons/skill_wind.png 64x32 (silver + gold 32x32 frames, thunder borders, palette-only) + .pxo, reviewed with get_image. Old v1-3 saves at stage >= 15 get wind level 1 like the other reached skills. RED (parse: DASH, DASH_SECONDS, catalog[5]) -> GREEN 526/526. Screenshots .tmp/shot/t5_portrait.png, t5_land.png: 6 cards fit both layouts (landscape buy buttons small, as before). README skills section updated (was stale since T2/T4).
