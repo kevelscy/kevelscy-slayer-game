@@ -131,15 +131,21 @@ func on_enemy_killed(was_boss: bool, gold_multiplier: float = 1.0) -> void:
 		progression.register_kill()
 
 
-## Whether this kill drops a chest; the hero opens it on pickup with open_chest.
+## Whether this kill drops a chest; the hero picks it up and the roulette rolls it.
 func chest_drops(was_boss: bool) -> bool:
 	return ChestTable.drops(was_boss, chest_rng.randf())
 
 
-## Rolls the chest's rarity and reward, pays it and returns it for the roulette.
-func open_chest() -> ChestReward:
+## Rolls a chest's rarity and reward without paying it: the roulette pays it with
+## grant_chest_reward when it stops.
+func roll_chest() -> ChestReward:
 	var rarity: ChestTable.Rarity = ChestTable.rarity_for(chest_rng.randf())
-	var reward: ChestReward = ChestTable.reward_for(rarity, chest_rng.randf())
+	return ChestTable.reward_for(rarity, chest_rng.randf())
+
+
+## Rolls the chest's rarity and reward, pays it and returns it.
+func open_chest() -> ChestReward:
+	var reward: ChestReward = roll_chest()
 	grant_chest_reward(reward)
 	return reward
 

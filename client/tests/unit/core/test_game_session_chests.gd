@@ -133,3 +133,23 @@ func test_chest_drops_use_the_session_roll() -> void:
 		if session.chest_drops(false):
 			drops += 1
 	assert_between(drops, 300, 500, "about 4% of 10000")
+
+
+func test_roll_chest_rolls_a_reward_without_paying_it() -> void:
+	session.chest_rng.seed = 7
+	var reward: ChestReward = session.roll_chest()
+	assert_true(_same_kind_in(reward), "one of its rarity's two rewards")
+	assert_true(_gold().is_zero(), "no gold paid yet")
+	assert_eq(session.gold_boost.multiplier(), 1.0, "no boost yet")
+	assert_true(session.buffs.is_empty(), "no free fury yet")
+	for slot: SkillSlot in session.skills.slots:
+		assert_eq(slot.level, 0, "no skill level yet")
+
+
+func test_open_chest_pays_what_roll_chest_rolls_with_the_same_roll() -> void:
+	session.chest_rng.seed = 7
+	var rolled: ChestReward = session.roll_chest()
+	session.chest_rng.seed = 7
+	var opened: ChestReward = session.open_chest()
+	assert_eq(opened.rarity, rolled.rarity)
+	assert_eq(opened.label(), rolled.label())

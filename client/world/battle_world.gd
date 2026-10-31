@@ -17,9 +17,13 @@ const LAYER_SPEED_FACTORS: Array[float] = [0.1, 0.3, 0.6, 1.0]
 const BUFF_TINT: Color = Color(1.4, 0.75, 0.7)
 ## Gap between an enemy's head and the bottom of its damage number.
 const DAMAGE_NUMBER_GAP: float = 2.0
+## The hero picks up a chest once it is this close in front of it.
+const CHEST_PICKUP_RANGE: float = 8.0
 
 ## Any damage an enemy takes: hero hits, skills and spirit shots.
 signal enemy_hit(result: DamageResult)
+## The hero ran over a dropped chest; Main spins the roulette for it.
+signal chest_picked
 
 @export var roster: EnemyRoster
 
@@ -33,6 +37,8 @@ var effects: AbilityEffects = AbilityEffects.new()
 
 var _world_speed: float = -1.0
 var _spirit_orbs: Dictionary[int, SpiritOrb] = {}
+## Dropped chests still lying in the lane, oldest first.
+var chests: Array[ChestPickup] = []
 
 @onready var hero: Hero = $Hero
 @onready var enemy_pool: NodePool = $EnemyPool
@@ -80,6 +86,7 @@ func _process(delta: float) -> void:
 	hero.sprite.self_modulate = Color.WHITE if session.buffs.is_empty() else BUFF_TINT
 	_set_world_speed(RUN_SPEED if hero.is_running() else 0.0)
 	_move_enemies(delta, enemies)
+	_move_chests(delta)
 	_resolve_enemy_attacks(delta, enemies)
 
 
@@ -145,6 +152,9 @@ func _restart_run() -> void:
 	for orb: SpiritOrb in _spirit_orbs.values():
 		orb.queue_free()
 	_spirit_orbs.clear()
+	for chest: ChestPickup in chests:
+		chest.queue_free()
+	chests.clear()
 	hero.restart(session.hero_max_health())
 	_sync_spirit_orbs()
 
@@ -224,6 +234,16 @@ func _move_enemies(delta: float, enemies: Array[Enemy]) -> void:
 			fading.advance(delta, _world_speed, -INF)
 
 
+## Chests scroll with the world; the ones that reach the hero are picked up.
+func _move_chests(delta: float) -> void:
+	for chest: ChestPickup in chests.duplicate():
+		chest.advance(delta, maxf(_world_speed, 0.0))
+		if chest.position.x - hero.position.x <= CHEST_PICKUP_RANGE:
+			chests.erase(chest)
+			chest.queue_free()
+			chest_picked.emit()
+
+
 func _resolve_enemy_attacks(delta: float, enemies: Array[Enemy]) -> void:
 	if enemies.is_empty() or hero.health.is_dead():
 		return
@@ -245,7 +265,16 @@ func _set_world_speed(speed: float) -> void:
 
 func _on_enemy_defeated(enemy: Enemy) -> void:
 	session.on_enemy_killed(enemy.is_boss, enemy.gold_multiplier)
+	if session.chest_drops(enemy.is_boss):
+		_drop_chest(enemy.position.x)
 	EventBus.enemy_killed.emit(enemy.is_boss)
+
+
+func _drop_chest(x: float) -> void:
+	var chest: ChestPickup = ChestPickup.new()
+	chest.position = Vector2(x, GROUND_Y)
+	add_child(chest)
+	chests.append(chest)
 
 
 func _on_boss_failed() -> void:
