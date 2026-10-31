@@ -13,6 +13,7 @@ func _sample() -> SaveData:
 	data.ascension_shards = 12
 	data.ascension_count = 2
 	data.talents = {"might": 3, "greed": 1}
+	data.skills = {"thunder": 4, "meteor": 0}
 	data.last_seen_unix = 1_800_000_000
 	return data
 
@@ -38,12 +39,51 @@ func test_round_trip_keeps_every_field_beyond_float_range() -> void:
 	assert_eq(result.data.ascension_shards, 12)
 	assert_eq(result.data.ascension_count, 2)
 	assert_eq(result.data.talents, {"might": 3, "greed": 1})
+	assert_eq(result.data.skills, {"thunder": 4, "meteor": 0})
+	assert_true(result.data.has_skill_levels)
 	assert_eq(result.data.last_seen_unix, 1_800_000_000)
 
 
 func test_encode_writes_current_version() -> void:
-	assert_eq(SaveCodec.VERSION, 3)
-	assert_eq(int(_valid_dict()["version"]), 3)
+	assert_eq(SaveCodec.VERSION, 4)
+	assert_eq(int(_valid_dict()["version"]), 4)
+
+
+func test_version_three_save_loads_without_skill_levels() -> void:
+	var fields: Dictionary = _valid_dict()
+	fields["version"] = 3
+	fields.erase("skills")
+	var result: SaveDecodeResult = _decode_dict(fields)
+	assert_true(result.is_ok(), result.error)
+	assert_eq(result.data.talents, {"might": 3, "greed": 1})
+	assert_eq(result.data.skills, {})
+	assert_false(result.data.has_skill_levels)
+
+
+func test_rejects_skills_that_are_not_an_object() -> void:
+	for bad: Variant in [null, [1], "thunder", 3]:
+		var fields: Dictionary = _valid_dict()
+		if bad == null:
+			fields.erase("skills")
+		else:
+			fields["skills"] = bad
+		var result: SaveDecodeResult = _decode_dict(fields)
+		assert_null(result.data, str(bad))
+		assert_eq(result.error, "save field 'skills' is not an object")
+
+
+func test_rejects_skill_levels_that_are_not_whole_and_non_negative() -> void:
+	var cases: Array = [
+		[1.5, "save field 'skills.thunder' is missing or not an integer"],
+		["2", "save field 'skills.thunder' is missing or not an integer"],
+		[-1, "save field 'skills.thunder' must be >= 0, got -1"],
+	]
+	for case: Array in cases:
+		var fields: Dictionary = _valid_dict()
+		fields["skills"] = {"thunder": case[0]}
+		var result: SaveDecodeResult = _decode_dict(fields)
+		assert_null(result.data, str(case[0]))
+		assert_eq(result.error, case[1])
 
 
 func test_version_one_save_loads_with_rate_levels_at_zero() -> void:
@@ -142,7 +182,7 @@ func test_rejects_json_that_is_not_an_object() -> void:
 
 func test_rejects_unsupported_version() -> void:
 	var fields: Dictionary = _valid_dict()
-	for version: int in [0, 4, 99]:
+	for version: int in [0, 5, 99]:
 		fields["version"] = version
 		var result: SaveDecodeResult = _decode_dict(fields)
 		assert_null(result.data)

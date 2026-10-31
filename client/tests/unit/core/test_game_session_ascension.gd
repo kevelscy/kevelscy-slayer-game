@@ -96,10 +96,18 @@ func test_skill_cooldowns_restart_ready_after_ascending() -> void:
 	_reach(20)
 	session.skills.autocast_enabled = false
 	session.tick_combat(0.0, true)
+	session.skills.slots[0].level = 1
 	assert_true(session.cast_skill(0))
-	assert_false(session.skills.slots[0].is_ready(20))
+	assert_false(session.skills.slots[0].is_ready())
 	session.ascend()
-	assert_true(session.skills.slots[0].is_ready(1))
+	assert_true(session.skills.slots[0].is_ready())
+
+
+func test_skill_levels_survive_ascending() -> void:
+	_reach(20)
+	session.skills.slots[0].level = 6
+	session.ascend()
+	assert_eq(session.skills.slots[0].level, 6)
 
 
 func test_talents_survive_ascending() -> void:

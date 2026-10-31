@@ -9,11 +9,11 @@ const CATALOG_PATH: String = "res://data/content/abilities/ability_catalog.tres"
 func _init() -> void:
 	var catalog: AbilityCatalog = AbilityCatalog.new()
 	catalog.skills = [
-		_skill(&"thunder", "Trueno", SkillDefinition.Effect.DAMAGE_ALL, 1, 8.0, 3.0, 0.0, Color(0.6, 0.8, 1.0)),
-		_skill(&"meteor", "Meteoro", SkillDefinition.Effect.DAMAGE_FRONT, 3, 12.0, 10.0, 0.0, Color(1.0, 0.5, 0.15)),
-		_skill(&"blizzard", "Ventisca", SkillDefinition.Effect.FREEZE_ALL, 5, 15.0, 1.5, 3.0, Color(0.55, 0.95, 1.0)),
-		_skill(&"fury", "Furia", SkillDefinition.Effect.BUFF, 8, 20.0, 0.5, 6.0, Color(1.0, 0.3, 0.25)),
-		_skill(&"shield", "Escudo", SkillDefinition.Effect.SHIELD, 12, 25.0, 0.5, 8.0, Color(1.0, 0.85, 0.3)),
+		_skill(&"thunder", "Trueno", SkillDefinition.Effect.DAMAGE_ALL, 1, 8.0, 3.0, 0.0, Color(0.6, 0.8, 1.0), 30.0),
+		_skill(&"meteor", "Meteoro", SkillDefinition.Effect.DAMAGE_FRONT, 3, 12.0, 10.0, 0.0, Color(1.0, 0.5, 0.15), 150.0),
+		_skill(&"blizzard", "Ventisca", SkillDefinition.Effect.FREEZE_ALL, 5, 15.0, 1.5, 3.0, Color(0.55, 0.95, 1.0), 300.0),
+		_skill(&"fury", "Furia", SkillDefinition.Effect.BUFF, 8, 20.0, 0.5, 6.0, Color(1.0, 0.3, 0.25), 600.0),
+		_skill(&"shield", "Escudo", SkillDefinition.Effect.SHIELD, 12, 25.0, 0.5, 8.0, Color(1.0, 0.85, 0.3), 1200.0),
 	]
 	catalog.spirits = [
 		_spirit(&"wisp", "Fuego fatuo", 2, StatBlock.ATTACK, StatModifier.Kind.PERCENT, 0.1, 3.0, 1.0, Color("#13ccbd")),
@@ -31,7 +31,7 @@ func _init() -> void:
 
 func _skill(
 	id: StringName, display_name: String, effect: SkillDefinition.Effect, unlock_stage: int,
-	cooldown: float, power: float, duration: float, color: Color
+	cooldown: float, power: float, duration: float, color: Color, base_cost: float
 ) -> SkillDefinition:
 	var skill: SkillDefinition = SkillDefinition.new()
 	skill.id = id
@@ -42,6 +42,7 @@ func _skill(
 	skill.power = power
 	skill.duration_seconds = duration
 	skill.color = color
+	skill.base_cost = base_cost
 	return skill
 
 

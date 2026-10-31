@@ -14,4 +14,9 @@ var ascension_shards: int = 0
 var ascension_count: int = 0
 ## Talent id to level.
 var talents: Dictionary[String, int] = {}
+## Skill id to level; 0 or missing means not bought.
+var skills: Dictionary[String, int] = {}
+## False for saves older than version 4, which kept no skill levels: loading one
+## gives level 1 to the skills its stage reached.
+var has_skill_levels: bool = true
 var last_seen_unix: int = 0

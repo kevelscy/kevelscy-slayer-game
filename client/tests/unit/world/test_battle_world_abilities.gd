@@ -13,6 +13,8 @@ var enemies: Array[Enemy] = []
 func before_each() -> void:
 	session = GameSession.new(StageBalance.new(), 10, 30.0, ABILITIES)
 	session.progression.restore_stage(STAGE)
+	for slot: SkillSlot in session.skills.slots:
+		slot.level = 1
 	world = BATTLE_WORLD.instantiate()
 	add_child_autofree(world)
 	world.start(session)
@@ -120,7 +122,7 @@ func test_spirit_attack_hits_the_front_enemy() -> void:
 
 
 func test_casting_from_the_skill_bar_reaches_the_world() -> void:
-	assert_true(session.skills.try_cast(0, STAGE, true))
+	assert_true(session.skills.try_cast(0, true))
 	assert_true(_lost(enemies[2]).is_equal_approx(session.skill_damage(_skill(&"thunder"))))
 
 

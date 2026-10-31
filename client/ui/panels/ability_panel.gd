@@ -56,11 +56,11 @@ func refresh() -> void:
 		var slot: SkillSlot = _session.skills.slots[index]
 		var card: SkillCard = skill_buttons[index] as SkillCard
 		var title: String = slot.definition.display_name
-		if slot.is_unlocked(stage):
+		if slot.is_owned():
 			card.show_cooldown(title, slot.cooldown_ratio())
 		else:
 			card.show_locked(title, slot.definition.unlock_stage)
-		card.disabled = not slot.is_ready(stage)
+		card.disabled = not slot.is_ready()
 	var autocast_unlocked: bool = _session.skills.is_autocast_unlocked(stage)
 	autocast_toggle.disabled = not autocast_unlocked
 	autocast_toggle.text = "Automático" if autocast_unlocked else (

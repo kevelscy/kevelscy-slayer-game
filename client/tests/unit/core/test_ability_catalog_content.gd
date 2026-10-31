@@ -45,3 +45,11 @@ func test_wisp_orb_uses_the_palette_turquoise_not_green() -> void:
 func test_game_state_session_uses_the_catalog() -> void:
 	assert_eq(GameState.session.skills.slots.size(), 5)
 	assert_eq(GameState.session.spirits.slots.size(), 3)
+
+
+func test_skill_prices_rise_with_their_unlock_stage() -> void:
+	var prices: Dictionary[StringName, float] = {}
+	for skill: SkillDefinition in CATALOG.skills:
+		prices[skill.id] = skill.base_cost
+		assert_eq(skill.cost_growth, 1.35, String(skill.id))
+	assert_eq(prices, {&"thunder": 30.0, &"meteor": 150.0, &"blizzard": 300.0, &"fury": 600.0, &"shield": 1200.0})

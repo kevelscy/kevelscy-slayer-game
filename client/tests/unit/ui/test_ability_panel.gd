@@ -9,6 +9,7 @@ var panel: AbilityPanel
 
 func before_each() -> void:
 	session = GameSession.new(StageBalance.new(), 10, 30.0, ABILITIES)
+	session.skills.slots[0].level = 1
 	panel = AbilityPanel.new()
 	add_child_autofree(panel)
 	panel.bind(session)

@@ -82,11 +82,16 @@ func tick_combat(delta: float, has_target: bool) -> void:
 
 ## Player-pressed cast; the same stage and target rules as auto-cast apply.
 func cast_skill(slot_index: int) -> bool:
-	return skills.try_cast(slot_index, progression.stage, in_combat)
+	return skills.try_cast(slot_index, in_combat)
+
+
+## Buys the next level of a skill with gold; the first level needs its unlock stage.
+func try_buy_skill(slot_index: int) -> bool:
+	return skills.try_buy(slot_index, progression.stage, wallet, GOLD)
 
 
 func skill_damage(skill: SkillDefinition) -> BigNumber:
-	return hero_stats.get_big(StatBlock.ATTACK).mul_float(skill.power)
+	return hero_stats.get_big(StatBlock.ATTACK).mul_float(_skill_power(skill))
 
 
 func spirit_damage(spirit: SpiritDefinition) -> BigNumber:
@@ -94,14 +99,15 @@ func spirit_damage(spirit: SpiritDefinition) -> BigNumber:
 
 
 func shield_amount(skill: SkillDefinition) -> BigNumber:
-	return hero_max_health().mul_float(skill.power)
+	return hero_max_health().mul_float(_skill_power(skill))
 
 
 ## Fury-style buff: the skill power raises both attack and attack speed.
 func activate_buff(skill: SkillDefinition) -> void:
+	var power: float = _skill_power(skill)
 	var modifiers: Array[StatModifier] = [
-		StatModifier.percent(StatBlock.ATTACK, skill.power),
-		StatModifier.percent(StatBlock.ATTACK_SPEED, skill.power),
+		StatModifier.percent(StatBlock.ATTACK, power),
+		StatModifier.percent(StatBlock.ATTACK_SPEED, power),
 	]
 	buffs.apply(skill.id, modifiers, skill.duration_seconds)
 
@@ -130,8 +136,8 @@ func ascension_shards_on_ascend() -> int:
 
 
 ## Trades the run for shards: stage 1, no gold, no upgrade levels, no buffs, and
-## skills and spirits locked again (their unlocks follow the stage). Talents,
-## shards and the ascension count stay. Returns the shards paid, 0 if not allowed.
+## spirits locked again (their unlocks follow the stage). Talents, bought skill
+## levels, shards and the ascension count stay. Returns the shards paid, 0 if not allowed.
 ## Shards are paid first, so the reset's own signals already see the new balance.
 func ascend() -> int:
 	var gained: int = ascension_shards_on_ascend()
@@ -172,6 +178,9 @@ func to_save(now_unix: int) -> SaveData:
 	var talent_levels: Dictionary[StringName, int] = talents.levels()
 	for talent_id: StringName in talent_levels:
 		data.talents[String(talent_id)] = talent_levels[talent_id]
+	var skill_levels: Dictionary[StringName, int] = skills.levels()
+	for skill_id: StringName in skill_levels:
+		data.skills[String(skill_id)] = skill_levels[skill_id]
 	data.last_seen_unix = now_unix
 	return data
 
@@ -195,6 +204,9 @@ func apply_save(data: SaveData) -> void:
 	ascension_count = data.ascension_count
 	# Unknown talent ids are ignored and levels clamp to each talent's max.
 	talents.set_levels(data.talents)
+	skills.set_levels(data.skills)
+	if not data.has_skill_levels:
+		skills.grant_reached(data.stage)
 	_refresh_hero_stats()
 	save_applied.emit()
 
@@ -243,3 +255,8 @@ func _refresh_hero_stats() -> void:
 	hero_stats.set_base_rate(StatBlock.CRIT_CHANCE, crit_chance_track.rate())
 	hero_stats.set_base_rate(StatBlock.CRIT_DAMAGE, crit_damage_track.rate())
 	hero_stats.set_base_rate(StatBlock.ATTACK_SPEED, attack_speed_track.rate())
+
+
+## A skill's power at its bought level.
+func _skill_power(skill: SkillDefinition) -> float:
+	return skill.power_at(skills.level_of(skill.id))

@@ -2,9 +2,12 @@ class_name SkillDefinition
 extends Resource
 ## One active skill of the skill bar. `power` reads per effect: a multiple of hero
 ## attack for damage skills, a percent bonus (0.5 = +50%) for buffs and a fraction
-## of max health for shields.
+## of max health for shields. Skills are bought with gold and leveled: each level
+## above the first adds LEVEL_POWER_STEP of the base power.
 
 enum Effect { DAMAGE_ALL, DAMAGE_FRONT, FREEZE_ALL, BUFF, SHIELD }
+
+const LEVEL_POWER_STEP: float = 0.15
 
 @export var id: StringName
 @export var display_name: String
@@ -15,6 +18,14 @@ enum Effect { DAMAGE_ALL, DAMAGE_FRONT, FREEZE_ALL, BUFF, SHIELD }
 ## Freeze, buff and shield length; ignored by pure damage skills.
 @export var duration_seconds: float = 0.0
 @export var color: Color = Color.WHITE
+## Gold price of level 1; each next level costs cost_growth times more.
+@export var base_cost: float = 50.0
+@export var cost_growth: float = 1.35
+
+
+## Power at a skill level; a skill not bought yet reads as level 1.
+func power_at(level: int) -> float:
+	return power * (1.0 + LEVEL_POWER_STEP * (maxi(level, 1) - 1))
 
 
 ## Damage and freeze skills are wasted without an enemy to hit.

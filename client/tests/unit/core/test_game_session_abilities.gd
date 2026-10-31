@@ -22,7 +22,7 @@ func _catalog() -> AbilityCatalog:
 	catalog.skills = [
 		_skill(&"thunder", SkillDefinition.Effect.DAMAGE_ALL, 1, 3.0),
 		_skill(&"fury", SkillDefinition.Effect.BUFF, 1, 0.5),
-		_skill(&"shield", SkillDefinition.Effect.SHIELD, 1, 0.5),
+		_skill(&"shield", SkillDefinition.Effect.SHIELD, 3, 0.5),
 	]
 	catalog.spirits = [
 		SpiritTest.spirit(&"wisp", 2, StatBlock.ATTACK, 0.1, 3.0, 1.0),
@@ -33,6 +33,11 @@ func _catalog() -> AbilityCatalog:
 
 func before_each() -> void:
 	session = GameSession.new(StageBalance.new(), 10, 30.0, _catalog())
+
+
+func _own_all() -> void:
+	for slot: SkillSlot in session.skills.slots:
+		slot.level = 1
 
 
 func _restore(stage: int) -> void:
@@ -67,6 +72,70 @@ func test_loading_a_save_restores_unlocks_from_the_stage() -> void:
 
 func test_skill_damage_scales_with_hero_attack() -> void:
 	assert_almost_eq(session.skill_damage(session.skills.slots[0].definition).to_float(), 30.0, 1e-6)
+
+
+func test_each_skill_level_above_one_adds_fifteen_percent_power() -> void:
+	var thunder: SkillDefinition = session.skills.slots[0].definition
+	session.skills.slots[0].level = 3
+	assert_almost_eq(session.skill_damage(thunder).to_float(), 30.0 * 1.3, 1e-6)
+	session.skills.slots[2].level = 2
+	assert_almost_eq(session.shield_amount(session.skills.slots[2].definition).to_float(), 50.0 * 1.15, 1e-6)
+	session.skills.slots[1].level = 5
+	session.activate_buff(session.skills.slots[1].definition)
+	assert_almost_eq(session.hero_stats.get_big(StatBlock.ATTACK).to_float(), 10.0 * (1.0 + 0.5 * 1.6), 1e-6)
+
+
+func test_buying_a_skill_spends_its_cost_and_raises_its_level() -> void:
+	var slot: SkillSlot = session.skills.slots[0]
+	var cost: BigNumber = slot.cost()
+	session.wallet.add(GameSession.GOLD, cost.mul_float(3.0))
+	watch_signals(session.skills)
+	assert_true(session.try_buy_skill(0))
+	assert_eq(slot.level, 1)
+	assert_true(session.wallet.get_amount(GameSession.GOLD).is_equal_approx(cost.mul_float(2.0)))
+	assert_signal_emitted_with_parameters(session.skills, "leveled_up", [0, 1])
+	assert_true(slot.cost().to_float() > cost.to_float(), "the next level costs more")
+
+
+func test_a_skill_is_not_bought_before_its_stage_or_without_gold() -> void:
+	session.wallet.add(GameSession.GOLD, BigNumber.from_float(1e12))
+	assert_false(session.try_buy_skill(2), "the shield needs stage 3")
+	assert_eq(session.skills.slots[2].level, 0)
+	assert_true(session.wallet.get_amount(GameSession.GOLD).is_equal_approx(BigNumber.from_float(1e12)))
+	session.wallet.restore(GameSession.GOLD, BigNumber.zero())
+	assert_false(session.try_buy_skill(0), "no gold")
+	assert_eq(session.skills.slots[0].level, 0)
+	assert_false(session.try_buy_skill(9), "no such slot")
+
+
+func test_a_new_game_owns_no_skill_and_casts_nothing() -> void:
+	for slot: SkillSlot in session.skills.slots:
+		assert_eq(slot.level, 0)
+	session.in_combat = true
+	assert_false(session.cast_skill(0))
+
+
+func test_save_round_trip_keeps_skill_levels() -> void:
+	session.skills.slots[0].level = 4
+	session.skills.slots[2].level = 1
+	var data: SaveData = session.to_save(0)
+	assert_eq(data.skills, {"thunder": 4, "fury": 0, "shield": 1})
+	var loaded: GameSession = GameSession.new(StageBalance.new(), 10, 30.0, _catalog())
+	loaded.apply_save(data)
+	assert_eq(loaded.skills.slots[0].level, 4)
+	assert_eq(loaded.skills.slots[1].level, 0)
+	assert_eq(loaded.skills.slots[2].level, 1)
+
+
+func test_a_save_without_skill_levels_owns_the_skills_its_stage_reached() -> void:
+	var data: SaveData = session.to_save(0)
+	data.stage = 2
+	data.skills = {}
+	data.has_skill_levels = false
+	session.apply_save(data)
+	assert_eq(session.skills.slots[0].level, 1)
+	assert_eq(session.skills.slots[1].level, 1)
+	assert_eq(session.skills.slots[2].level, 0, "the shield needs stage 3")
 
 
 func test_spirit_damage_scales_with_hero_attack() -> void:
@@ -109,6 +178,7 @@ func test_offline_grant_ends_buffs_and_pays_without_them() -> void:
 
 func test_tick_combat_runs_cooldowns_spirits_and_autocast() -> void:
 	_restore(10)
+	_own_all()
 	watch_signals(session.skills)
 	watch_signals(session.spirits)
 	session.tick_combat(0.1, true)
@@ -124,7 +194,8 @@ func test_tick_combat_without_autocast_unlocked_never_casts() -> void:
 	assert_signal_not_emitted(session.skills, "cast")
 
 
-func test_manual_cast_uses_the_current_stage_and_combat_state() -> void:
+func test_manual_cast_uses_the_combat_state() -> void:
+	_own_all()
 	watch_signals(session.skills)
 	assert_false(session.cast_skill(0), "thunder needs a target and the hero is not fighting")
 	session.tick_combat(0.0, true)
