@@ -37,6 +37,7 @@ var _swipe_start: Vector2 = Vector2.INF
 
 var sfx: SfxPlayer = SfxPlayer.new()
 var sfx_director: SfxDirector = SfxDirector.new()
+var chest_roulette: ChestRoulette = ChestRoulette.new()
 
 @onready var safe_area: MarginContainer = $SafeArea
 @onready var portrait: VBoxContainer = $SafeArea/Portrait
@@ -66,9 +67,10 @@ func _ready() -> void:
 	sfx.name = "Sfx"
 	add_child(sfx)
 	sfx.load_catalog()
+	_add_chest_roulette(session)
 	sfx_director.name = "SfxDirector"
 	add_child(sfx_director)
-	sfx_director.bind(sfx, session, battle_world, tab_bar)
+	sfx_director.bind(sfx, session, battle_world, tab_bar, chest_roulette)
 	hud.bind(session, battle_world.hero)
 	hud.show_sfx_muted(GameState.settings.sfx_muted)
 	hud.sfx_muted_toggled.connect(GameState.set_sfx_muted)
@@ -86,6 +88,24 @@ func _ready() -> void:
 	GameState.offline_reward_granted.connect(_show_offline_reward)
 	if GameState.boot_reward != null and not GameState.boot_reward.is_empty():
 		_show_offline_reward(GameState.boot_reward)
+
+
+## Each chest the hero picks up is rolled now and paid when its roulette stops.
+func _add_chest_roulette(session: GameSession) -> void:
+	chest_roulette.name = "ChestRoulette"
+	add_child(chest_roulette)
+	chest_roulette.bind(session)
+	battle_world.chest_picked.connect(func() -> void:
+		chest_roulette.enqueue(session.roll_chest())
+		place_chest_roulette()
+	)
+
+
+## Centered over the battle view in both layouts, clear of the toast at the top.
+func place_chest_roulette() -> void:
+	chest_roulette.size = chest_roulette.get_combined_minimum_size()
+	var center: Vector2 = battle_view.get_global_rect().get_center()
+	chest_roulette.global_position = (center - chest_roulette.size * 0.5).round()
 
 
 func _show_offline_reward(reward: OfflineReward) -> void:
@@ -116,6 +136,8 @@ static func _format_duration(seconds: int) -> String:
 
 func _process(delta: float) -> void:
 	_frames += 1
+	if chest_roulette.visible:
+		place_chest_roulette()
 	if _dev_report:
 		_report_elapsed += delta
 		if _report_elapsed >= DEV_REPORT_SECONDS:

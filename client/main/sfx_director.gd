@@ -6,8 +6,13 @@ extends Node
 var sfx: SfxPlayer
 
 
-func bind(player: SfxPlayer, session: GameSession, world: BattleWorld, tab_bar: BottomTabBar) -> void:
+func bind(
+	player: SfxPlayer, session: GameSession, world: BattleWorld, tab_bar: BottomTabBar,
+	roulette: ChestRoulette = null
+) -> void:
 	sfx = player
+	if roulette != null:
+		roulette.revealed.connect(_on_chest_revealed)
 	world.enemy_hit.connect(_on_enemy_hit)
 	EventBus.enemy_killed.connect(_on_enemy_killed)
 	session.spirits.attacked.connect(_on_spirit_attacked)
@@ -65,6 +70,11 @@ func _on_boss_defeated() -> void:
 
 func _on_hero_died() -> void:
 	sfx.play(&"hero_death")
+
+
+## Legendary and Super chests get the boss fanfare; the rest the upgrade chime.
+func _on_chest_revealed(reward: ChestReward) -> void:
+	sfx.play(&"boss_defeat" if reward.rarity >= ChestTable.Rarity.LEGENDARY else &"upgrade")
 
 
 func _on_ascended(_shards_gained: int) -> void:

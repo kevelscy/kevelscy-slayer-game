@@ -120,6 +120,29 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
   mutes and unmutes them; the choice is kept in `settings.cfg` next to the save (local to the
   device, never synced to the cloud).
 
+## Waves and chests
+
+- Waves: now and then a due spawn brings 6 enemies at once, packed tight or spread at random
+  gaps. Wave enemies have 25% more health and pay 25% more gold. Offline gold has no waves.
+- Chests: 4% of the regular kills and every boss drop a chest on the ground. It scrolls with the
+  lane and the hero picks it up when it runs over it. A new run (ascension or loaded save)
+  clears the lane's chests. Offline time gives no chests.
+- Each picked chest spins a roulette over the battle for 2 s through every possible reward, lands
+  on the rolled one, shows its rarity and pays it; chests picked meanwhile wait their turn.
+  Legendary and Super play the boss fanfare.
+
+  | Rarity | Chance | Rewards (half the time each) |
+  | --- | --- | --- |
+  | Común | 55% | gold x2 60 s, gold bag (50 kills of the stage) |
+  | Raro | 27% | gold x4 60 s, free Fury |
+  | Épico | 12% | gold x6 90 s, recharge all skills |
+  | Legendario | 5% | gold x8 120 s, big gold bag (500 kills) |
+  | Super | 1% | gold x10 180 s, +1 level to the lowest bought skill (Thunder if none) |
+
+- The gold boost multiplies every kill's gold and shows next to the gold in the HUD (`x4 58 s`).
+  A bigger one replaces the active boost, an equal one adds its time, a smaller one is ignored.
+  It is never saved and never counts for offline gold.
+
 ## Ascension and talents
 
 - The `Ascension` tab (portrait) or the `Ascension` button in the HUD (landscape) opens a

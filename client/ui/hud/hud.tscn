@@ -23,6 +23,14 @@ stretch_mode = 3
 layout_mode = 2
 text = "0"
 
+[node name="BoostLabel" type="Label" parent="TopRow"]
+visible = false
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.4, 1)
+text = "x2 60 s"
+
 [node name="SoundButton" type="Button" parent="TopRow"]
 custom_minimum_size = Vector2(64, 56)
 layout_mode = 2
