@@ -21,6 +21,31 @@ func _labels() -> Array[String]:
 	return texts
 
 
+## skill-branches S2: Mejoras splits into Características and Habilidades.
+func test_mejoras_has_a_characteristics_tab_and_a_skills_tab() -> void:
+	assert_eq(panel.tab_buttons.size(), 2)
+	assert_eq(panel.tab_buttons[0].text, "Características")
+	assert_eq(panel.tab_buttons[1].text, "Habilidades")
+	for button: Button in panel.tab_buttons:
+		assert_eq(button.theme_type_variation, GameTheme.TAB_BUTTON)
+	assert_true(panel.tab_buttons[0].button_pressed, "Características opens first")
+	assert_true(panel.characteristics_page.visible)
+	assert_false(panel.skills_page.visible)
+	for row: UpgradePanel.Row in panel.rows:
+		assert_true(panel.characteristics_page.is_ancestor_of(row.button), "stat rows are characteristics")
+
+
+func test_picking_a_tab_shows_only_its_page() -> void:
+	panel.tab_buttons[1].pressed.emit()
+	assert_false(panel.characteristics_page.visible)
+	assert_true(panel.skills_page.visible)
+	assert_true(panel.tab_buttons[1].button_pressed)
+	assert_false(panel.tab_buttons[0].button_pressed)
+	panel.tab_buttons[0].pressed.emit()
+	assert_true(panel.characteristics_page.visible)
+	assert_false(panel.skills_page.visible)
+
+
 func test_lists_every_stat_with_level_and_value() -> void:
 	assert_eq(_labels(), [
 		"Ataque  Nv 0\n10",

@@ -1,7 +1,12 @@
 class_name UpgradePanel
 extends VBoxContainer
-## One row per stat upgrade: name, level, current value and a buy button priced in
-## gold (amount and coin), or "Máx" once a capped track is complete.
+## Mejoras page with two tabs: Características, one row per stat upgrade (name, level,
+## current value and a buy button priced in gold, or "Máx" once a capped track is
+## complete), and Habilidades, the skill page.
+
+const TAB_TITLES: PackedStringArray = ["Características", "Habilidades"]
+const TAB_CHARACTERISTICS: int = 0
+const TAB_SKILLS: int = 1
 
 
 class Row:
@@ -14,19 +19,53 @@ class Row:
 
 
 var rows: Array[Row] = []
+var tab_buttons: Array[Button] = []
+var characteristics_page: VBoxContainer
+var skills_page: VBoxContainer
 
 var _session: GameSession
+var _tab_group: ButtonGroup = ButtonGroup.new()
 
 
 func bind(session: GameSession) -> void:
 	_session = session
+	var tab_row: HBoxContainer = HBoxContainer.new()
+	add_child(tab_row)
+	for index: int in TAB_TITLES.size():
+		var tab: Button = Button.new()
+		tab.text = TAB_TITLES[index]
+		tab.toggle_mode = true
+		tab.button_group = _tab_group
+		tab.theme_type_variation = GameTheme.TAB_BUTTON
+		tab.focus_mode = Control.FOCUS_NONE
+		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab.pressed.connect(func() -> void: select_tab(index))
+		tab_row.add_child(tab)
+		tab_buttons.append(tab)
+	characteristics_page = _page()
+	skills_page = _page()
 	_add_row("Ataque", session.attack_track, func() -> String: return NumberFormat.format(session.attack_track.value()))
 	_add_row("Vida", session.health_track, func() -> String: return NumberFormat.format(session.health_track.value()))
 	_add_row("Prob. crítico", session.crit_chance_track, func() -> String: return NumberFormat.decimal(session.crit_chance_track.rate() * 100.0, 1) + "%")
 	_add_row("Daño crítico", session.crit_damage_track, func() -> String: return "%d%%" % roundi(session.crit_damage_track.rate() * 100.0))
 	_add_row("Vel. ataque", session.attack_speed_track, func() -> String: return NumberFormat.decimal(session.attack_speed_track.rate(), 2) + "/s")
 	session.wallet.changed.connect(func(_currency: StringName, _total: BigNumber) -> void: _refresh())
+	select_tab(TAB_CHARACTERISTICS)
 	_refresh()
+
+
+func select_tab(index: int) -> void:
+	for tab: int in tab_buttons.size():
+		tab_buttons[tab].set_pressed_no_signal(tab == index)
+	characteristics_page.visible = index == TAB_CHARACTERISTICS
+	skills_page.visible = index == TAB_SKILLS
+
+
+func _page() -> VBoxContainer:
+	var page: VBoxContainer = VBoxContainer.new()
+	page.add_theme_constant_override("separation", get_theme_constant("separation"))
+	add_child(page)
+	return page
 
 
 func _add_row(title: String, track: UpgradeTrack, value_text: Callable) -> void:
@@ -48,7 +87,7 @@ func _add_row(title: String, track: UpgradeTrack, value_text: Callable) -> void:
 	box.add_child(row.label)
 	box.add_child(row.button)
 	card.add_child(box)
-	add_child(card)
+	characteristics_page.add_child(card)
 	rows.append(row)
 
 

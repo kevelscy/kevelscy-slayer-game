@@ -209,6 +209,41 @@ func _shown() -> Array[int]:
 	return shown
 
 
+## Owns and equips every skill, so the carousel tests see all six.
+func _equip_all() -> void:
+	for slot: SkillSlot in session.skills.slots:
+		slot.level = 1
+	session.skills.equip_owned()
+
+
+## skill-branches S4: the carousel shows only the equipped skills, in equipped order.
+func test_the_carousel_shows_only_the_equipped_skills_in_equipped_order() -> void:
+	panel.fit_cards(2000.0)
+	assert_eq(_shown(), [0], "only thunder is equipped")
+	session.skills.slots[4].level = 1
+	session.skills.equip(4)
+	session.skills.slots[2].level = 1
+	session.skills.equip(2)
+	assert_eq(_shown(), [0, 2, 4])
+	var order: Array[int] = []
+	for child: Node in panel.cards_row.get_children():
+		if child is VBoxContainer and (child as Control).visible:
+			order.append(panel.skill_columns.find(child))
+	assert_eq(order, [0, 4, 2], "cards follow the equipped order")
+	session.skills.unequip(0)
+	assert_eq(_shown(), [2, 4])
+	assert_false(panel.empty_hint.visible)
+
+
+func test_an_empty_carousel_points_to_the_skills_tab() -> void:
+	session.skills.unequip(0)
+	assert_eq(_shown(), [] as Array[int])
+	assert_true(panel.empty_hint.visible)
+	assert_eq(panel.empty_hint.text, "Equipa habilidades en Mejoras > Habilidades")
+	assert_true(panel.left_arrow.disabled)
+	assert_true(panel.right_arrow.disabled)
+
+
 func test_skills_sit_in_one_row_between_the_two_arrows() -> void:
 	var row: HBoxContainer = panel.carousel_row
 	assert_eq(row.get_child(0), panel.left_arrow)
@@ -221,6 +256,7 @@ func test_skills_sit_in_one_row_between_the_two_arrows() -> void:
 
 
 func test_the_row_shows_as_many_cards_as_fit_the_width() -> void:
+	_equip_all()
 	panel.fit_cards(720.0)
 	assert_eq(_shown(), [0, 1, 2, 3], "portrait width: four 128 px cards")
 	panel.fit_cards(400.0)
@@ -232,11 +268,13 @@ func test_the_row_shows_as_many_cards_as_fit_the_width() -> void:
 
 
 func test_resizing_the_panel_refits_the_cards() -> void:
+	_equip_all()
 	panel.size = Vector2(720.0, 300.0)
 	assert_eq(_shown(), [0, 1, 2, 3])
 
 
 func test_arrows_are_gold_and_grey_out_when_that_side_has_no_more_skills() -> void:
+	_equip_all()
 	panel.fit_cards(720.0)
 	assert_true(panel.left_arrow.disabled, "nothing to the left at the start")
 	assert_false(panel.right_arrow.disabled)
@@ -258,12 +296,14 @@ func test_arrows_are_gold_and_grey_out_when_that_side_has_no_more_skills() -> vo
 
 
 func test_both_arrows_grey_when_every_skill_fits() -> void:
+	_equip_all()
 	panel.fit_cards(2000.0)
 	assert_true(panel.left_arrow.disabled)
 	assert_true(panel.right_arrow.disabled)
 
 
 func test_widening_after_a_scroll_keeps_the_last_cards_in_view() -> void:
+	_equip_all()
 	panel.fit_cards(400.0)
 	for step: int in 4:
 		panel.right_arrow.pressed.emit()

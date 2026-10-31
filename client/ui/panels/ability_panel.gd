@@ -1,8 +1,9 @@
 class_name AbilityPanel
 extends VBoxContainer
-## Skill bar: one SkillCard per skill with its gold buy button under it, in a single
-## row carousel between two gold arrows, and the auto-cast toggle. The row shows as
-## many cards as fit the width; an arrow greys out when that side has no more skills.
+## Skill bar: one SkillCard per equipped skill with its gold buy button under it, in a
+## single row carousel between two gold arrows, and the auto-cast toggle. The row shows
+## the equipped skills in equipped order, as many as fit the width; an arrow greys out
+## when that side has no more skills.
 ## Built in code because every card comes from the ability catalog. Also owns the
 ## icon sheet helpers the spirit panel shares.
 
@@ -33,6 +34,8 @@ var carousel_row: HBoxContainer
 var cards_row: HBoxContainer
 var left_arrow: Button
 var right_arrow: Button
+## Shown instead of cards while no skill is equipped.
+var empty_hint: Label
 ## Carousel window: the first shown skill and how many fit.
 var first_shown: int = 0
 var shown_count: int = 1
@@ -43,6 +46,8 @@ var skill_icons: Array[Array] = []
 var autocast_toggle: CheckButton
 var _session: GameSession
 var _refresh_elapsed: float = 0.0
+## Width of the last fit, so equipping refits to the same room.
+var _fit_width: float = 0.0
 
 
 func bind(session: GameSession) -> void:
@@ -59,6 +64,12 @@ func bind(session: GameSession) -> void:
 	cards_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	cards_row.add_theme_constant_override("separation", CARD_SEPARATION)
 	carousel_row.add_child(cards_row)
+	empty_hint = Label.new()
+	empty_hint.theme_type_variation = GameTheme.CARD_TEXT
+	empty_hint.text = "Equipa habilidades en Mejoras > Habilidades"
+	empty_hint.custom_minimum_size.y = CARD_SIZE
+	empty_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	cards_row.add_child(empty_hint)
 	right_arrow = _arrow(false)
 	right_arrow.pressed.connect(func() -> void: scroll(1))
 	carousel_row.add_child(right_arrow)
@@ -85,17 +96,20 @@ func bind(session: GameSession) -> void:
 	autocast_toggle.button_pressed = session.skills.autocast_enabled
 	autocast_toggle.toggled.connect(_on_autocast_toggled)
 	add_child(autocast_toggle)
+	session.skills.equipment_changed.connect(_on_equipment_changed)
 	resized.connect(func() -> void: fit_cards(size.x))
 	fit_cards(size.x)
+	_on_equipment_changed()
 	refresh()
 
 
-## Shows as many skill cards as fit in width, always at least one, and keeps the
-## window inside the skill list.
+## Shows as many equipped skill cards as fit in width, always at least one, and keeps
+## the window inside the equipped list.
 func fit_cards(width: float) -> void:
+	_fit_width = width
 	var room: float = width - 2.0 * (ARROW_WIDTH + CARD_SEPARATION)
 	var fitting: int = floori((room + CARD_SEPARATION) / (CARD_SIZE + CARD_SEPARATION))
-	shown_count = clampi(fitting, 1, maxi(skill_columns.size(), 1))
+	shown_count = clampi(fitting, 1, maxi(_session.skills.equipped.size(), 1))
 	_show_window()
 
 
@@ -106,11 +120,23 @@ func scroll(step: int) -> void:
 
 
 func _show_window() -> void:
-	first_shown = clampi(first_shown, 0, maxi(skill_columns.size() - shown_count, 0))
-	for index: int in skill_columns.size():
-		skill_columns[index].visible = index >= first_shown and index < first_shown + shown_count
+	var equipped: Array[int] = _session.skills.equipped
+	first_shown = clampi(first_shown, 0, maxi(equipped.size() - shown_count, 0))
+	for column: VBoxContainer in skill_columns:
+		column.visible = false
+	for position: int in equipped.size():
+		skill_columns[equipped[position]].visible = position >= first_shown and position < first_shown + shown_count
+	empty_hint.visible = equipped.is_empty()
 	left_arrow.disabled = first_shown == 0
-	right_arrow.disabled = first_shown + shown_count >= skill_columns.size()
+	right_arrow.disabled = first_shown + shown_count >= equipped.size()
+
+
+## Puts the equipped columns first, in equipped order, then refits the window.
+func _on_equipment_changed() -> void:
+	var equipped: Array[int] = _session.skills.equipped
+	for position: int in equipped.size():
+		cards_row.move_child(skill_columns[equipped[position]], position)
+	fit_cards(_fit_width)
 
 
 func _arrow(points_left: bool) -> Button:
