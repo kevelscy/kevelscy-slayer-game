@@ -34,6 +34,21 @@ const NIGHT: Array[Color] = [Color(0.2, 0.16, 0.28), Color(0.11, 0.09, 0.16)]
 const BUTTON_PADDING: Vector2 = Vector2(14.0, 6.0)
 const CARD_PADDING: Vector2 = Vector2(16.0, 8.0)
 
+## The gold coin drawn next to every gold amount: 16 px art shown at 2x.
+const COIN_PATH: String = "res://art/icons/coin.png"
+const COIN_SIZE: int = 32
+
+static var _coin_textures: Dictionary[int, Texture2D] = {}
+
+
+## The coin scaled to `size_px` with nearest filtering, built once per size.
+static func coin_texture(size_px: int) -> Texture2D:
+	if not _coin_textures.has(size_px):
+		var image: Image = (load(COIN_PATH) as Texture2D).get_image()
+		image.resize(size_px, size_px, Image.INTERPOLATE_NEAREST)
+		_coin_textures[size_px] = ImageTexture.create_from_image(image)
+	return _coin_textures[size_px]
+
 
 static func build() -> Theme:
 	var theme: Theme = Theme.new()

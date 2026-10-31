@@ -1,7 +1,7 @@
 class_name UpgradePanel
 extends VBoxContainer
 ## One row per stat upgrade: name, level, current value and a buy button priced in
-## gold, or "Máx" once a capped track is complete.
+## gold (amount and coin), or "Máx" once a capped track is complete.
 
 
 class Row:
@@ -43,6 +43,7 @@ func _add_row(title: String, track: UpgradeTrack, value_text: Callable) -> void:
 	row.button = Button.new()
 	row.button.theme_type_variation = GameTheme.BUY_BUTTON
 	row.button.custom_minimum_size = Vector2(220.0, 60.0)
+	row.button.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.button.pressed.connect(func() -> void: _on_buy_pressed(track))
 	box.add_child(row.label)
 	box.add_child(row.button)
@@ -61,8 +62,10 @@ func _refresh() -> void:
 		row.label.text = "%s  Nv %d\n%s" % [row.title, row.track.level, row.value_text.call()]
 		if row.track.is_maxed():
 			row.button.text = "Máx"
+			row.button.icon = null
 			row.button.disabled = true
 			continue
 		var cost: BigNumber = row.track.next_cost()
 		row.button.text = "Mejorar %s" % NumberFormat.format(cost)
+		row.button.icon = GameTheme.coin_texture(GameTheme.COIN_SIZE)
 		row.button.disabled = not _session.wallet.can_afford(GameSession.GOLD, cost)

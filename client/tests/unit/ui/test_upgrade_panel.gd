@@ -59,3 +59,18 @@ func test_rows_are_framed_cards_with_buy_buttons() -> void:
 		var card: Control = row.button.get_parent().get_parent()
 		assert_true(card is PanelContainer)
 		assert_eq(card.theme_type_variation, GameTheme.CARD)
+
+
+func test_cost_buttons_show_the_gold_coin_after_the_amount() -> void:
+	for row: UpgradePanel.Row in panel.rows:
+		assert_same(row.button.icon, GameTheme.coin_texture(GameTheme.COIN_SIZE))
+		assert_eq(row.button.icon_alignment, HORIZONTAL_ALIGNMENT_RIGHT)
+
+
+func test_maxed_button_has_no_coin() -> void:
+	var saved: SaveData = SaveData.new()
+	saved.attack_speed_level = 75
+	session.apply_save(saved)
+	session.wallet.add(GameSession.GOLD, BigNumber.from_float(1.0))
+	assert_null(panel.rows[4].button.icon)
+	assert_not_null(panel.rows[0].button.icon)

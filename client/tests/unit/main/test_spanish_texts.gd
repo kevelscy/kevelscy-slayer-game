@@ -24,7 +24,9 @@ func _section_titles(panel: Node) -> Array[String]:
 func test_hud_shows_stage_gold_and_the_ascension_button_in_spanish() -> void:
 	main.hud._refresh()
 	assert_eq(main.hud.stage_label.text, "Etapa %d" % GameState.session.progression.stage)
-	assert_string_starts_with(main.hud.gold_label.text, "Oro ")
+	# The coin icon names the currency, so the label is only the amount.
+	assert_eq(main.hud.gold_label.text, NumberFormat.format(GameState.session.wallet.get_amount(GameSession.GOLD)))
+	assert_same(main.hud.gold_icon.texture, GameTheme.coin_texture(GameTheme.COIN_SIZE))
 	assert_eq(main.hud.ascension_button.text, "Ascensión")
 
 

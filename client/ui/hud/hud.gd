@@ -14,6 +14,7 @@ var _hero: Hero
 var _elapsed: float = 0.0
 
 @onready var stage_label: Label = $TopRow/StageLabel
+@onready var gold_icon: TextureRect = $TopRow/GoldIcon
 @onready var gold_label: Label = $TopRow/GoldLabel
 @onready var ascension_button: Button = $TopRow/AscensionButton
 @onready var sound_button: Button = $TopRow/SoundButton
@@ -23,6 +24,7 @@ var _elapsed: float = 0.0
 
 
 func _ready() -> void:
+	gold_icon.texture = GameTheme.coin_texture(GameTheme.COIN_SIZE)
 	sound_button.toggled.connect(_on_sound_toggled)
 	_refresh_sound_button()
 
@@ -64,7 +66,7 @@ func _refresh() -> void:
 		return
 	var progression: StageProgression = _session.progression
 	stage_label.text = "Etapa %d" % progression.stage
-	gold_label.text = "Oro %s" % NumberFormat.format(_session.wallet.get_amount(GameSession.GOLD))
+	gold_label.text = NumberFormat.format(_session.wallet.get_amount(GameSession.GOLD))
 	if progression.is_boss_active:
 		progress_bar.max_value = progression.boss_seconds
 		progress_bar.value = progression.boss_time_left
