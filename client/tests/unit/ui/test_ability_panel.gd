@@ -56,14 +56,26 @@ func test_clock_mask_is_the_grey_icon_swept_away_clockwise() -> void:
 	var mask: TextureProgressBar = _card(0).cooldown_mask
 	assert_eq(mask.fill_mode, TextureProgressBar.FILL_COUNTER_CLOCKWISE,
 		"the grey shrinks back counter-clockwise, so the cleared part grows like a clock hand")
-	assert_eq(mask.texture_progress, _card(0).silver_grey)
-	var grey: Image = _card(0).silver_grey.get_image()
+	assert_eq(mask.texture_progress, _card(0).cooldown_grey)
+	var grey: Image = _card(0).cooldown_grey.get_image()
 	var color: Image = (panel.skill_icons[0][AbilityPanel.SILVER] as Texture2D).get_image()
 	for point: Vector2i in [Vector2i(30, 30), Vector2i(48, 40), Vector2i(10, 70)]:
 		var pixel: Color = grey.get_pixelv(point)
 		assert_almost_eq(pixel.r, pixel.g, 0.01, "grey at %s" % point)
 		assert_almost_eq(pixel.g, pixel.b, 0.01, "grey at %s" % point)
 		assert_eq(pixel.a, color.get_pixelv(point).a)
+
+
+func test_the_cooldown_grey_is_darker_than_the_locked_grey() -> void:
+	assert_lte(SkillCard.COOLDOWN_BRIGHTNESS, 0.5, "dark enough to read over the art")
+	assert_eq(SkillCard.GREY_BRIGHTNESS, 0.75, "locked and unowned cards keep their grey")
+	var mask: Image = _card(0).cooldown_grey.get_image()
+	var locked: Image = _card(0).silver_grey.get_image()
+	var color: Image = (panel.skill_icons[0][AbilityPanel.SILVER] as Texture2D).get_image()
+	for point: Vector2i in [Vector2i(30, 30), Vector2i(48, 40), Vector2i(10, 70)]:
+		var luminance: float = color.get_pixelv(point).get_luminance()
+		assert_almost_eq(mask.get_pixelv(point).r, luminance * SkillCard.COOLDOWN_BRIGHTNESS, 0.01)
+		assert_almost_eq(locked.get_pixelv(point).r, luminance * SkillCard.GREY_BRIGHTNESS, 0.01)
 
 
 func test_card_art_fills_the_card_with_the_title_over_its_bottom() -> void:

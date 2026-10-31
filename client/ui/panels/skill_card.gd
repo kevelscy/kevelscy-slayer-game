@@ -13,8 +13,10 @@ const TITLE_OUTLINE: int = 6
 const TITLE_INSET: float = 6.0
 const TITLE_BAND_HEIGHT: float = 26.0
 const TITLE_BAND_COLOR: Color = Color(0.06, 0.03, 0.03, 0.65)
-## Grey cooldown art keeps this much of the icon's luminance.
+## Grey locked and unowned art keeps this much of the icon's luminance.
 const GREY_BRIGHTNESS: float = 0.75
+## The cooldown clock mask is darker, so the sweep reads clearly over the art.
+const COOLDOWN_BRIGHTNESS: float = 0.4
 
 var art: TextureRect
 ## Value 1 right after a cast and 0 when ready; draws the grey icon over that share.
@@ -24,12 +26,14 @@ var level_label: Label
 var silver: Texture2D
 var gold: Texture2D
 var silver_grey: Texture2D
+var cooldown_grey: Texture2D
 
 
 func _init(silver_art: Texture2D, gold_art: Texture2D) -> void:
 	silver = silver_art
 	gold = gold_art
 	silver_grey = grey(silver_art)
+	cooldown_grey = grey(silver_art, COOLDOWN_BRIGHTNESS)
 	custom_minimum_size = silver_art.get_size()
 	focus_mode = Control.FOCUS_NONE
 	for style: String in ["normal", "hover", "pressed", "disabled", "focus", "hover_pressed"]:
@@ -38,7 +42,7 @@ func _init(silver_art: Texture2D, gold_art: Texture2D) -> void:
 	art.texture = silver_art
 	add_child(_fill(art))
 	cooldown_mask = TextureProgressBar.new()
-	cooldown_mask.texture_progress = silver_grey
+	cooldown_mask.texture_progress = cooldown_grey
 	cooldown_mask.fill_mode = TextureProgressBar.FILL_COUNTER_CLOCKWISE
 	cooldown_mask.min_value = 0.0
 	cooldown_mask.max_value = 1.0
@@ -82,15 +86,15 @@ func show_cooldown(title: String, cooldown_ratio: float, level: int = 1) -> void
 	level_label.visible = true
 
 
-## The texture in greyscale and a little darker, alpha untouched.
-static func grey(texture: Texture2D) -> Texture2D:
+## The texture in greyscale scaled by brightness, alpha untouched.
+static func grey(texture: Texture2D, brightness: float = GREY_BRIGHTNESS) -> Texture2D:
 	# A copy: an ImageTexture can hand out its own stored image.
 	var image: Image = texture.get_image().duplicate() as Image
 	image.convert(Image.FORMAT_RGBA8)
 	for y: int in image.get_height():
 		for x: int in image.get_width():
 			var pixel: Color = image.get_pixel(x, y)
-			var level: float = pixel.get_luminance() * GREY_BRIGHTNESS
+			var level: float = pixel.get_luminance() * brightness
 			image.set_pixel(x, y, Color(level, level, level, pixel.a))
 	return ImageTexture.create_from_image(image)
 
