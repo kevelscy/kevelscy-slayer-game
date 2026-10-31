@@ -1,7 +1,8 @@
 class_name AbilityEffects
 extends Node2D
 ## Placeholder VFX drawn with primitives: lightning bolts, meteors, frost bursts,
-## wind slashes, thrown ice blocks, spirit shots, the hero's shield ring and heal crosses. Effects are short-lived and visual only.
+## wind slashes, thrown ice blocks, flame waves, thick barrage bolts, spirit shots, the
+## hero's shield ring and heal crosses. Effects are short-lived and visual only.
 
 const EFFECT_SECONDS: float = 0.35
 const SKY_Y: float = -10.0
@@ -11,6 +12,10 @@ const ICE_BLOCK_SIZE: float = 9.0
 ## Heal crosses rising around the hero while Curación lasts (palette Turquesa).
 const HEAL_COLOR: Color = Color8(19, 204, 189)
 const HEAL_CROSS_OFFSETS: Array[Vector2] = [Vector2(-12.0, -10.0), Vector2(12.0, -18.0), Vector2(-4.0, -30.0)]
+## Flame wave crescent, at hero chest height, in palette fire colors (Rojo vivo, Naranja 3, Amarillo vivo).
+const WAVE_Y: float = 154.0
+const WAVE_RADIUS: float = 18.0
+const WAVE_COLORS: Array[Color] = [Color8(244, 23, 11), Color8(244, 144, 6), Color8(253, 229, 4)]
 
 
 class Flash:
@@ -24,6 +29,8 @@ class Flash:
 
 var hero: Hero
 var _flashes: Array[Flash] = []
+## Owned by BattleWorld; drawn here while they cross the lane.
+var flame_waves: Array[FlameWave] = []
 
 
 func play_skill(skill: SkillDefinition, targets: Array[Vector2]) -> void:
@@ -66,6 +73,8 @@ func _draw() -> void:
 		draw_arc(hero.position + Vector2(0.0, -20.0), 22.0, 0.0, TAU, 32, Color(1.0, 0.85, 0.3, 0.8), 2.0)
 	if hero != null and hero.health.is_regenerating():
 		_draw_heal_crosses(hero.health.regen_seconds)
+	for wave: FlameWave in flame_waves:
+		_draw_flame_wave(wave.x)
 	for flash: Flash in _flashes:
 		var alpha: float = clampf(flash.ttl / EFFECT_SECONDS, 0.0, 1.0)
 		var color: Color = Color(flash.color, alpha)
@@ -82,17 +91,29 @@ func _draw() -> void:
 				draw_circle(flash.to, 16.0 * (1.5 - alpha), Color(color, alpha * 0.5))
 			SkillDefinition.Effect.DASH:
 				_draw_wind_slash(flash.to, color, 1.0 - alpha)
+			SkillDefinition.Effect.BARRAGE:
+				_draw_bolt(flash.from, flash.to, color, 4.0)
+				_draw_bolt(flash.from, flash.to, Color(Color.WHITE, alpha), 1.0)
 			SkillDefinition.Effect.THROW_FRONT:
 				_draw_ice_block(flash.from.lerp(flash.to + Vector2(0.0, -12.0), minf((1.0 - alpha) * 2.0, 1.0)), color)
 
 
-func _draw_bolt(from: Vector2, to: Vector2, color: Color) -> void:
+func _draw_bolt(from: Vector2, to: Vector2, color: Color, width: float = 2.0) -> void:
 	var points: PackedVector2Array = [from]
 	for step: int in range(1, 5):
 		var point: Vector2 = from.lerp(to, step / 5.0)
 		points.append(point + Vector2(6.0 if step % 2 == 0 else -6.0, 0.0))
 	points.append(to)
-	draw_polyline(points, color, 2.0)
+	draw_polyline(points, color, width)
+
+
+## A Getsuga-like crescent bulging forward: red rim, orange body, yellow core.
+func _draw_flame_wave(x: float) -> void:
+	var center: Vector2 = Vector2(x - WAVE_RADIUS, WAVE_Y)
+	var widths: Array[float] = [7.0, 4.0, 1.5]
+	for index: int in WAVE_COLORS.size():
+		var spread: float = PI * (0.4 - 0.05 * index)
+		draw_arc(center, WAVE_RADIUS - index, -spread, spread, 16, WAVE_COLORS[index], widths[index])
 
 
 ## A square block with a white top-left light and a dark outline.

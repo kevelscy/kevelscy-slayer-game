@@ -65,6 +65,6 @@ func test_skill_and_spirit_names_are_spanish() -> void:
 		names.append(spirit.display_name)
 	assert_eq(names, [
 		"Trueno", "Meteoro", "Ventisca", "Furia", "Escudo", "Viento", "Espada Veloz", "Bloque de Hielo", "Curación",
-		"Espada Ardiente",
+		"Espada Ardiente", "Onda de Llamas", "Tajo Relámpago",
 		"Fuego fatuo", "Zorro ígneo", "Búho de escarcha",
 	] as Array[String])

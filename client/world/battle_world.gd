@@ -23,6 +23,20 @@ const CHEST_PICKUP_RANGE: float = 8.0
 ## (background, enemies, chests) scrolls this fast extra until the front enemy
 ## reaches the hero. The hero keeps its lane spot and never comes back.
 const DASH_SECONDS: float = 0.3
+## Onda de Llamas speed: it crosses the 360 px lane in 1.5 s.
+const WAVE_SPEED: float = 240.0
+
+
+## Tajo Relámpago still striking: strikes left and seconds to the next one.
+class Barrage:
+	var skill: SkillDefinition
+	var hits_left: int
+	var next_hit: float
+
+	func _init(barrage_skill: SkillDefinition) -> void:
+		skill = barrage_skill
+		hits_left = roundi(skill.duration_seconds / skill.hit_interval_seconds) - 1
+		next_hit = skill.hit_interval_seconds
 
 ## Any damage an enemy takes: hero hits, skills and spirit shots.
 signal enemy_hit(result: DamageResult)
@@ -45,6 +59,9 @@ var _dash_speed: float = 0.0
 var _spirit_orbs: Dictionary[int, SpiritOrb] = {}
 ## Dropped chests still lying in the lane, oldest first.
 var chests: Array[ChestPickup] = []
+## Skills still at work after their cast; AbilityEffects draws the same wave array.
+var flame_waves: Array[FlameWave] = []
+var barrages: Array[Barrage] = []
 
 @onready var hero: Hero = $Hero
 @onready var enemy_pool: NodePool = $EnemyPool
@@ -55,6 +72,7 @@ var chests: Array[ChestPickup] = []
 func _ready() -> void:
 	effects.z_index = 10
 	effects.hero = hero
+	effects.flame_waves = flame_waves
 	add_child(effects)
 
 
@@ -94,6 +112,7 @@ func _process(delta: float) -> void:
 	hero.sprite.self_modulate = Color.WHITE if session.buffs.is_empty() else BUFF_TINT
 	_set_world_speed((RUN_SPEED if hero.is_running() else 0.0) + _dash_step_speed(delta))
 	_move_enemies(delta, enemies)
+	tick_skill_effects(delta)
 	_move_chests(delta)
 	_resolve_enemy_attacks(delta, enemies)
 
@@ -117,6 +136,11 @@ func resolve_skill(skill: SkillDefinition) -> void:
 			hero.health.set_shield(session.shield_amount(skill), skill.duration_seconds)
 		SkillDefinition.Effect.HEAL:
 			hero.health.heal_over_time(session.heal_amount(skill), skill.duration_seconds)
+		SkillDefinition.Effect.WAVE:
+			flame_waves.append(FlameWave.new(skill, hero.position.x + AbilityEffects.HAND_OFFSET.x))
+		SkillDefinition.Effect.BARRAGE:
+			targets = enemies
+			barrages.append(Barrage.new(skill))
 	var damage: BigNumber = session.skill_damage(skill)
 	var positions: Array[Vector2] = []
 	for enemy: Enemy in targets:
@@ -125,6 +149,35 @@ func resolve_skill(skill: SkillDefinition) -> void:
 		enemy.health.take_damage(DamageResult.new(damage, false))
 		if skill.effect == SkillDefinition.Effect.FREEZE_ALL:
 			enemy.freeze(skill.duration_seconds)
+	effects.play_skill(skill, positions)
+
+
+## Moves the flame waves and fires the barrage strikes that fall due.
+func tick_skill_effects(delta: float) -> void:
+	for wave: FlameWave in flame_waves.duplicate():
+		wave.x += WAVE_SPEED * delta
+		for enemy: Enemy in _alive_enemies_by_distance():
+			if enemy.position.x <= wave.x and not wave.hit.has(enemy):
+				wave.hit.append(enemy)
+				enemy.health.take_damage(DamageResult.new(session.skill_damage(wave.skill), false))
+		if wave.x > SPAWN_X:
+			flame_waves.erase(wave)
+	for barrage: Barrage in barrages.duplicate():
+		barrage.next_hit -= delta
+		while barrage.next_hit <= 1e-6 and barrage.hits_left > 0:
+			_strike_all(barrage.skill)
+			barrage.hits_left -= 1
+			barrage.next_hit += barrage.skill.hit_interval_seconds
+		if barrage.hits_left <= 0:
+			barrages.erase(barrage)
+
+
+func _strike_all(skill: SkillDefinition) -> void:
+	var damage: BigNumber = session.skill_damage(skill)
+	var positions: Array[Vector2] = []
+	for enemy: Enemy in _alive_enemies_by_distance():
+		positions.append(enemy.position)
+		enemy.health.take_damage(DamageResult.new(damage, false))
 	effects.play_skill(skill, positions)
 
 
@@ -187,6 +240,8 @@ func _restart_run() -> void:
 	for chest: ChestPickup in chests:
 		chest.queue_free()
 	chests.clear()
+	flame_waves.clear()
+	barrages.clear()
 	_dash_left = 0.0
 	hero.restart(session.hero_max_health())
 	_sync_spirit_orbs()

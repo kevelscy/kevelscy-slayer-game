@@ -7,7 +7,9 @@ extends Resource
 
 ## New effects go last: the catalog stores them as integers.
 ## THROW_FRONT hits the front enemy like DAMAGE_FRONT, thrown by the hero instead of falling.
-enum Effect { DAMAGE_ALL, DAMAGE_FRONT, FREEZE_ALL, BUFF, SHIELD, DASH, HEAL, THROW_FRONT }
+## WAVE crosses the lane and hits each enemy it reaches; BARRAGE strikes every enemy
+## each `hit_interval_seconds` for `duration_seconds`.
+enum Effect { DAMAGE_ALL, DAMAGE_FRONT, FREEZE_ALL, BUFF, SHIELD, DASH, HEAL, THROW_FRONT, WAVE, BARRAGE }
 ## Skill tree branch; BRANCH_NAMES holds the shown names in the same order.
 enum Branch { FIRE, ELECTRIC, ICE, BOOST, DEFENSIVE, AIR }
 
@@ -24,6 +26,8 @@ const LEVEL_POWER_STEP: float = 0.15
 @export var power: float = 1.0
 ## Freeze, buff, shield and heal length; ignored by pure damage skills.
 @export var duration_seconds: float = 0.0
+## Barrage: seconds between strikes, the first one on cast.
+@export var hit_interval_seconds: float = 0.0
 @export var color: Color = Color.WHITE
 ## Hero stats a buff raises by `power` percent; Furia raises attack and attack speed.
 @export var buff_stats: Array[StringName] = [StatBlock.ATTACK, StatBlock.ATTACK_SPEED]
@@ -45,4 +49,7 @@ func sound_id() -> StringName:
 
 ## Damage and freeze skills are wasted without an enemy to hit.
 func needs_target() -> bool:
-	return effect in [Effect.DAMAGE_ALL, Effect.DAMAGE_FRONT, Effect.FREEZE_ALL, Effect.DASH, Effect.THROW_FRONT]
+	return effect in [
+		Effect.DAMAGE_ALL, Effect.DAMAGE_FRONT, Effect.FREEZE_ALL, Effect.DASH, Effect.THROW_FRONT, Effect.WAVE,
+		Effect.BARRAGE,
+	]

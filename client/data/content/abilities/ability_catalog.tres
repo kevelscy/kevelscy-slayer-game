@@ -132,13 +132,40 @@ sound = &"meteor"
 base_cost = 38400.0
 
 [sub_resource type="Resource" id="Resource_y1wub"]
+script = ExtResource("2_3qjhl")
+id = &"flame_wave"
+display_name = "Onda de Llamas"
+effect = 8
+unlock_stage = 28
+cooldown_seconds = 16.0
+power = 12.0
+color = Color(0.95686275, 0.5647059, 0.023529412, 1)
+sound = &"meteor"
+base_cost = 76800.0
+
+[sub_resource type="Resource" id="Resource_7vakn"]
+script = ExtResource("2_3qjhl")
+id = &"thunder_slash"
+display_name = "Tajo Relámpago"
+effect = 9
+branch = 1
+unlock_stage = 32
+cooldown_seconds = 24.0
+power = 2.0
+duration_seconds = 4.0
+hit_interval_seconds = 0.4
+color = Color(0.9882353, 0.8117647, 0.2509804, 1)
+sound = &"thunder"
+base_cost = 153600.0
+
+[sub_resource type="Resource" id="Resource_unj4v"]
 script = ExtResource("3_l2ac6")
 id = &"wisp"
 display_name = "Fuego fatuo"
 unlock_stage = 2
 color = Color(0.07450981, 0.8, 0.7411765, 1)
 
-[sub_resource type="Resource" id="Resource_7vakn"]
+[sub_resource type="Resource" id="Resource_b7ogm"]
 script = ExtResource("3_l2ac6")
 id = &"ember_fox"
 display_name = "Zorro ígneo"
@@ -150,7 +177,7 @@ attack_interval_seconds = 4.0
 attack_power = 2.0
 color = Color(1, 0.55, 0.2, 1)
 
-[sub_resource type="Resource" id="Resource_unj4v"]
+[sub_resource type="Resource" id="Resource_q6gut"]
 script = ExtResource("3_l2ac6")
 id = &"frost_owl"
 display_name = "Búho de escarcha"
@@ -163,5 +190,5 @@ color = Color(0.7, 0.85, 1, 1)
 
 [resource]
 script = ExtResource("1_ua7em")
-skills = Array[ExtResource("2_3qjhl")]([SubResource("Resource_djlwg"), SubResource("Resource_15cle"), SubResource("Resource_ppcxk"), SubResource("Resource_6q7ef"), SubResource("Resource_xwe56"), SubResource("Resource_dy8vw"), SubResource("Resource_y45cc"), SubResource("Resource_hlbvy"), SubResource("Resource_cen6a"), SubResource("Resource_iwv7q")])
-spirits = Array[ExtResource("3_l2ac6")]([SubResource("Resource_y1wub"), SubResource("Resource_7vakn"), SubResource("Resource_unj4v")])
+skills = Array[ExtResource("2_3qjhl")]([SubResource("Resource_djlwg"), SubResource("Resource_15cle"), SubResource("Resource_ppcxk"), SubResource("Resource_6q7ef"), SubResource("Resource_xwe56"), SubResource("Resource_dy8vw"), SubResource("Resource_y45cc"), SubResource("Resource_hlbvy"), SubResource("Resource_cen6a"), SubResource("Resource_iwv7q"), SubResource("Resource_y1wub"), SubResource("Resource_7vakn")])
+spirits = Array[ExtResource("3_l2ac6")]([SubResource("Resource_unj4v"), SubResource("Resource_b7ogm"), SubResource("Resource_q6gut")])

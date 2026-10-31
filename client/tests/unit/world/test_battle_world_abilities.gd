@@ -235,6 +235,56 @@ func test_ice_block_hits_only_the_front_enemy() -> void:
 	assert_true(shot.from.distance_to(world.hero.position) < 40.0, "thrown from the hero, not the sky")
 
 
+## skill-branches S6.2: Onda de Llamas crosses the scene and hits each enemy it reaches once.
+func test_flame_wave_crosses_the_scene_hitting_each_enemy_once() -> void:
+	var skill: SkillDefinition = _skill(&"flame_wave")
+	assert_true(skill.needs_target())
+	world.resolve_skill(skill)
+	assert_eq(world.flame_waves.size(), 1)
+	assert_true(_lost(enemies[0]).is_zero(), "the wave has to travel first")
+	world.tick_skill_effects(0.1)
+	assert_true(_lost(enemies[0]).is_equal_approx(session.skill_damage(skill)), "the front enemy is reached first")
+	assert_true(_lost(enemies[2]).is_zero(), "the back enemy is still ahead of the wave")
+	for step: int in 30:
+		world.tick_skill_effects(0.1)
+	for enemy: Enemy in enemies:
+		assert_true(_lost(enemy).is_equal_approx(session.skill_damage(skill)), "one hit per enemy")
+	assert_true(world.flame_waves.is_empty(), "gone once it leaves the scene")
+
+
+func test_a_new_run_puts_out_the_flame_wave() -> void:
+	world.resolve_skill(_skill(&"flame_wave"))
+	world._restart_run()
+	assert_true(world.flame_waves.is_empty())
+
+
+## skill-branches S6.4: Tajo Relámpago strikes every enemy for 2x attack every 0.4 s for 4 s.
+func test_thunder_slash_strikes_every_enemy_every_0_4_s_for_4_s() -> void:
+	var skill: SkillDefinition = _skill(&"thunder_slash")
+	assert_true(skill.needs_target())
+	for enemy: Enemy in enemies:
+		enemy.health.setup(session.skill_damage(skill).mul_float(100.0))
+	world.resolve_skill(skill)
+	for enemy: Enemy in enemies:
+		assert_true(_lost(enemy).is_equal_approx(session.skill_damage(skill)), "the first strike lands on cast")
+	world.tick_skill_effects(0.3)
+	assert_true(_lost(enemies[0]).is_equal_approx(session.skill_damage(skill)), "no strike before 0.4 s")
+	world.tick_skill_effects(0.1)
+	for step: int in 8:
+		world.tick_skill_effects(0.4)
+	for enemy: Enemy in enemies:
+		assert_true(_lost(enemy).is_equal_approx(session.skill_damage(skill).mul_float(10.0)), "ten strikes in 4 s")
+	world.tick_skill_effects(2.0)
+	assert_true(_lost(enemies[0]).is_equal_approx(session.skill_damage(skill).mul_float(10.0)), "it stops after 4 s")
+	assert_true(world.barrages.is_empty())
+
+
+func test_a_new_run_stops_the_thunder_slash() -> void:
+	world.resolve_skill(_skill(&"thunder_slash"))
+	world._restart_run()
+	assert_true(world.barrages.is_empty())
+
+
 func test_shield_protects_the_hero() -> void:
 	var skill: SkillDefinition = _skill(&"shield")
 	world.resolve_skill(skill)

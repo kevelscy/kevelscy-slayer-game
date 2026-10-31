@@ -24,6 +24,10 @@ func _init() -> void:
 		_sound(_skill(&"heal", "Curación", SkillDefinition.Effect.HEAL, SkillDefinition.Branch.DEFENSIVE, 22, 30.0, 0.5, 4.0, Color8(19, 204, 189), 19200.0), &"shield"),
 		# skill-branches S6.1: +50% on the hero's own sword hits only.
 		_buff(_skill(&"burning_sword", "Espada Ardiente", SkillDefinition.Effect.BUFF, SkillDefinition.Branch.FIRE, 25, 25.0, 0.5, 10.0, Color8(240, 133, 13), 38400.0), [StatBlock.SWORD_DAMAGE], &"meteor"),
+		# skill-branches S6.2: a fire wave crossing the scene, 12x attack on each enemy it reaches.
+		_sound(_skill(&"flame_wave", "Onda de Llamas", SkillDefinition.Effect.WAVE, SkillDefinition.Branch.FIRE, 28, 16.0, 12.0, 0.0, Color8(244, 144, 6), 76800.0), &"meteor"),
+		# skill-branches S6.4: thick bolts on every enemy, 2x attack every 0.4 s for 4 s.
+		_strikes(_sound(_skill(&"thunder_slash", "Tajo Relámpago", SkillDefinition.Effect.BARRAGE, SkillDefinition.Branch.ELECTRIC, 32, 24.0, 2.0, 4.0, Color8(252, 207, 64), 153600.0), &"thunder"), 0.4),
 	]
 	catalog.spirits = [
 		_spirit(&"wisp", "Fuego fatuo", 2, StatBlock.ATTACK, StatModifier.Kind.PERCENT, 0.1, 3.0, 1.0, Color("#13ccbd")),
@@ -60,6 +64,11 @@ func _skill(
 func _buff(skill: SkillDefinition, stats: Array[StringName], sound: StringName) -> SkillDefinition:
 	skill.buff_stats = stats
 	return _sound(skill, sound)
+
+
+func _strikes(skill: SkillDefinition, interval: float) -> SkillDefinition:
+	skill.hit_interval_seconds = interval
+	return skill
 
 
 ## New skills borrow an existing cast sound until they get their own.
