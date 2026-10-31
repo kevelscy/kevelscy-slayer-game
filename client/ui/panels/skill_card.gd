@@ -1,0 +1,104 @@
+class_name SkillCard
+extends Button
+## One skill of the skill bar drawn as a card: the icon art fills it, the title sits
+## over its bottom edge, and the cooldown is a clock mask. Casting turns the whole
+## card grey and the grey is swept away clockwise until the skill is ready again.
+## Built in code; the button keeps the press handling and the disabled state.
+
+const TITLE_FONT_SIZE: int = 18
+const TITLE_OUTLINE: int = 6
+## Space left at the sides of the title band so it stays inside the metal frame.
+const TITLE_INSET: float = 6.0
+const TITLE_BAND_HEIGHT: float = 26.0
+const TITLE_BAND_COLOR: Color = Color(0.06, 0.03, 0.03, 0.65)
+## Grey cooldown art keeps this much of the icon's luminance.
+const GREY_BRIGHTNESS: float = 0.75
+
+var art: TextureRect
+## Value 1 right after a cast and 0 when ready; draws the grey icon over that share.
+var cooldown_mask: TextureProgressBar
+var title_label: Label
+var silver: Texture2D
+var gold: Texture2D
+var silver_grey: Texture2D
+
+
+func _init(silver_art: Texture2D, gold_art: Texture2D) -> void:
+	silver = silver_art
+	gold = gold_art
+	silver_grey = grey(silver_art)
+	custom_minimum_size = silver_art.get_size()
+	focus_mode = Control.FOCUS_NONE
+	for style: String in ["normal", "hover", "pressed", "disabled", "focus", "hover_pressed"]:
+		add_theme_stylebox_override(style, StyleBoxEmpty.new())
+	art = TextureRect.new()
+	art.texture = silver_art
+	add_child(_fill(art))
+	cooldown_mask = TextureProgressBar.new()
+	cooldown_mask.texture_progress = silver_grey
+	cooldown_mask.fill_mode = TextureProgressBar.FILL_COUNTER_CLOCKWISE
+	cooldown_mask.min_value = 0.0
+	cooldown_mask.max_value = 1.0
+	cooldown_mask.step = 0.0
+	add_child(_fill(cooldown_mask))
+	add_child(_title_band())
+
+
+## Locked: grey art and the unlock stage under the title.
+func show_locked(title: String, unlock_stage: int) -> void:
+	art.texture = silver_grey
+	cooldown_mask.value = 0.0
+	title_label.text = "%s\nEtapa %d" % [title, unlock_stage]
+
+
+## Unlocked: gold frame when ready, silver frame under the clock mask while cooling.
+func show_cooldown(title: String, cooldown_ratio: float) -> void:
+	art.texture = gold if cooldown_ratio <= 0.0 else silver
+	cooldown_mask.value = cooldown_ratio
+	title_label.text = title
+
+
+## The texture in greyscale and a little darker, alpha untouched.
+static func grey(texture: Texture2D) -> Texture2D:
+	# A copy: an ImageTexture can hand out its own stored image.
+	var image: Image = texture.get_image().duplicate() as Image
+	image.convert(Image.FORMAT_RGBA8)
+	for y: int in image.get_height():
+		for x: int in image.get_width():
+			var pixel: Color = image.get_pixel(x, y)
+			var level: float = pixel.get_luminance() * GREY_BRIGHTNESS
+			image.set_pixel(x, y, Color(level, level, level, pixel.a))
+	return ImageTexture.create_from_image(image)
+
+
+func _fill(control: Control) -> Control:
+	control.set_anchors_preset(Control.PRESET_FULL_RECT)
+	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return control
+
+
+func _title_band() -> Control:
+	var band: PanelContainer = PanelContainer.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = TITLE_BAND_COLOR
+	band.add_theme_stylebox_override("panel", style)
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	band.anchor_left = 0.0
+	band.anchor_right = 1.0
+	band.anchor_top = 1.0
+	band.anchor_bottom = 1.0
+	band.offset_left = TITLE_INSET
+	band.offset_right = -TITLE_INSET
+	band.offset_top = -TITLE_BAND_HEIGHT - TITLE_INSET
+	band.offset_bottom = -TITLE_INSET
+	band.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	title_label = Label.new()
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	title_label.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
+	title_label.add_theme_constant_override("outline_size", TITLE_OUTLINE)
+	title_label.add_theme_color_override("font_outline_color", GameTheme.TEXT_OUTLINE)
+	title_label.add_theme_color_override("font_color", GameTheme.TEXT)
+	title_label.add_theme_constant_override("line_spacing", -4)
+	band.add_child(title_label)
+	return band

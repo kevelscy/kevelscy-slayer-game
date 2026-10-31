@@ -1,16 +1,17 @@
 class_name AbilityPanel
 extends VBoxContainer
-## Skill bar: five cast buttons and the auto-cast toggle. Built in code because
-## every button comes from the ability catalog. Also owns the icon sheet helpers the
+## Skill bar: one SkillCard per skill and the auto-cast toggle. Built in code because
+## every card comes from the ability catalog. Also owns the icon sheet helpers the
 ## spirit panel shares.
 
 const REFRESH_SECONDS: float = 0.1
 ## Each skill and spirit icon sheet has two 32x32 frames: the silver frame, then the
-## gold one shown while the skill is ready or once the spirit is unlocked. Scaled 2x
-## with nearest filtering so the pixels stay square, and drawn above the text.
+## gold one shown while the skill is ready or once the spirit is unlocked. Scaled with
+## nearest filtering so the pixels stay square: 2x for spirits, 3x for skill cards.
 const ICON_PATH: String = "res://art/icons/skill_%s.png"
 const ICON_FRAME_SIZE: int = 32
 const ICON_SCALE: int = 2
+const CARD_SCALE: int = 3
 const SILVER: int = 0
 const GOLD: int = 1
 var skill_buttons: Array[Button] = []
@@ -27,13 +28,9 @@ func bind(session: GameSession) -> void:
 	var skill_row: HFlowContainer = HFlowContainer.new()
 	add_child(skill_row)
 	for index: int in session.skills.slots.size():
-		var button: Button = Button.new()
-		button.theme_type_variation = GameTheme.SKILL_BUTTON
-		button.custom_minimum_size = Vector2(140.0, 88.0)
-		skill_icons.append(icon_frames(ICON_PATH % session.skills.slots[index].definition.id))
-		button.icon = skill_icons[index][SILVER]
-		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		var frames: Array[Texture2D] = icon_frames(ICON_PATH % session.skills.slots[index].definition.id, CARD_SCALE)
+		skill_icons.append(frames)
+		var button: SkillCard = SkillCard.new(frames[SILVER], frames[GOLD])
 		button.pressed.connect(func() -> void: _on_skill_pressed(index))
 		skill_row.add_child(button)
 		skill_buttons.append(button)
@@ -57,16 +54,13 @@ func refresh() -> void:
 	var stage: int = _session.progression.stage
 	for index: int in skill_buttons.size():
 		var slot: SkillSlot = _session.skills.slots[index]
-		var button: Button = skill_buttons[index]
+		var card: SkillCard = skill_buttons[index] as SkillCard
 		var title: String = slot.definition.display_name
-		if not slot.is_unlocked(stage):
-			button.text = "%s\nEtapa %d" % [title, slot.definition.unlock_stage]
-		elif slot.cooldown_remaining > 0.0:
-			button.text = "%s\n%ds" % [title, ceili(slot.cooldown_remaining)]
+		if slot.is_unlocked(stage):
+			card.show_cooldown(title, slot.cooldown_ratio())
 		else:
-			button.text = title
-		button.disabled = not slot.is_ready(stage)
-		button.icon = skill_icons[index][GOLD if slot.is_ready(stage) else SILVER]
+			card.show_locked(title, slot.definition.unlock_stage)
+		card.disabled = not slot.is_ready(stage)
 	var autocast_unlocked: bool = _session.skills.is_autocast_unlocked(stage)
 	autocast_toggle.disabled = not autocast_unlocked
 	autocast_toggle.text = "Automático" if autocast_unlocked else (
@@ -75,12 +69,12 @@ func refresh() -> void:
 	autocast_toggle.set_pressed_no_signal(_session.skills.autocast_enabled)
 
 
-static func icon_frames(sheet_path: String) -> Array[Texture2D]:
+static func icon_frames(sheet_path: String, scale: int = ICON_SCALE) -> Array[Texture2D]:
 	var sheet: Image = (load(sheet_path) as Texture2D).get_image()
 	var frames: Array[Texture2D] = []
 	for frame: int in [SILVER, GOLD]:
 		var image: Image = sheet.get_region(Rect2i(frame * ICON_FRAME_SIZE, 0, ICON_FRAME_SIZE, ICON_FRAME_SIZE))
-		image.resize(ICON_FRAME_SIZE * ICON_SCALE, ICON_FRAME_SIZE * ICON_SCALE, Image.INTERPOLATE_NEAREST)
+		image.resize(ICON_FRAME_SIZE * scale, ICON_FRAME_SIZE * scale, Image.INTERPOLATE_NEAREST)
 		frames.append(ImageTexture.create_from_image(image))
 	return frames
 
