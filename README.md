@@ -90,20 +90,44 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
 
 ## Skills and spirits
 
-- Skill bar (6 slots): Thunder (stage 1), Meteor (3), Blizzard (5), Fury (8), Shield (12), Wind
-  (15). Wind dashes the hero forward to the nearest enemy for a sword stab: the camera follows, so
-  the whole lane scrolls toward the hero in 0.3 s and nothing comes back. A 5 s cooldown against
-  Thunder's 8 s, and 2.5x attack on one enemy against Thunder's 3x on all of them.
+- Twelve skills in six branches (`SkillDefinition.Branch`); power is a multiple of attack, or a
+  share for buffs and heals:
+
+  | Skill | Branch | Stage | First cost | Cooldown | Effect |
+  |---|---|---|---|---|---|
+  | Trueno | Eléctrico | 1 | 30 | 8 s | 3x on every enemy |
+  | Meteoro | Fuego | 3 | 150 | 12 s | 10x on the front enemy |
+  | Ventisca | Hielo | 5 | 300 | 15 s | 1.5x on every enemy, frozen 3 s |
+  | Furia | Incremento | 8 | 600 | 20 s | +50% attack and attack speed for 6 s |
+  | Escudo | Defensivo | 12 | 1.200 | 25 s | shield for 8 s |
+  | Viento | Aire | 15 | 2.400 | 5 s | dash to the nearest enemy, 2.5x stab |
+  | Espada Veloz | Incremento | 18 | 4.800 | 22 s | +40% attack speed for 8 s |
+  | Bloque de Hielo | Hielo | 20 | 9.600 | 10 s | ice block thrown at the front enemy, 8x |
+  | Curación | Defensivo | 22 | 19.200 | 30 s | heals 50% of max health over 4 s |
+  | Espada Ardiente | Fuego | 25 | 38.400 | 25 s | +50% sword (basic attack) damage for 10 s, the blade burns |
+  | Onda de Llamas | Fuego | 28 | 76.800 | 16 s | fire wave crossing the lane, 12x on each enemy it reaches |
+  | Tajo Relámpago | Eléctrico | 32 | 153.600 | 24 s | 2x on every enemy every 0.4 s for 4 s |
+
+  Wind dashes the hero forward for a sword stab: the camera follows, so the whole lane scrolls
+  toward the hero in 0.3 s and nothing comes back. The six newest skills borrow the sounds of
+  Furia, Ventisca, Escudo, Meteoro and Trueno (`SkillDefinition.sound`).
+- Up to 8 skills are equipped (`SkillBar.EQUIP_LIMIT`); only equipped skills show in the top
+  carousel, cast and auto-cast. `Mejoras` has two tabs: `Características` (the stat upgrades)
+  and `Habilidades`, every skill grouped by branch with an `Equipar`/`Quitar` button and its
+  level button; unbought or unequipped skills are grey. A newly bought skill equips itself when
+  a slot is free. The equipped ids are saved (`equipped`); an older save equips the first 8
+  bought skills in catalog order.
 - Each skill is a card: its art fills the card, the name sits over the bottom and `Nv N` shows its
   level. After a cast the card turns grey and a clock mask sweeps the grey away as it cools down.
-  A skill not bought yet stays grey, and `Stage N` shows while its stage is not reached.
+  A skill not bought yet stays grey, and `Stage N` shows while its stage is not reached. A long
+  name shrinks its font (down to 11 px) to fit the card.
 - The 128 px cards sit in one row carousel showing as many as fit the width (4 in portrait). Gold
   arrows at both ends scroll it one skill at a time; an arrow turns grey when that side has no more
   skills.
 - Skills are bought with gold from the coin button under each card: the first level needs the
   unlock stage, then every level costs 1.35x more and adds 15% of the base power. Levels are saved
-  and kept on ascension. Damage skills need an enemy in front of the hero; Fury and Shield cast any
-  time.
+  and kept on ascension. Damage skills need an enemy in front of the hero; buffs, Shield and
+  Curación cast any time.
 - Auto-cast unlocks at stage 10. The `Auto-cast` toggle then fires every ready skill during
   combat; it is not saved and starts on after a restart.
 - Spirits (3 slots): Wisp (stage 2, +10% attack), Ember Fox (stage 6, +5% crit chance), Frost Owl
