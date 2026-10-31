@@ -30,10 +30,10 @@ Out of scope (L1/L2): map change every 10 stages ("luego haremos"), hero XP, iPh
 
 ## Tasks
 
-- [ ] T1 S4 S10 gold coin icon (art/icons/coin.png) shown in the HUD gold counter and stat upgrade costs — inline — commit:
-- [ ] T2 S5 skill card: icon fills the card, title over the bottom, radial clock cooldown mask instead of seconds — inline — commit:
-- [ ] T3 S6 random waves of up to 6 enemies, tight or spread, +25% health and gold — inline — commit:
-- [ ] T4 S7 S9 S4 skills bought and leveled with gold, kept on ascension, saved (backward-compatible save) — inline — commit:
+- [x] T1 S4 S10 gold coin icon (art/icons/coin.png) shown in the HUD gold counter and stat upgrade costs — inline — commit: c91770d
+- [x] T2 S5 skill card: icon fills the card, title over the bottom, radial clock cooldown mask instead of seconds — inline — commit: 39a7a5f
+- [x] T3 S6 random waves of up to 6 enemies, tight or spread, +25% health and gold — inline — commit: c3f4325
+- [x] T4 S7 S9 S4 skills bought and leveled with gold, kept on ascension, saved (backward-compatible save) — inline — commit: 78f4d4f, 52517c9
 - [ ] T5 S8 S10 wind skill: dash-stab to the nearest enemy, icon, catalog entry — inline — commit:
 - [ ] T6 S1 S2 S3 chest core: drop roll, rarity table, rewards, gold multiplier rule, tests — inline — commit:
 - [ ] T7 S1 S3 S10 chest pickup in the lane, roulette overlay, chest and reward icons — inline — commit:
@@ -44,3 +44,11 @@ Out of scope (L1/L2): map change every 10 stages ("luego haremos"), hero XP, iPh
 - L2 (user answers) XP: "Ambos: oro ahora, XP después"; chests: "Sí, usá la propuesta"; skills: "Oro, y se conservan al ascender"; waves: "Un poco más de vida y de oro".
 - L3 Plan: T2 and T3 run as parallel background workers (disjoint surfaces: skill card UI vs spawning/world); T1 coin art inline meanwhile. T4 waits for T2 (same panel), T6 for T3 (both touch GameSession gold).
 - L4 Both background workers (T2 mvvpc725-1-i3ak, T3 mvvpc72c-2-pxnh) failed at start with "assistant reported an error" (0 tool calls, nothing written). Not retried: T2 and T3 move inline, done sequentially after T1.
+- L5 T1 coin.png 16x16 (164 px, palette-only, no semi-transparent px), coin.pxo; GameTheme.coin_texture(32) nearest 2x; HUD GoldIcon + amount without "Oro"; upgrade buttons coin on the right, none on Máx. RED (parse error, missing API) → GREEN 490/490. Screenshot .tmp/shot/coin_240.png.
+- L6 (user) "para, se acaba la ventana de contexto, guarda todo en engram status actual y pendientes, retomamos en la siguiente sesion". T2 state: code done, UNCOMMITTED (client/ui/panels/skill_card.gd new, ability_panel.gd, tests/unit/ui/test_ability_panel.gd); RED (SkillCard missing) → GREEN 489/489; screenshots .tmp/shot/card_240.png, card_400.png (+ _crop) taken but NOT reviewed yet.
+- L7 Resume (2026-10-30): card_400_crop.png reviewed (icon fills the 96x96 card, title band over the bottom, no seconds); suite 489/489; T2 committed 39a7a5f.
+- L8 T3: SpawnScheduler Order.WAVE (WAVE_SIZE 6, wave_roll < wave_chance on a due regular spawn, not at cap or with a boss alive); GameSession WAVE_CHANCE 0.08, WAVE_HEALTH/GOLD_MULTIPLIER 1.25, on_enemy_killed(was_boss, gold_multiplier = 1.0); BattleWorld._spawn_wave tight (20 px) or spread (36-80 px) at random; Enemy.gold_multiplier. Offline gold unchanged (waves are online only). RED (missing API) → GREEN 499/499.
+- L9 T4 core: 78f4d4f (save format + server contract, own commit). SkillSlot.level (0 = not bought), can_buy(stage) (first level needs unlock_stage, later levels any stage), cost() = base_cost * cost_growth^level, is_ready() = owned and cooled; SkillBar.try_cast(slot, has_target) (stage param dropped), try_buy, levels/set_levels/level_of, grant_reached, signal leveled_up; SkillDefinition LEVEL_POWER_STEP 0.15, power_at(level), base_cost (thunder 30, meteor 150, blizzard 300, fury 600, shield 1200), cost_growth 1.35; GameSession.try_buy_skill, skill power by level, levels kept on ascend; SaveCodec VERSION 4 with `skills` object, SaveData.has_skill_levels false for v1-3 → apply_save grants level 1 to skills the saved stage reached. Server migration 20261030120000_save_skill_levels.sql (accepts v3 and v4, v4 requires skills, save_version = pushed version), applied locally with `supabase migration up`; pgTAP 45/45; client 516/516. gentle_review assess: native medium, reviewDue false (no review, no verifier).
+- L10 T4 UI (UNCOMMITTED, GREEN 521/521): ability_panel.gd buy_buttons (BuyButton, coin 20 px right, cost text, disabled without gold or before stage), column card + buy; skill_card.gd level_label "Nv N" top-left, show_unowned(title). Screenshot NOT taken yet. Note: coin 16 px resized to 20 px is a non-integer nearest scale (uneven pixels) — consider 16 or 32.
+- L11 (user) "para, se acaba la ventana de contexto, guarda todo en engram status actual y pendientes, retomamos en la siguiente sesion".
+- L12 Resume (2026-10-30): buy coin set to 16 px (native, integer scale) instead of 20; suite 521/521; screenshot .tmp/shot/t4_400.png (save v4, stage 12, thunder 3, meteor 1) reviewed: level badge, clock mask, greyed unowned cards with titles, buy buttons with cost + coin (thunder 73 = 30*1.35^3).
