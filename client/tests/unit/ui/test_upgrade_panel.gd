@@ -46,6 +46,11 @@ func test_picking_a_tab_shows_only_its_page() -> void:
 	assert_false(panel.skills_page.visible)
 
 
+func test_the_skills_tab_holds_the_skill_tree() -> void:
+	assert_eq(panel.skill_tree.get_parent(), panel.skills_page)
+	assert_eq(panel.skill_tree.branch_boxes.size(), SkillDefinition.BRANCH_NAMES.size(), "bound to the session")
+
+
 func test_lists_every_stat_with_level_and_value() -> void:
 	assert_eq(_labels(), [
 		"Ataque  Nv 0\n10",

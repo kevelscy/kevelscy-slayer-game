@@ -52,7 +52,9 @@ func test_offline_toast_welcomes_the_player_back_in_spanish() -> void:
 func test_section_titles_are_spanish() -> void:
 	assert_eq(_section_titles(main.ability_panel), ["Habilidades"] as Array[String])
 	assert_eq(_section_titles(main.spirit_panel), ["Espíritus"] as Array[String])
-	assert_eq(_section_titles(main.upgrade_panel), ["Mejoras"] as Array[String])
+	assert_eq(_section_titles(main.upgrade_panel), [
+		"Mejoras", "Fuego", "Eléctrico", "Hielo", "Incremento", "Defensivo", "Aire",
+	] as Array[String], "skill branches sit in the Habilidades tab")
 
 
 func test_skill_and_spirit_names_are_spanish() -> void:

@@ -22,6 +22,7 @@ var rows: Array[Row] = []
 var tab_buttons: Array[Button] = []
 var characteristics_page: VBoxContainer
 var skills_page: VBoxContainer
+var skill_tree: SkillTreePanel
 
 var _session: GameSession
 var _tab_group: ButtonGroup = ButtonGroup.new()
@@ -44,6 +45,9 @@ func bind(session: GameSession) -> void:
 		tab_buttons.append(tab)
 	characteristics_page = _page()
 	skills_page = _page()
+	skill_tree = SkillTreePanel.new()
+	skills_page.add_child(skill_tree)
+	skill_tree.bind(session)
 	_add_row("Ataque", session.attack_track, func() -> String: return NumberFormat.format(session.attack_track.value()))
 	_add_row("Vida", session.health_track, func() -> String: return NumberFormat.format(session.health_track.value()))
 	_add_row("Prob. crítico", session.crit_chance_track, func() -> String: return NumberFormat.decimal(session.crit_chance_track.rate() * 100.0, 1) + "%")
