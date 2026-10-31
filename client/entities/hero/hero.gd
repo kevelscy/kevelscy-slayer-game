@@ -11,6 +11,11 @@ const ATTACK_RANGE: float = 30.0
 const DASH_SECONDS: float = 0.3
 ## Stops the stab this far short of the enemy center, sword tip on its body.
 const DASH_STOP_SHORT: float = 14.0
+## An enemy hit turns the hero a bit red and knocks the sprite back to the left; both
+## ease back over HURT_SECONDS. The hero itself keeps its lane spot.
+const HURT_SECONDS: float = 0.3
+const HURT_KNOCKBACK: float = 6.0
+const HURT_TINT: Color = Color(1.0, 0.45, 0.45)
 
 @export var animation_set: AnimationSet
 
@@ -20,6 +25,7 @@ var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var _dash_left: float = 0.0
 var _dash_reach: float = 0.0
+var _hurt_left: float = 0.0
 var _sprite_home: Vector2
 
 @onready var sprite: AnimatedSprite2D = $Sprite
@@ -34,6 +40,7 @@ func _ready() -> void:
 	sprite.sprite_frames = SpriteFramesBuilder.build(animation_set.sheets)
 	sprite.animation_finished.connect(_on_animation_finished)
 	health.died.connect(_on_died)
+	health.damaged.connect(_on_damaged)
 
 
 func setup(hero_stats: StatBlock, max_health: BigNumber) -> void:
@@ -45,12 +52,22 @@ func setup(hero_stats: StatBlock, max_health: BigNumber) -> void:
 
 
 func _process(delta: float) -> void:
-	if _dash_left <= 0.0:
+	if _dash_left <= 0.0 and _hurt_left <= 0.0:
 		return
 	_dash_left = maxf(_dash_left - delta, 0.0)
-	var progress: float = 1.0 - _dash_left / DASH_SECONDS
-	var offset: float = _dash_reach * sin(PI * progress) if _dash_left > 0.0 else 0.0
+	_hurt_left = maxf(_hurt_left - delta, 0.0)
+	_place_sprite()
+
+
+func _place_sprite() -> void:
+	var offset: float = 0.0
+	if _dash_left > 0.0:
+		offset += _dash_reach * sin(PI * (1.0 - _dash_left / DASH_SECONDS))
+	var hurt_progress: float = 1.0 - _hurt_left / HURT_SECONDS
+	if _hurt_left > 0.0:
+		offset -= HURT_KNOCKBACK * sin(PI * hurt_progress)
 	sprite.position = _sprite_home + Vector2(offset, 0.0)
+	modulate = HURT_TINT.lerp(Color.WHITE, hurt_progress) if _hurt_left > 0.0 else Color.WHITE
 
 
 ## Lunges the sprite to `target_x` (world x) with a sword stab, then back.
@@ -63,6 +80,10 @@ func dash_to(target_x: float) -> void:
 
 func is_dashing() -> bool:
 	return _dash_left > 0.0
+
+
+func is_hurt() -> bool:
+	return _hurt_left > 0.0
 
 
 func is_running() -> bool:
@@ -98,6 +119,8 @@ func revive() -> void:
 func restart(new_max_health: BigNumber) -> void:
 	health.max_health = new_max_health
 	revive()
+	_hurt_left = 0.0
+	_place_sprite()
 	state_machine.transition_to(&"Run")
 
 
@@ -110,7 +133,16 @@ func _on_animation_finished() -> void:
 		sprite.play(&"idle")
 
 
+func _on_damaged(_result: DamageResult) -> void:
+	if health.is_dead():
+		return
+	_hurt_left = HURT_SECONDS
+	_place_sprite()
+
+
 func _on_died() -> void:
+	_hurt_left = 0.0
+	_place_sprite()
 	target = null
 	state_machine.transition_to(&"Dead")
 	died.emit()
