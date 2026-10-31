@@ -2,7 +2,7 @@ class_name SkillDefinition
 extends Resource
 ## One active skill of the skill bar. `power` reads per effect: a multiple of hero
 ## attack for damage skills, a percent bonus (0.5 = +50%) for buffs and a fraction
-## of max health for shields. A dash (wind) stabs the nearest enemy. Skills are bought with gold and leveled: each level
+## of max health for shields. A dash (wind) carries the hero forward to stab the nearest enemy. Skills are bought with gold and leveled: each level
 ## above the first adds LEVEL_POWER_STEP of the base power.
 
 ## New effects go last: the catalog stores them as integers.

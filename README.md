@@ -89,11 +89,15 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
 ## Skills and spirits
 
 - Skill bar (6 slots): Thunder (stage 1), Meteor (3), Blizzard (5), Fury (8), Shield (12), Wind
-  (15). Wind dashes the hero to the nearest enemy for a sword stab: a 5 s cooldown against
+  (15). Wind dashes the hero forward to the nearest enemy for a sword stab: the camera follows, so
+  the whole lane scrolls toward the hero in 0.3 s and nothing comes back. A 5 s cooldown against
   Thunder's 8 s, and 2.5x attack on one enemy against Thunder's 3x on all of them.
 - Each skill is a card: its art fills the card, the name sits over the bottom and `Nv N` shows its
   level. After a cast the card turns grey and a clock mask sweeps the grey away as it cools down.
   A skill not bought yet stays grey, and `Stage N` shows while its stage is not reached.
+- The 128 px cards sit in one row carousel showing as many as fit the width (4 in portrait). Gold
+  arrows at both ends scroll it one skill at a time; an arrow turns grey when that side has no more
+  skills.
 - Skills are bought with gold from the coin button under each card: the first level needs the
   unlock stage, then every level costs 1.35x more and adds 15% of the base power. Levels are saved
   and kept on ascension. Damage skills need an enemy in front of the hero; Fury and Shield cast any

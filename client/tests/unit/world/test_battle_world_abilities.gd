@@ -61,27 +61,76 @@ func test_wind_dash_hits_only_the_nearest_enemy() -> void:
 	assert_true(_lost(enemies[2]).is_zero())
 
 
-func test_wind_dash_lunges_the_hero_to_the_enemy_and_back() -> void:
+func _dash_setup() -> float:
+	session.skills.autocast_enabled = false
 	for index: int in enemies.size():
 		enemies[index].position.x = 200.0 + 40.0 * index
+	return world.hero.position.x + Hero.ATTACK_RANGE * 0.5 + enemies[0].body_half_width()
+
+
+func _front_layer_speed() -> float:
+	var layers: Array[Node] = world.background.get_children()
+	return -(layers.back() as Parallax2D).autoscroll.x
+
+
+## S4: the hero dashes forward and the camera follows, so the whole world scrolls
+## toward it; the hero keeps its lane spot and never comes back.
+func test_wind_dash_scrolls_the_world_until_the_front_enemy_reaches_the_hero() -> void:
+	var contact_x: float = _dash_setup()
 	var home: Vector2 = world.hero.position
 	var sprite_home: Vector2 = world.hero.sprite.position
+	var distance: float = 200.0 - contact_x
 	world.resolve_skill(_skill(&"wind"))
-	assert_true(world.hero.is_dashing())
-	world.hero._process(Hero.DASH_SECONDS * 0.5)
-	var reach: float = enemies[0].position.x - home.x
-	assert_gt(world.hero.sprite.position.x - sprite_home.x, reach * 0.5, "the stab reaches the enemy")
-	world.hero._process(Hero.DASH_SECONDS)
-	assert_false(world.hero.is_dashing())
-	assert_eq(world.hero.sprite.position, sprite_home, "back in place")
-	assert_eq(world.hero.position, home, "the lane never moves")
+	assert_true(world.is_dashing())
+	assert_eq(world.hero.sprite.animation, &"attack", "sword stab")
+	world._process(BattleWorld.DASH_SECONDS * 0.5)
+	assert_lte(enemies[1].position.x, 240.0 - distance * 0.5 + 0.001, "half the dash done")
+	assert_eq(world.hero.sprite.position, sprite_home, "the sprite does not lunge")
+	world._process(BattleWorld.DASH_SECONDS * 0.5)
+	assert_false(world.is_dashing())
+	assert_almost_eq(enemies[0].position.x, contact_x, 0.001, "front enemy at the hero")
+	assert_lte(enemies[1].position.x, 240.0 - distance + 0.001, "the rest of the world moved as far")
+	assert_eq(world.hero.position, home, "the hero keeps its lane spot")
+	assert_eq(world.hero.sprite.position, sprite_home)
+
+
+func test_wind_dash_scrolls_the_background_with_it_then_back_to_the_normal_speed() -> void:
+	var contact_x: float = _dash_setup()
+	var base: float = BattleWorld.RUN_SPEED if world.hero.is_running() else 0.0
+	world.resolve_skill(_skill(&"wind"))
+	world._process(0.05)
+	var dash_speed: float = (200.0 - contact_x) / BattleWorld.DASH_SECONDS
+	assert_almost_eq(_front_layer_speed(), base + dash_speed, 0.01)
+	world._process(BattleWorld.DASH_SECONDS)
+	assert_false(world.is_dashing())
+	world._process(0.05)
+	assert_lte(_front_layer_speed(), BattleWorld.RUN_SPEED, "no dash speed left, never a return")
+	assert_gte(_front_layer_speed(), 0.0, "never scrolls back")
+
+
+func test_wind_dash_never_brings_the_world_back() -> void:
+	_dash_setup()
+	world.resolve_skill(_skill(&"wind"))
+	world._process(BattleWorld.DASH_SECONDS)
+	var after_dash: float = enemies[2].position.x
+	world._process(0.2)
+	assert_lte(enemies[2].position.x, after_dash, "no return")
+
+
+func test_wind_dash_runs_over_a_chest_in_its_way() -> void:
+	_dash_setup()
+	watch_signals(world)
+	world._drop_chest(world.hero.position.x + 40.0)
+	world.resolve_skill(_skill(&"wind"))
+	world._process(BattleWorld.DASH_SECONDS)
+	assert_signal_emit_count(world, "chest_picked", 1)
 
 
 func test_wind_without_enemies_does_not_dash() -> void:
 	for enemy: Enemy in enemies:
 		enemy.vanish()
 	world.resolve_skill(_skill(&"wind"))
-	assert_false(world.hero.is_dashing())
+	assert_false(world.is_dashing())
 
 
 func test_blizzard_damages_and_freezes_every_enemy() -> void:

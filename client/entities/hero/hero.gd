@@ -6,11 +6,6 @@ signal died
 signal respawned
 
 const ATTACK_RANGE: float = 30.0
-## Wind dash: the sprite lunges to the enemy and back; the hero itself never leaves
-## its lane spot, so targeting and enemy contact stay the same.
-const DASH_SECONDS: float = 0.3
-## Stops the stab this far short of the enemy center, sword tip on its body.
-const DASH_STOP_SHORT: float = 14.0
 ## An enemy hit turns the hero a bit red and knocks the sprite back to the left; both
 ## ease back over HURT_SECONDS. The hero itself keeps its lane spot.
 const HURT_SECONDS: float = 0.3
@@ -23,8 +18,6 @@ var stats: StatBlock
 var target: Enemy
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
-var _dash_left: float = 0.0
-var _dash_reach: float = 0.0
 var _hurt_left: float = 0.0
 var _sprite_home: Vector2
 
@@ -52,17 +45,14 @@ func setup(hero_stats: StatBlock, max_health: BigNumber) -> void:
 
 
 func _process(delta: float) -> void:
-	if _dash_left <= 0.0 and _hurt_left <= 0.0:
+	if _hurt_left <= 0.0:
 		return
-	_dash_left = maxf(_dash_left - delta, 0.0)
 	_hurt_left = maxf(_hurt_left - delta, 0.0)
 	_place_sprite()
 
 
 func _place_sprite() -> void:
 	var offset: float = 0.0
-	if _dash_left > 0.0:
-		offset += _dash_reach * sin(PI * (1.0 - _dash_left / DASH_SECONDS))
 	var hurt_progress: float = 1.0 - _hurt_left / HURT_SECONDS
 	if _hurt_left > 0.0:
 		offset -= HURT_KNOCKBACK * sin(PI * hurt_progress)
@@ -70,16 +60,11 @@ func _place_sprite() -> void:
 	modulate = HURT_TINT.lerp(Color.WHITE, hurt_progress) if _hurt_left > 0.0 else Color.WHITE
 
 
-## Lunges the sprite to `target_x` (world x) with a sword stab, then back.
-func dash_to(target_x: float) -> void:
-	_dash_reach = maxf(target_x - position.x - DASH_STOP_SHORT, 0.0)
-	_dash_left = DASH_SECONDS
+## Wind dash sword stab; BattleWorld scrolls the world so the hero dashes forward
+## while keeping its lane spot.
+func stab() -> void:
 	sprite.stop()
 	sprite.play(&"attack")
-
-
-func is_dashing() -> bool:
-	return _dash_left > 0.0
 
 
 func is_hurt() -> bool:

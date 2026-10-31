@@ -19,6 +19,10 @@ const BUFF_TINT: Color = Color(1.4, 0.75, 0.7)
 const DAMAGE_NUMBER_GAP: float = 2.0
 ## The hero picks up a chest once it is this close in front of it.
 const CHEST_PICKUP_RANGE: float = 8.0
+## Wind dash: the hero dashes forward and the camera follows it, so the whole world
+## (background, enemies, chests) scrolls this fast extra until the front enemy
+## reaches the hero. The hero keeps its lane spot and never comes back.
+const DASH_SECONDS: float = 0.3
 
 ## Any damage an enemy takes: hero hits, skills and spirit shots.
 signal enemy_hit(result: DamageResult)
@@ -36,6 +40,8 @@ var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var effects: AbilityEffects = AbilityEffects.new()
 
 var _world_speed: float = -1.0
+var _dash_left: float = 0.0
+var _dash_speed: float = 0.0
 var _spirit_orbs: Dictionary[int, SpiritOrb] = {}
 ## Dropped chests still lying in the lane, oldest first.
 var chests: Array[ChestPickup] = []
@@ -84,7 +90,7 @@ func _process(delta: float) -> void:
 	hero.target = null if enemies.is_empty() or hero.health.is_dead() else enemies[0]
 	session.tick_combat(delta, hero.target != null)
 	hero.sprite.self_modulate = Color.WHITE if session.buffs.is_empty() else BUFF_TINT
-	_set_world_speed(RUN_SPEED if hero.is_running() else 0.0)
+	_set_world_speed((RUN_SPEED if hero.is_running() else 0.0) + _dash_step_speed(delta))
 	_move_enemies(delta, enemies)
 	_move_chests(delta)
 	_resolve_enemy_attacks(delta, enemies)
@@ -102,7 +108,7 @@ func resolve_skill(skill: SkillDefinition) -> void:
 		SkillDefinition.Effect.DASH:
 			if not enemies.is_empty():
 				targets = [enemies[0]]
-				hero.dash_to(enemies[0].position.x)
+				_start_dash(enemies[0])
 		SkillDefinition.Effect.BUFF:
 			session.activate_buff(skill)
 		SkillDefinition.Effect.SHIELD:
@@ -110,7 +116,8 @@ func resolve_skill(skill: SkillDefinition) -> void:
 	var damage: BigNumber = session.skill_damage(skill)
 	var positions: Array[Vector2] = []
 	for enemy: Enemy in targets:
-		positions.append(enemy.position)
+		# The dash slash lands where the world brings the enemy: at the hero.
+		positions.append(enemy.position - Vector2(_dash_speed * _dash_left, 0.0))
 		enemy.health.take_damage(DamageResult.new(damage, false))
 		if skill.effect == SkillDefinition.Effect.FREEZE_ALL:
 			enemy.freeze(skill.duration_seconds)
@@ -125,6 +132,27 @@ func resolve_spirit_attack(slot_index: int, spirit: SpiritDefinition) -> void:
 	front.health.take_damage(DamageResult.new(session.spirit_damage(spirit), false))
 	var from: Vector2 = _spirit_orbs[slot_index].position if _spirit_orbs.has(slot_index) else hero.position
 	effects.play_spirit_shot(from, front.position + Vector2(0.0, -10.0), spirit.color)
+
+
+func is_dashing() -> bool:
+	return _dash_left > 0.0
+
+
+func _start_dash(front: Enemy) -> void:
+	var contact_x: float = hero.position.x + Hero.ATTACK_RANGE * 0.5 + front.body_half_width()
+	_dash_speed = maxf(front.position.x - contact_x, 0.0) / DASH_SECONDS
+	_dash_left = DASH_SECONDS
+	hero.stab()
+
+
+## Extra world speed the dash adds this frame; the last frame only gets the share of
+## the dash left, so the world moves exactly the dash distance.
+func _dash_step_speed(delta: float) -> float:
+	if _dash_left <= 0.0 or delta <= 0.0:
+		return 0.0
+	var step: float = minf(delta, _dash_left)
+	_dash_left -= step
+	return _dash_speed * step / delta
 
 
 func spirit_orb_count() -> int:
@@ -155,6 +183,7 @@ func _restart_run() -> void:
 	for chest: ChestPickup in chests:
 		chest.queue_free()
 	chests.clear()
+	_dash_left = 0.0
 	hero.restart(session.hero_max_health())
 	_sync_spirit_orbs()
 
