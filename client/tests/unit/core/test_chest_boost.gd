@@ -2,11 +2,11 @@ extends GutTest
 ## The chest gold multiplier rule (bonuses S2): a bigger one replaces the active one,
 ## an equal one adds its time, a smaller one is ignored.
 
-var boost: GoldBoost
+var boost: ChestBoost
 
 
 func before_each() -> void:
-	boost = GoldBoost.new()
+	boost = ChestBoost.new()
 
 
 func test_no_boost_multiplies_by_one() -> void:

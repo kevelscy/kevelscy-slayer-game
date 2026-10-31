@@ -17,6 +17,8 @@ const HURT_TINT: Color = Color(1.0, 0.45, 0.45)
 var stats: StatBlock
 var target: Enemy
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+## The chest damage boost on the hero's own hits, set by BattleWorld each frame.
+var damage_multiplier: float = 1.0
 
 var _hurt_left: float = 0.0
 var _sprite_home: Vector2
@@ -82,7 +84,10 @@ func has_target_in_range() -> bool:
 
 
 func perform_attack() -> void:
-	target.health.take_damage(DamageCalculator.compute(stats, rng))
+	var hit: DamageResult = DamageCalculator.compute(stats, rng)
+	if damage_multiplier != 1.0:
+		hit.amount = hit.amount.mul_float(damage_multiplier)
+	target.health.take_damage(hit)
 	sprite.stop()
 	sprite.play(&"attack")
 

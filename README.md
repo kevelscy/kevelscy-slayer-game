@@ -136,17 +136,19 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
   on the rolled one, shows its rarity and pays it; chests picked meanwhile wait their turn.
   Legendary and Super play the boss fanfare.
 
-  | Rarity | Chance | Rewards (half the time each) |
+  | Rarity | Chance | Rewards (equal chance each) |
   | --- | --- | --- |
   | Común | 55% | gold x2 60 s, gold bag (50 kills of the stage) |
-  | Raro | 27% | gold x4 60 s, free Fury |
-  | Épico | 12% | gold x6 90 s, recharge all skills |
+  | Raro | 27% | gold x4 60 s, free Fury, damage x2 45 s |
+  | Épico | 12% | gold x6 90 s, recharge all skills, damage x4 45 s |
   | Legendario | 5% | gold x8 120 s, big gold bag (500 kills) |
   | Super | 1% | gold x10 180 s, +1 level to the lowest bought skill (Thunder if none) |
 
 - The gold boost multiplies every kill's gold and shows next to the gold in the HUD (`x4 58 s`).
   A bigger one replaces the active boost, an equal one adds its time, a smaller one is ignored.
   It is never saved and never counts for offline gold.
+- The damage boost multiplies the hero's, the skills' and the spirits' damage with the same
+  replace/extend rules; it is never saved, and ascending or offline time clears it.
 
 ## Ascension and talents
 

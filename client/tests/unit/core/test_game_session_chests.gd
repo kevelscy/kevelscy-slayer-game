@@ -153,3 +153,52 @@ func test_open_chest_pays_what_roll_chest_rolls_with_the_same_roll() -> void:
 	var opened: ChestReward = session.open_chest()
 	assert_eq(opened.rarity, rolled.rarity)
 	assert_eq(opened.label(), rolled.label())
+
+
+func _damage_reward(rarity: ChestTable.Rarity) -> ChestReward:
+	return _reward(rarity, 2)
+
+
+func test_a_damage_reward_multiplies_skill_and_spirit_damage_for_its_time() -> void:
+	var skill: SkillDefinition = _slot(&"thunder").definition
+	var spirit: SpiritDefinition = session.spirits.slots[0].definition
+	var skill_before: BigNumber = session.skill_damage(skill)
+	var spirit_before: BigNumber = session.spirit_damage(spirit)
+	session.grant_chest_reward(_damage_reward(ChestTable.Rarity.EPIC))
+	assert_eq(session.damage_boost.multiplier(), 4.0)
+	assert_eq(session.damage_boost.seconds_left, 45.0)
+	assert_true(session.skill_damage(skill).is_equal_approx(skill_before.mul_float(4.0)))
+	assert_true(session.spirit_damage(spirit).is_equal_approx(spirit_before.mul_float(4.0)))
+	session.tick_combat(45.0, false)
+	assert_eq(session.damage_boost.multiplier(), 1.0)
+	assert_true(session.skill_damage(skill).is_equal_approx(skill_before))
+
+
+func test_a_damage_boost_is_a_true_multiplier_on_top_of_fury() -> void:
+	var skill: SkillDefinition = _slot(&"thunder").definition
+	session.activate_buff(_slot(&"fury").definition)
+	var with_fury: BigNumber = session.skill_damage(skill)
+	session.grant_chest_reward(_damage_reward(ChestTable.Rarity.RARE))
+	assert_true(session.skill_damage(skill).is_equal_approx(with_fury.mul_float(2.0)))
+
+
+func test_a_damage_reward_leaves_the_gold_boost_alone() -> void:
+	session.grant_chest_reward(_damage_reward(ChestTable.Rarity.RARE))
+	assert_eq(session.gold_boost.multiplier(), 1.0)
+	session.grant_chest_reward(_reward(ChestTable.Rarity.RARE, 0))
+	assert_eq(session.damage_boost.multiplier(), 2.0, "the gold reward leaves the damage boost alone")
+	assert_eq(session.gold_boost.multiplier(), 4.0)
+
+
+func test_the_damage_boost_never_counts_offline_and_ends_like_the_gold_boost() -> void:
+	var rate_before: BigNumber = session.offline_gold_rate()
+	session.grant_chest_reward(_damage_reward(ChestTable.Rarity.EPIC))
+	assert_true(session.offline_gold_rate().is_equal_approx(rate_before))
+	session.grant_offline(1000, 1600)
+	assert_eq(session.damage_boost.multiplier(), 1.0)
+	session.grant_chest_reward(_damage_reward(ChestTable.Rarity.EPIC))
+	assert_gt(session.ascend(), 0)
+	assert_eq(session.damage_boost.multiplier(), 1.0)
+	session.grant_chest_reward(_damage_reward(ChestTable.Rarity.EPIC))
+	session.apply_save(session.to_save(0))
+	assert_eq(session.damage_boost.multiplier(), 1.0)

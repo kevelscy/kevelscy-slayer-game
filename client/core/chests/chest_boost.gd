@@ -1,7 +1,8 @@
-class_name GoldBoost
+class_name ChestBoost
 extends RefCounted
-## The chest gold multiplier on kill gold. A bigger multiplier replaces the active
-## one, an equal one adds its time and a smaller one changes nothing.
+## A timed chest multiplier: GameSession keeps one on kill gold and one on damage.
+## A bigger multiplier replaces the active one, an equal one adds its time and a
+## smaller one changes nothing.
 
 var factor: float = 1.0
 var seconds_left: float = 0.0

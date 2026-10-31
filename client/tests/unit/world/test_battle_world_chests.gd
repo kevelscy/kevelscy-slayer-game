@@ -117,3 +117,25 @@ func test_the_icon_goes_away_when_the_enemy_dies() -> void:
 	var with_chest: Enemy = _spawn_regular(_seed_with_drop(true))
 	with_chest.health.take_damage(DamageResult.new(BigNumber.from_float(1e30), false))
 	assert_false(with_chest.chest_marker.visible, "the chest is on the ground now")
+
+
+func _hero_hit_on(enemy: Enemy, seed_value: int) -> BigNumber:
+	enemy.health.setup(BigNumber.from_float(1e30))
+	world.hero.target = enemy
+	world.hero.rng.seed = seed_value
+	world.hero.perform_attack()
+	return enemy.health.max_health.sub(enemy.health.current)
+
+
+## Playtest feedback S6: the damage boost scales the hero's own hits too.
+func test_the_damage_boost_multiplies_the_hero_hits() -> void:
+	world._spawn(world.roster.pick_regular(world.rng), false, 200.0)
+	var enemy: Enemy = world.enemy_pool.active_nodes().back() as Enemy
+	var plain: BigNumber = _hero_hit_on(enemy, 7)
+	session.damage_boost.apply(4.0, 45.0)
+	world._process(0.0)
+	assert_eq(world.hero.damage_multiplier, 4.0)
+	assert_true(_hero_hit_on(enemy, 7).is_equal_approx(plain.mul_float(4.0)))
+	session.damage_boost.clear()
+	world._process(0.0)
+	assert_eq(world.hero.damage_multiplier, 1.0)

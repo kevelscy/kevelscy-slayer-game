@@ -69,7 +69,7 @@ func _refresh() -> void:
 	var progression: StageProgression = _session.progression
 	stage_label.text = "Etapa %d" % progression.stage
 	gold_label.text = NumberFormat.format(_session.wallet.get_amount(GameSession.GOLD))
-	var boost: GoldBoost = _session.gold_boost
+	var boost: ChestBoost = _session.gold_boost
 	boost_label.visible = boost.multiplier() > 1.0
 	if boost_label.visible:
 		boost_label.text = "x%d %d s" % [roundi(boost.factor), ceili(boost.seconds_left)]

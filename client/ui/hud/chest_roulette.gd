@@ -27,6 +27,7 @@ const ICON_PATHS: Dictionary[ChestReward.Kind, String] = {
 	ChestReward.Kind.FREE_FURY: "res://art/icons/skill_fury.png",
 	ChestReward.Kind.RECHARGE_SKILLS: "res://art/icons/hourglass.png",
 	ChestReward.Kind.SKILL_LEVEL: "res://art/icons/tab_upgrades.png",
+	ChestReward.Kind.DAMAGE_MULTIPLIER: "res://art/icons/sword.png",
 }
 
 enum Phase { IDLE, SPIN, REVEAL }

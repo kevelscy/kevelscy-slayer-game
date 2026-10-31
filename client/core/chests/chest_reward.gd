@@ -2,11 +2,11 @@ class_name ChestReward
 extends RefCounted
 ## One prize a chest can give. GameSession.grant_chest_reward pays it.
 
-enum Kind { GOLD_MULTIPLIER, GOLD_BAG, FREE_FURY, RECHARGE_SKILLS, SKILL_LEVEL }
+enum Kind { GOLD_MULTIPLIER, GOLD_BAG, FREE_FURY, RECHARGE_SKILLS, SKILL_LEVEL, DAMAGE_MULTIPLIER }
 
 var rarity: int
 var kind: Kind
-## GOLD_MULTIPLIER: kill gold factor and how long it lasts.
+## GOLD_MULTIPLIER and DAMAGE_MULTIPLIER: the factor and how long it lasts.
 var factor: float = 1.0
 var seconds: float = 0.0
 ## GOLD_BAG: how many regular kills of the current stage the bag is worth.
@@ -29,5 +29,7 @@ func label() -> String:
 			return "Furia gratis"
 		Kind.RECHARGE_SKILLS:
 			return "Recarga habilidades"
+		Kind.DAMAGE_MULTIPLIER:
+			return "Daño x%d %d s" % [roundi(factor), roundi(seconds)]
 		_:
 			return "+1 nivel habilidad"
