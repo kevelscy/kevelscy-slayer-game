@@ -1,0 +1,32 @@
+# Playtest feedback: skill carousel, cooldown mask, chest markers, dash, hit reaction, damage boost, modifier timers
+
+Seven changes from the user's first playtest of the bonuses feature (chests and roulette).
+
+## Specs
+
+- S1 Skill carousel: "haz los iconos de las habilidades mas grandes, incluso te aviso, vamos a tener un monton de habilidades, pero solo se puede nequipira hasta 8, y ya que son muchas vas a mantenerlas en una fila pero con un carousel con flechas para ir a izqueirda o derecha, las flechas en amarillo oro, y si no hay mas habilidades del lado al que estas yendoi lo pones gris, indicando que ya no puedes hacer scorll a ese lado porque no hay mas hbilidades de ese lado". Decision (L2): "Carrusel ahora, equipar después": the carousel shows every skill. The 8-equipped limit and choosing which skills are equipped wait until there are more than 8 skills (there are 6 now).
+- S2 Cooldown mask: "si voe el gris tipo mascara tipo reloj del coldown pero no se nota tanto, se puede hacer un poco mas oscuro ese gris"
+- S3 Chest marker: "los enemigos que tengan un cofre disponible aal matar, ponles un icono de cofre arriba de su cabeza"
+- S4 Wind dash: "la habilidad tipo estocada, es para que el personaje se mueva hacia adelante, PERO la caamara tambien lo sigue, no es que el personaje se estoca al enemigo y se regresa, el siempre se mueve adelante"
+- S5 Hit reaction: "cuando un enemigo golpee al personaje, que el personaje se ponga un poco rojo y retroceda un poco hacia atras (izquierda) y luego se devuelva a su posicion"
+- S6 Damage boost reward: "como recompensa tambien puedes colocar X2 de dano o x4 de dano". Decision (L2): "Raro x2 45 s, Épico x4 45 s": Raro and Épico get a third possible reward (1/3 each); the other rarities do not change.
+- S7 Modifier timers: "estos modficadores que slen en las recompesas debes reflejar el tiempo que les queda con su ccoldown en la parte superior derecha de la vista de la escena del personaje, cada modificator tiene su icono, el de modificador de oro icono de oro, el de dano una espada, y asi y seria asi: [icono] [segundos]s". Decision (L2): "Ícono + x4 chico + segundos": e.g. [coin]x4 58s; the HUD "x4 58 s" next to the gold goes away.
+- S8 Art follows `client/art/STYLE.md` (palette `paleta_juego.gpl` only, 1 px dark outline, light top-left); say what and its size before each asset; review with get_image before export; Godot Nearest, no mipmaps.
+
+## Tasks
+
+- [x] T1 S2 darker grey under the clock cooldown mask — inline — commit: a63c8cd
+- [ ] T2 S1 bigger skill cards in a one-row carousel with gold arrows, grey at the ends — inline — commit:
+- [ ] T3 S3 chest icon over enemies that will drop a chest (drop rolled at spawn) — inline — commit:
+- [ ] T4 S5 hero hit: red tint, small knockback left and back — inline — commit:
+- [ ] T5 S4 wind dash moves forward and the world scrolls with it (no return) — inline — commit:
+- [ ] T6 S6 S8 damage boost x2/x4 rewards on Raro/Épico, sword icon — inline — commit:
+- [ ] T7 S7 modifier timers top-right of the battle view, remove the HUD boost label — inline — commit:
+
+## Log
+
+- L1 (user) "vale ya lo estoy probando, te doy mi feedback: / 1. haz los iconos de las habilidades mas grandes, incluso te aviso, vamos a tener un monton de habilidades, pero solo se puede nequipira hasta 8, y ya que son muchas vas a mantenerlas en una fila pero con un carousel con flechas para ir a izqueirda o derecha, las flechas en amarillo oro, y si no hay mas habilidades del lado al que estas yendoi lo pones gris, indicando que ya no puedes hacer scorll a ese lado porque no hay mas hbilidades de ese lado / 2.si voe el gris tipo mascara tipo reloj del coldown pero no se nota tanto, se puede hacer un poco mas oscuro ese gris / 3. los enemigos que tengan un cofre disponible aal matar, ponles un icono de cofre arriba de su cabeza / 4. la habilidad tipo estocada, es para que el personaje se mueva hacia adelante, PERO la caamara tambien lo sigue, no es que el personaje se estoca al enemigo y se regresa, el siempre se mueve adelante / 5. cuando un enemigo golpee al personaje, que el personaje se ponga un poco rojo y retroceda un poco hacia atras (izquierda) y luego se devuelva a su posicion / 6. como recompensa tambien puedes colocar X2 de dano o x4 de dano / 7. estos modficadores que slen en las recompesas debes reflejar el tiempo que les queda con su ccoldown en la parte superior derecha de la vista de la escena del personaje, cada modificator tiene su icono, el de modificador de oro icono de oro, el de dano una espada, y asi y seria asi: [icono] [segundos]s"
+- L2 (user answers) equip: "Carrusel ahora, equipar después (Recomendado)"; damage: "Raro x2 45 s, Épico x4 45 s (Recomendado)"; timers: "Ícono + x4 chico + segundos (Recomendado)".
+- L3 T1: SkillCard.COOLDOWN_BRIGHTNESS 0.4 (new cooldown_grey texture for the clock mask); GREY_BRIGHTNESS 0.75 kept for locked/unowned art. RED (missing constant) -> GREEN 569/569. Commit a63c8cd.
+- L4 (user) "para, se acaba la ventana de contexto, guarda todo en engram status actual y pendientes, retomamos en la siguiente sesion".
+- L5 Next-session notes. T2 plan: AbilityPanel.CARD_SCALE 3 -> 4 (128 px cards, tests assume 96/3x: update test_card_art_fills_the_card and test_each_skill_card_shows_its_icon_scaled_three_times); replace the HFlowContainer with a carousel row [left arrow][visible cards][right arrow], visible count from the available width (portrait 720 ~4 cards, landscape left column ~2), arrows gold (GameTheme.TITLE_GOLD / BuyButton) and grey + disabled when no more skills that side; the buy button stays under each card. T3: roll chest_drops at spawn (Enemy.carries_chest), chest icon over the head, drop on death if carried. T4: Hero hurt: red self_modulate + knockback left and back (Hero sprite offset tween, like dash_to). T5: Effect.DASH moves the world: scroll background, enemies and chests left by the dash distance quickly, hero stays at x 90; remove the sprite return. T6: DamageBoost like GoldBoost (or generic boost), ChestReward.Kind.DAMAGE_MULTIPLIER appended, Raro x2 45 s, Épico x4 45 s as third reward (reward_for 1/3 each, update rewards_for tests and README table), applies to hero, skill and spirit damage, never offline, cleared like gold_boost; sword icon 16x16. T7: modifier timers top-right inside the battle view: [icon]x4 58s per active modifier, remove Hud.boost_label (and its test in test_main_chests.gd). Uncommitted, leave alone: client/export_presets.cfg (paused iOS preset).
