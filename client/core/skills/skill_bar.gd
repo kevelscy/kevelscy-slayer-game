@@ -50,6 +50,24 @@ func try_buy(slot_index: int, stage: int, wallet: CurrencyWallet, currency: Stri
 	return true
 
 
+## Gives a slot one more level for free (a chest prize), even its first one.
+func grant_level(slot_index: int) -> void:
+	if slot_index < 0 or slot_index >= slots.size():
+		return
+	slots[slot_index].level += 1
+	leveled_up.emit(slot_index, slots[slot_index].level)
+
+
+## The bought slot with the lowest level (the first one on a tie), or slot 0 when
+## nothing is bought yet.
+func lowest_owned_index() -> int:
+	var best: int = -1
+	for index: int in slots.size():
+		if slots[index].is_owned() and (best < 0 or slots[index].level < slots[best].level):
+			best = index
+	return maxi(best, 0)
+
+
 ## Skill id to level, 0 for skills not bought.
 func levels() -> Dictionary[StringName, int]:
 	var result: Dictionary[StringName, int] = {}

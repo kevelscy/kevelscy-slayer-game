@@ -3,7 +3,8 @@ extends RefCounted
 ## The player's run state and the rules that connect combat to the economy:
 ## kills pay gold and advance the stage, upgrades turn gold into hero stats,
 ## skills and spirits add damage on top of the hero's auto-attack, and ascension
-## trades the run for shards that buy permanent talents.
+## trades the run for shards that buy permanent talents. Chests dropped by kills
+## give timed gold multipliers and other prizes (ChestTable).
 
 signal ascended(shards_gained: int)
 ## A loaded save (local or cloud) replaced the run state.
@@ -45,6 +46,9 @@ var attack_speed_track: RateUpgradeTrack = RateUpgradeTrack.new(
 var skills: SkillBar
 var spirits: SpiritTeam
 var buffs: BuffTracker = BuffTracker.new(hero_stats)
+## Chest gold multiplier on kill gold; online only, never saved.
+var gold_boost: GoldBoost = GoldBoost.new()
+var chest_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 ## Views read the talents and the ascension count; only the session's rules
 ## (ascend, apply_save) and talent purchases through TalentTree.try_buy change them.
 var talents: TalentTree
@@ -61,6 +65,7 @@ func _init(
 	talent_catalog: TalentCatalog = TalentCatalog.new()
 ) -> void:
 	balance = stage_balance
+	chest_rng.randomize()
 	progression = StageProgression.new(kills_per_stage, boss_seconds)
 	_refresh_hero_stats()
 	skills = SkillBar.new(abilities.skills)
@@ -76,6 +81,7 @@ func tick_combat(delta: float, has_target: bool) -> void:
 	in_combat = has_target
 	skills.tick(delta)
 	buffs.tick(delta)
+	gold_boost.tick(delta)
 	spirits.tick(delta, has_target)
 	skills.autocast(progression.stage, has_target)
 
@@ -112,15 +118,48 @@ func activate_buff(skill: SkillDefinition) -> void:
 	buffs.apply(skill.id, modifiers, skill.duration_seconds)
 
 
-## gold_multiplier scales a regular kill's gold, for wave enemies.
+## gold_multiplier scales a regular kill's gold, for wave enemies; the chest gold
+## boost scales every kill.
 func on_enemy_killed(was_boss: bool, gold_multiplier: float = 1.0) -> void:
 	var stage: int = progression.stage
+	var boost: float = gold_boost.multiplier()
 	if was_boss:
-		wallet.add(GOLD, balance.boss_gold_reward(stage).mul_float(talents.gold_multiplier()))
+		wallet.add(GOLD, balance.boss_gold_reward(stage).mul_float(talents.gold_multiplier() * boost))
 		progression.defeat_boss()
 	else:
-		wallet.add(GOLD, balance.gold_reward(stage).mul_float(talents.gold_multiplier() * gold_multiplier))
+		wallet.add(GOLD, balance.gold_reward(stage).mul_float(talents.gold_multiplier() * gold_multiplier * boost))
 		progression.register_kill()
+
+
+## Whether this kill drops a chest; the hero opens it on pickup with open_chest.
+func chest_drops(was_boss: bool) -> bool:
+	return ChestTable.drops(was_boss, chest_rng.randf())
+
+
+## Rolls the chest's rarity and reward, pays it and returns it for the roulette.
+func open_chest() -> ChestReward:
+	var rarity: ChestTable.Rarity = ChestTable.rarity_for(chest_rng.randf())
+	var reward: ChestReward = ChestTable.reward_for(rarity, chest_rng.randf())
+	grant_chest_reward(reward)
+	return reward
+
+
+func grant_chest_reward(reward: ChestReward) -> void:
+	match reward.kind:
+		ChestReward.Kind.GOLD_MULTIPLIER:
+			gold_boost.apply(reward.factor, reward.seconds)
+		ChestReward.Kind.GOLD_BAG:
+			var kill_gold: BigNumber = balance.gold_reward(progression.stage).mul_float(talents.gold_multiplier())
+			wallet.add(GOLD, kill_gold.mul_float(reward.bag_kills))
+		ChestReward.Kind.FREE_FURY:
+			for slot: SkillSlot in skills.slots:
+				if slot.definition.effect == SkillDefinition.Effect.BUFF:
+					activate_buff(slot.definition)
+					break
+		ChestReward.Kind.RECHARGE_SKILLS:
+			skills.reset_cooldowns()
+		ChestReward.Kind.SKILL_LEVEL:
+			skills.grant_level(skills.lowest_owned_index())
 
 
 func on_hero_died() -> void:
@@ -146,6 +185,7 @@ func ascend() -> int:
 	talents.shards += gained
 	ascension_count += 1
 	buffs.clear()
+	gold_boost.clear()
 	spirits.relock()
 	skills.reset_cooldowns()
 	for track: UpgradeTrack in [attack_track, health_track, crit_chance_track, crit_damage_track, attack_speed_track]:
@@ -190,6 +230,7 @@ func to_save(now_unix: int) -> SaveData:
 ## then unlock again for the saved stage.
 func apply_save(data: SaveData) -> void:
 	buffs.clear()
+	gold_boost.clear()
 	spirits.relock()
 	skills.reset_cooldowns()
 	progression.restore_stage(data.stage)
@@ -224,8 +265,9 @@ func offline_gold_rate() -> BigNumber:
 
 ## Pays offline gold for the validated time between the two timestamps.
 func grant_offline(last_seen_unix: int, now_unix: int) -> OfflineReward:
-	# Buff time ran out while away, and a buff must not inflate the offline rate.
+	# Buff and chest boost time ran out while away, and neither may inflate the offline rate.
 	buffs.clear()
+	gold_boost.clear()
 	var rates: Dictionary[StringName, BigNumber] = {GOLD: offline_gold_rate()}
 	var reward: OfflineReward = OfflineCalculator.compute(
 		rates, last_seen_unix, now_unix, OFFLINE_CAP_SECONDS
