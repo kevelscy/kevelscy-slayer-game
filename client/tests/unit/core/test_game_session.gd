@@ -70,3 +70,20 @@ func test_enemy_stats_follow_current_stage() -> void:
 	assert_true(session.enemy_health(true).is_equal_approx(session.balance.boss_health(1)))
 	session.progression.stage = 5
 	assert_true(session.enemy_health(false).is_equal_approx(session.balance.enemy_health(5)))
+
+
+## Characteristics cost 30% less than before (skill-branches S1): base cost x0.7,
+## same growth, so every level is 30% cheaper.
+func test_characteristics_cost_seventy_percent_of_the_old_prices() -> void:
+	assert_eq(GameSession.CHARACTERISTIC_COST_FACTOR, 0.7)
+	var old_bases: Array[float] = [10.0, 15.0, 50.0, 40.0, 60.0]
+	var old_growths: Array[float] = [1.18, 1.2, 1.25, 1.2, 1.28]
+	var tracks: Array = [
+		session.attack_track, session.health_track, session.crit_chance_track,
+		session.crit_damage_track, session.attack_speed_track,
+	]
+	for index: int in tracks.size():
+		var old_level_0: float = old_bases[index]
+		var old_level_20: float = old_bases[index] * pow(old_growths[index], 20)
+		assert_almost_eq(tracks[index].cost.cost_at(0).to_float(), old_level_0 * 0.7, 1e-6, "track %d level 0" % index)
+		assert_almost_eq(tracks[index].cost.cost_at(20).to_float(), old_level_20 * 0.7, old_level_20 * 1e-9, "track %d level 20" % index)

@@ -23,25 +23,27 @@ const OFFLINE_CAP_SECONDS: int = 8 * 3600
 const ASCEND_MIN_STAGE: int = 20
 ## Shards paid on ascending = stage - ASCEND_SHARD_OFFSET (5 at stage 20).
 const ASCEND_SHARD_OFFSET: int = 15
+## Characteristics (the five upgrade tracks) cost 30% less than their first prices.
+const CHARACTERISTIC_COST_FACTOR: float = 0.7
 
 var wallet: CurrencyWallet = CurrencyWallet.new()
 var balance: StageBalance
 var progression: StageProgression
 var hero_stats: StatBlock = StatBlock.new()
 var attack_track: UpgradeTrack = UpgradeTrack.new(
-	BigNumber.from_float(10.0), 1.12, CostCurve.new(BigNumber.from_float(10.0), 1.18)
+	BigNumber.from_float(10.0), 1.12, CostCurve.new(BigNumber.from_float(10.0 * CHARACTERISTIC_COST_FACTOR), 1.18)
 )
 var health_track: UpgradeTrack = UpgradeTrack.new(
-	BigNumber.from_float(100.0), 1.12, CostCurve.new(BigNumber.from_float(15.0), 1.2)
+	BigNumber.from_float(100.0), 1.12, CostCurve.new(BigNumber.from_float(15.0 * CHARACTERISTIC_COST_FACTOR), 1.2)
 )
 var crit_chance_track: RateUpgradeTrack = RateUpgradeTrack.new(
-	0.05, 0.005, 90, CostCurve.new(BigNumber.from_float(50.0), 1.25)
+	0.05, 0.005, 90, CostCurve.new(BigNumber.from_float(50.0 * CHARACTERISTIC_COST_FACTOR), 1.25)
 )
 var crit_damage_track: RateUpgradeTrack = RateUpgradeTrack.new(
-	1.5, 0.05, 0, CostCurve.new(BigNumber.from_float(40.0), 1.2)
+	1.5, 0.05, 0, CostCurve.new(BigNumber.from_float(40.0 * CHARACTERISTIC_COST_FACTOR), 1.2)
 )
 var attack_speed_track: RateUpgradeTrack = RateUpgradeTrack.new(
-	1.5, 0.02, 75, CostCurve.new(BigNumber.from_float(60.0), 1.28)
+	1.5, 0.02, 75, CostCurve.new(BigNumber.from_float(60.0 * CHARACTERISTIC_COST_FACTOR), 1.28)
 )
 var skills: SkillBar
 var spirits: SpiritTeam

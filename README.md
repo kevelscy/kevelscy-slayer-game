@@ -76,13 +76,15 @@ refresh token the server refuses signs up a new player.
 
 Gold buys five stats in the upgrade panel:
 
-| Stat | Start | Per level | Max |
-|---|---|---|---|
-| Attack | 10 | ×1.12 | — |
-| Health | 100 | ×1.12 | — |
-| Crit Chance | 5.0% | +0.5% | level 90 (50%) |
-| Crit Damage | 150% | +5% | — |
-| Attack Speed | 1.50/s | +0.02/s | level 75 (3.00/s) |
+| Stat | Start | Per level | Max | First cost | Cost growth |
+|---|---|---|---|---|---|
+| Attack | 10 | ×1.12 | — | 7 | ×1.18 |
+| Health | 100 | ×1.12 | — | 10.5 | ×1.2 |
+| Crit Chance | 5.0% | +0.5% | level 90 (50%) | 35 | ×1.25 |
+| Crit Damage | 150% | +5% | — | 28 | ×1.2 |
+| Attack Speed | 1.50/s | +0.02/s | level 75 (3.00/s) | 42 | ×1.28 |
+
+The first costs are 70% of the original prices (`GameSession.CHARACTERISTIC_COST_FACTOR`).
 
 A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed upgrades count.
 

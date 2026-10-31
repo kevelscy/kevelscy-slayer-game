@@ -33,9 +33,9 @@ func test_lists_every_stat_with_level_and_value() -> void:
 
 func test_rate_button_shows_cost_and_buys() -> void:
 	var row: UpgradePanel.Row = panel.rows[2]
-	assert_eq(row.button.text, "Mejorar 50")
+	assert_eq(row.button.text, "Mejorar 35")
 	assert_true(row.button.disabled)
-	session.wallet.add(GameSession.GOLD, BigNumber.from_float(50.0))
+	session.wallet.add(GameSession.GOLD, BigNumber.from_float(35.0))
 	assert_false(row.button.disabled)
 	row.button.pressed.emit()
 	assert_eq(row.label.text, "Prob. crítico  Nv 1\n5,5%")
