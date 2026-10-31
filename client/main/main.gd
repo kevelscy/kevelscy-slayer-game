@@ -10,6 +10,8 @@ const ASCENSION_PANEL_ARG: String = "--ascension-panel"
 const SCREENSHOT_DELAY_FRAMES: int = 120
 const DEV_REPORT_SECONDS: float = 5.0
 const TOAST_SECONDS: float = 4.0
+## Gap between the modifier timers and the battle view's top-right corner.
+const MODIFIER_MARGIN: float = 8.0
 const TAB_UPGRADES: int = 0
 const TAB_SPIRITS: int = 1
 const TAB_ASCENSION: int = 2
@@ -37,6 +39,7 @@ var _swipe_start: Vector2 = Vector2.INF
 
 var sfx: SfxPlayer = SfxPlayer.new()
 var sfx_director: SfxDirector = SfxDirector.new()
+var modifier_timers: ModifierTimers = ModifierTimers.new()
 var chest_roulette: ChestRoulette = ChestRoulette.new()
 
 @onready var safe_area: MarginContainer = $SafeArea
@@ -67,6 +70,10 @@ func _ready() -> void:
 	sfx.name = "Sfx"
 	add_child(sfx)
 	sfx.load_catalog()
+	# Before the roulette, so a spinning chest draws over the timers.
+	modifier_timers.name = "ModifierTimers"
+	add_child(modifier_timers)
+	modifier_timers.bind(session)
 	_add_chest_roulette(session)
 	sfx_director.name = "SfxDirector"
 	add_child(sfx_director)
@@ -108,6 +115,14 @@ func place_chest_roulette() -> void:
 	chest_roulette.global_position = (center - chest_roulette.size * 0.5).round()
 
 
+## Inside the battle view's top-right corner in both layouts.
+func place_modifier_timers() -> void:
+	modifier_timers.size = modifier_timers.get_combined_minimum_size()
+	var view: Rect2 = battle_view.get_global_rect()
+	var corner: Vector2 = Vector2(view.end.x - MODIFIER_MARGIN - modifier_timers.size.x, view.position.y + MODIFIER_MARGIN)
+	modifier_timers.global_position = corner.round()
+
+
 func _show_offline_reward(reward: OfflineReward) -> void:
 	var gold: BigNumber = reward.amounts.get(GameSession.GOLD, BigNumber.zero())
 	toast_label.text = "¡Hola de nuevo!\n+%s de oro (%s fuera)" % [
@@ -138,6 +153,8 @@ func _process(delta: float) -> void:
 	_frames += 1
 	if chest_roulette.visible:
 		place_chest_roulette()
+	if modifier_timers.visible:
+		place_modifier_timers()
 	if _dev_report:
 		_report_elapsed += delta
 		if _report_elapsed >= DEV_REPORT_SECONDS:

@@ -1,6 +1,6 @@
 class_name Hud
 extends VBoxContainer
-## Stage, gold (with the active chest gold boost), kill/boss progress and hero health. Refreshed at 10 Hz instead of
+## Stage, gold, kill/boss progress and hero health. Refreshed at 10 Hz instead of
 ## every frame to keep string formatting cheap on mobile.
 
 signal sfx_muted_toggled(muted: bool)
@@ -16,8 +16,6 @@ var _elapsed: float = 0.0
 @onready var stage_label: Label = $TopRow/StageLabel
 @onready var gold_icon: TextureRect = $TopRow/GoldIcon
 @onready var gold_label: Label = $TopRow/GoldLabel
-## The chest gold boost while it runs: factor and seconds left.
-@onready var boost_label: Label = $TopRow/BoostLabel
 @onready var ascension_button: Button = $TopRow/AscensionButton
 @onready var sound_button: Button = $TopRow/SoundButton
 @onready var progress_bar: ProgressBar = $ProgressRow/ProgressBar
@@ -69,10 +67,6 @@ func _refresh() -> void:
 	var progression: StageProgression = _session.progression
 	stage_label.text = "Etapa %d" % progression.stage
 	gold_label.text = NumberFormat.format(_session.wallet.get_amount(GameSession.GOLD))
-	var boost: ChestBoost = _session.gold_boost
-	boost_label.visible = boost.multiplier() > 1.0
-	if boost_label.visible:
-		boost_label.text = "x%d %d s" % [roundi(boost.factor), ceili(boost.seconds_left)]
 	if progression.is_boss_active:
 		progress_bar.max_value = progression.boss_seconds
 		progress_bar.value = progression.boss_time_left

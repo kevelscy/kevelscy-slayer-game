@@ -144,11 +144,12 @@ A maxed stat shows `Max`. Offline gold uses the same hero DPS, so crit and speed
   | Legendario | 5% | gold x8 120 s, big gold bag (500 kills) |
   | Super | 1% | gold x10 180 s, +1 level to the lowest bought skill (Thunder if none) |
 
-- The gold boost multiplies every kill's gold and shows next to the gold in the HUD (`x4 58 s`).
-  A bigger one replaces the active boost, an equal one adds its time, a smaller one is ignored.
+- The gold boost multiplies every kill's gold. A bigger one replaces the active boost, an equal one adds its time, a smaller one is ignored.
   It is never saved and never counts for offline gold.
 - The damage boost multiplies the hero's, the skills' and the spirits' damage with the same
   replace/extend rules; it is never saved, and ascending or offline time clears it.
+- Each active boost shows in the top-right corner of the battle view as its icon, a small
+  factor and the seconds it has left: coin `x4 58s` for gold, sword `x2 40s` for damage.
 
 ## Ascension and talents
 
