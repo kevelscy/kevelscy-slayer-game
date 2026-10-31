@@ -19,6 +19,12 @@ func test_regular_kill_grants_stage_gold_and_counts() -> void:
 	assert_eq(session.progression.kills, 1)
 
 
+func test_a_wave_kill_grants_its_extra_gold_and_counts_once() -> void:
+	session.on_enemy_killed(false, GameSession.WAVE_GOLD_MULTIPLIER)
+	assert_almost_eq(_gold(), session.balance.gold_reward(1).to_float() * 1.25, 1e-9)
+	assert_eq(session.progression.kills, 1)
+
+
 func test_boss_kill_grants_boss_gold_of_its_stage_and_advances() -> void:
 	session.on_enemy_killed(false)
 	session.on_enemy_killed(false)

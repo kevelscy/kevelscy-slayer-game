@@ -13,6 +13,11 @@ const GOLD: StringName = &"gold"
 const BOSS_DAMAGE_MULTIPLIER: float = 2.0
 ## Seconds between regular enemy spawns; also caps the offline kill rate.
 const SPAWN_INTERVAL_SECONDS: float = 1.2
+## Share of due regular spawns that come as a wave, and how much tougher and richer
+## each wave enemy is.
+const WAVE_CHANCE: float = 0.08
+const WAVE_HEALTH_MULTIPLIER: float = 1.25
+const WAVE_GOLD_MULTIPLIER: float = 1.25
 const OFFLINE_CAP_SECONDS: int = 8 * 3600
 const ASCEND_MIN_STAGE: int = 20
 ## Shards paid on ascending = stage - ASCEND_SHARD_OFFSET (5 at stage 20).
@@ -101,13 +106,14 @@ func activate_buff(skill: SkillDefinition) -> void:
 	buffs.apply(skill.id, modifiers, skill.duration_seconds)
 
 
-func on_enemy_killed(was_boss: bool) -> void:
+## gold_multiplier scales a regular kill's gold, for wave enemies.
+func on_enemy_killed(was_boss: bool, gold_multiplier: float = 1.0) -> void:
 	var stage: int = progression.stage
 	if was_boss:
 		wallet.add(GOLD, balance.boss_gold_reward(stage).mul_float(talents.gold_multiplier()))
 		progression.defeat_boss()
 	else:
-		wallet.add(GOLD, balance.gold_reward(stage).mul_float(talents.gold_multiplier()))
+		wallet.add(GOLD, balance.gold_reward(stage).mul_float(talents.gold_multiplier() * gold_multiplier))
 		progression.register_kill()
 
 

@@ -14,6 +14,8 @@ static var _frames_cache: Dictionary[StringName, SpriteFrames] = {}
 
 var definition: EnemyDefinition
 var is_boss: bool = false
+## Scales the gold this enemy pays when defeated; wave enemies pay more.
+var gold_multiplier: float = 1.0
 var is_alive: bool = false
 var damage: BigNumber = BigNumber.zero()
 ## While above zero the enemy neither walks nor attacks.
@@ -39,10 +41,11 @@ func _process(delta: float) -> void:
 
 func spawn(
 	enemy_definition: EnemyDefinition, max_health: BigNumber, attack_damage: BigNumber,
-	boss: bool, ground_position: Vector2
+	boss: bool, ground_position: Vector2, gold_scale: float = 1.0
 ) -> void:
 	definition = enemy_definition
 	is_boss = boss
+	gold_multiplier = gold_scale
 	is_alive = true
 	damage = attack_damage
 	position = ground_position - Vector2(0.0, definition.hover_height)

@@ -8,6 +8,11 @@ const GROUND_Y: float = 172.0
 const SPAWN_X: float = 400.0
 const RUN_SPEED: float = 60.0
 const ENEMY_SPACING: float = 4.0
+## Gap between wave enemies as they spawn: a tight wave packs them, a spread one
+## scatters them at random gaps in the spread range.
+const WAVE_TIGHT_GAP: float = 20.0
+const WAVE_SPREAD_GAP_MIN: float = 36.0
+const WAVE_SPREAD_GAP_MAX: float = 80.0
 const LAYER_SPEED_FACTORS: Array[float] = [0.1, 0.3, 0.6, 1.0]
 const BUFF_TINT: Color = Color(1.4, 0.75, 0.7)
 ## Gap between an enemy's head and the bottom of its damage number.
@@ -19,7 +24,9 @@ signal enemy_hit(result: DamageResult)
 @export var roster: EnemyRoster
 
 var session: GameSession
-var scheduler: SpawnScheduler = SpawnScheduler.new(GameSession.SPAWN_INTERVAL_SECONDS, 4)
+var scheduler: SpawnScheduler = SpawnScheduler.new(
+	GameSession.SPAWN_INTERVAL_SECONDS, 4, GameSession.WAVE_CHANCE
+)
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var effects: AbilityEffects = AbilityEffects.new()
@@ -151,14 +158,28 @@ func _alive_enemies_by_distance() -> Array[Enemy]:
 func _spawn_if_due(delta: float, enemies: Array[Enemy]) -> void:
 	var boss_alive: bool = enemies.any(func(enemy: Enemy) -> bool: return enemy.is_boss)
 	var regular_alive: int = enemies.size() - (1 if boss_alive else 0)
-	match scheduler.tick(delta, regular_alive, boss_alive):
+	match scheduler.tick(delta, regular_alive, boss_alive, rng.randf()):
 		SpawnScheduler.Order.REGULAR:
 			_spawn(roster.pick_regular(rng), false)
+		SpawnScheduler.Order.WAVE:
+			_spawn_wave()
 		SpawnScheduler.Order.BOSS:
 			_spawn(roster.boss, true)
 
 
-func _spawn(definition: EnemyDefinition, is_boss: bool) -> void:
+## WAVE_SIZE tougher, richer regular enemies lined up behind the spawn point.
+func _spawn_wave() -> void:
+	var tight: bool = rng.randf() < 0.5
+	var x: float = SPAWN_X
+	for index: int in SpawnScheduler.WAVE_SIZE:
+		_spawn(roster.pick_regular(rng), false, x, GameSession.WAVE_HEALTH_MULTIPLIER, GameSession.WAVE_GOLD_MULTIPLIER)
+		x += WAVE_TIGHT_GAP if tight else rng.randf_range(WAVE_SPREAD_GAP_MIN, WAVE_SPREAD_GAP_MAX)
+
+
+func _spawn(
+	definition: EnemyDefinition, is_boss: bool, x: float = SPAWN_X,
+	health_scale: float = 1.0, gold_scale: float = 1.0
+) -> void:
 	var enemy: Enemy = enemy_pool.acquire() as Enemy
 	if not enemy.defeated.is_connected(_on_enemy_defeated):
 		enemy.defeated.connect(_on_enemy_defeated)
@@ -166,10 +187,11 @@ func _spawn(definition: EnemyDefinition, is_boss: bool) -> void:
 		enemy.health.damaged.connect(_show_damage_number.bind(enemy))
 	enemy.spawn(
 		definition,
-		session.enemy_health(is_boss).mul_float(definition.health_multiplier),
+		session.enemy_health(is_boss).mul_float(definition.health_multiplier * health_scale),
 		session.enemy_damage(is_boss).mul_float(definition.damage_multiplier),
 		is_boss,
-		Vector2(SPAWN_X, GROUND_Y)
+		Vector2(x, GROUND_Y),
+		gold_scale
 	)
 
 
@@ -218,7 +240,7 @@ func _set_world_speed(speed: float) -> void:
 
 
 func _on_enemy_defeated(enemy: Enemy) -> void:
-	session.on_enemy_killed(enemy.is_boss)
+	session.on_enemy_killed(enemy.is_boss, enemy.gold_multiplier)
 	EventBus.enemy_killed.emit(enemy.is_boss)
 
 
