@@ -17,7 +17,7 @@ func before_each() -> void:
 
 
 func test_one_button_per_skill() -> void:
-	assert_eq(panel.skill_buttons.size(), 6)
+	assert_eq(panel.skill_buttons.size(), ABILITIES.skills.size())
 
 
 func _card(index: int) -> SkillCard:
@@ -151,7 +151,7 @@ func _gold(amount: float) -> void:
 
 
 func test_each_skill_has_a_buy_button_with_its_gold_cost_and_the_coin() -> void:
-	assert_eq(panel.buy_buttons.size(), 6)
+	assert_eq(panel.buy_buttons.size(), ABILITIES.skills.size())
 	for index: int in 5:
 		var button: Button = panel.buy_buttons[index]
 		assert_eq(button.text, NumberFormat.format(session.skills.slots[index].cost()))
@@ -210,6 +210,14 @@ func _shown() -> Array[int]:
 
 
 ## Owns and equips every skill, so the carousel tests see all six.
+## Column indices from `from` up to, not including, `to`.
+func _span(from: int, to: int) -> Array[int]:
+	var span: Array[int] = []
+	for index: int in range(from, to):
+		span.append(index)
+	return span
+
+
 func _equip_all() -> void:
 	for slot: SkillSlot in session.skills.slots:
 		slot.level = 1
@@ -248,7 +256,7 @@ func test_skills_sit_in_one_row_between_the_two_arrows() -> void:
 	var row: HBoxContainer = panel.carousel_row
 	assert_eq(row.get_child(0), panel.left_arrow)
 	assert_eq(row.get_child(row.get_child_count() - 1), panel.right_arrow)
-	assert_eq(panel.skill_columns.size(), 6)
+	assert_eq(panel.skill_columns.size(), ABILITIES.skills.size())
 	for index: int in panel.skill_columns.size():
 		assert_eq(panel.skill_columns[index].get_parent(), panel.cards_row, "one row, no wrapping")
 		assert_eq(panel.skill_buttons[index].get_parent(), panel.skill_columns[index])
@@ -264,7 +272,7 @@ func test_the_row_shows_as_many_cards_as_fit_the_width() -> void:
 	panel.fit_cards(100.0)
 	assert_eq(_shown(), [0], "always at least one card")
 	panel.fit_cards(2000.0)
-	assert_eq(_shown(), [0, 1, 2, 3, 4, 5])
+	assert_eq(_shown(), _span(0, session.skills.equipped.size()))
 
 
 func test_resizing_the_panel_refits_the_cards() -> void:
@@ -287,12 +295,15 @@ func test_arrows_are_gold_and_grey_out_when_that_side_has_no_more_skills() -> vo
 	assert_eq(_shown(), [1, 2, 3, 4], "scrolls one skill to the right")
 	assert_false(panel.left_arrow.disabled)
 	panel.right_arrow.pressed.emit()
-	assert_eq(_shown(), [2, 3, 4, 5])
+	var count: int = session.skills.equipped.size()
+	for step: int in count - 5:
+		panel.right_arrow.pressed.emit()
+	assert_eq(_shown(), _span(count - 4, count))
 	assert_true(panel.right_arrow.disabled, "last skill reached")
 	panel.right_arrow.pressed.emit()
-	assert_eq(_shown(), [2, 3, 4, 5], "no scroll past the end")
+	assert_eq(_shown(), _span(count - 4, count), "no scroll past the end")
 	panel.left_arrow.pressed.emit()
-	assert_eq(_shown(), [1, 2, 3, 4])
+	assert_eq(_shown(), _span(count - 5, count - 1))
 
 
 func test_both_arrows_grey_when_every_skill_fits() -> void:
@@ -305,8 +316,9 @@ func test_both_arrows_grey_when_every_skill_fits() -> void:
 func test_widening_after_a_scroll_keeps_the_last_cards_in_view() -> void:
 	_equip_all()
 	panel.fit_cards(400.0)
-	for step: int in 4:
+	var count: int = session.skills.equipped.size()
+	for step: int in count:
 		panel.right_arrow.pressed.emit()
-	assert_eq(_shown(), [4, 5])
+	assert_eq(_shown(), _span(count - 2, count))
 	panel.fit_cards(720.0)
-	assert_eq(_shown(), [2, 3, 4, 5], "no empty space after the last skill")
+	assert_eq(_shown(), _span(count - 4, count), "no empty space after the last skill")

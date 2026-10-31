@@ -12,6 +12,8 @@ const HEALTH: StringName = &"health"
 const CRIT_CHANCE: StringName = &"crit_chance"
 const CRIT_DAMAGE: StringName = &"crit_damage"
 const ATTACK_SPEED: StringName = &"attack_speed"
+## Multiplier on the hero's own sword hits only (skills and spirits ignore it).
+const SWORD_DAMAGE: StringName = &"sword_damage"
 
 const DEFAULT_CRIT_DAMAGE: float = 1.5
 const DEFAULT_ATTACK_SPEED: float = 1.0
@@ -23,6 +25,7 @@ var _rate_base: Dictionary[StringName, float] = {
 	CRIT_CHANCE: 0.0,
 	CRIT_DAMAGE: DEFAULT_CRIT_DAMAGE,
 	ATTACK_SPEED: DEFAULT_ATTACK_SPEED,
+	SWORD_DAMAGE: 1.0,
 }
 var _modifiers: Array[StatModifier] = []
 

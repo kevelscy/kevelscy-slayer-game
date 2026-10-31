@@ -64,7 +64,7 @@ duration_seconds = 8.0
 color = Color(1, 0.85, 0.3, 1)
 base_cost = 1200.0
 
-[sub_resource type="Resource" id="Resource_w1nd5"]
+[sub_resource type="Resource" id="Resource_dy8vw"]
 script = ExtResource("2_3qjhl")
 id = &"wind"
 display_name = "Viento"
@@ -76,14 +76,43 @@ power = 2.5
 color = Color(0.07450981, 0.8, 0.7411765, 1)
 base_cost = 2400.0
 
-[sub_resource type="Resource" id="Resource_dy8vw"]
+[sub_resource type="Resource" id="Resource_y45cc"]
+script = ExtResource("2_3qjhl")
+id = &"speed_sword"
+display_name = "Espada Veloz"
+effect = 3
+branch = 3
+unlock_stage = 18
+cooldown_seconds = 22.0
+power = 0.4
+duration_seconds = 8.0
+color = Color(0.9098039, 0.7411765, 0.29411766, 1)
+buff_stats = Array[StringName]([&"attack_speed"])
+sound = &"fury"
+base_cost = 4800.0
+
+[sub_resource type="Resource" id="Resource_hlbvy"]
+script = ExtResource("2_3qjhl")
+id = &"burning_sword"
+display_name = "Espada Ardiente"
+effect = 3
+unlock_stage = 25
+cooldown_seconds = 25.0
+power = 0.5
+duration_seconds = 10.0
+color = Color(0.9411765, 0.52156866, 0.050980393, 1)
+buff_stats = Array[StringName]([&"sword_damage"])
+sound = &"meteor"
+base_cost = 38400.0
+
+[sub_resource type="Resource" id="Resource_cen6a"]
 script = ExtResource("3_l2ac6")
 id = &"wisp"
 display_name = "Fuego fatuo"
 unlock_stage = 2
 color = Color(0.07450981, 0.8, 0.7411765, 1)
 
-[sub_resource type="Resource" id="Resource_y45cc"]
+[sub_resource type="Resource" id="Resource_iwv7q"]
 script = ExtResource("3_l2ac6")
 id = &"ember_fox"
 display_name = "Zorro ígneo"
@@ -95,7 +124,7 @@ attack_interval_seconds = 4.0
 attack_power = 2.0
 color = Color(1, 0.55, 0.2, 1)
 
-[sub_resource type="Resource" id="Resource_hlbvy"]
+[sub_resource type="Resource" id="Resource_y1wub"]
 script = ExtResource("3_l2ac6")
 id = &"frost_owl"
 display_name = "Búho de escarcha"
@@ -108,5 +137,5 @@ color = Color(0.7, 0.85, 1, 1)
 
 [resource]
 script = ExtResource("1_ua7em")
-skills = Array[ExtResource("2_3qjhl")]([SubResource("Resource_djlwg"), SubResource("Resource_15cle"), SubResource("Resource_ppcxk"), SubResource("Resource_6q7ef"), SubResource("Resource_xwe56"), SubResource("Resource_w1nd5")])
-spirits = Array[ExtResource("3_l2ac6")]([SubResource("Resource_dy8vw"), SubResource("Resource_y45cc"), SubResource("Resource_hlbvy")])
+skills = Array[ExtResource("2_3qjhl")]([SubResource("Resource_djlwg"), SubResource("Resource_15cle"), SubResource("Resource_ppcxk"), SubResource("Resource_6q7ef"), SubResource("Resource_xwe56"), SubResource("Resource_dy8vw"), SubResource("Resource_y45cc"), SubResource("Resource_hlbvy")])
+spirits = Array[ExtResource("3_l2ac6")]([SubResource("Resource_cen6a"), SubResource("Resource_iwv7q"), SubResource("Resource_y1wub")])

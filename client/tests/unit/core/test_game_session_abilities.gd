@@ -128,6 +128,25 @@ func test_save_round_trip_keeps_skill_levels() -> void:
 	assert_eq(loaded.skills.slots[2].level, 1)
 
 
+## skill-branches S6.3/S6.1: a buff raises only its own stats.
+func test_a_buff_raises_only_its_buff_stats() -> void:
+	var attack: BigNumber = session.hero_stats.get_big(StatBlock.ATTACK)
+	var speed: float = session.hero_stats.get_rate(StatBlock.ATTACK_SPEED)
+	var thunder_damage: BigNumber = session.skill_damage(session.skills.slots[0].definition)
+	var haste: SkillDefinition = _skill(&"speed_sword", SkillDefinition.Effect.BUFF, 1, 0.4)
+	haste.buff_stats = [StatBlock.ATTACK_SPEED]
+	session.activate_buff(haste)
+	assert_true(session.hero_stats.get_big(StatBlock.ATTACK).is_equal_approx(attack))
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.ATTACK_SPEED), speed * 1.4, 1e-6)
+	var blade: SkillDefinition = _skill(&"burning_sword", SkillDefinition.Effect.BUFF, 1, 0.5)
+	blade.buff_stats = [StatBlock.SWORD_DAMAGE]
+	assert_eq(session.hero_stats.get_rate(StatBlock.SWORD_DAMAGE), 1.0, "plain sword hits")
+	session.activate_buff(blade)
+	assert_almost_eq(session.hero_stats.get_rate(StatBlock.SWORD_DAMAGE), 1.5, 1e-6)
+	assert_true(session.skill_damage(session.skills.slots[0].definition).is_equal_approx(thunder_damage),
+		"skills do not hit harder with the burning sword")
+
+
 ## skill-branches S4: the equipped list is saved.
 func test_save_round_trip_keeps_the_equipped_skills() -> void:
 	_own_all()

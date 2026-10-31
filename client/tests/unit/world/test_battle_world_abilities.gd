@@ -188,6 +188,26 @@ func test_fury_buffs_the_hero() -> void:
 	assert_false(session.buffs.is_empty())
 
 
+## skill-branches S6.1: the burning sword adds 50% to the hero's own hits and burns.
+func test_burning_sword_makes_sword_hits_half_stronger_while_it_burns() -> void:
+	var front: Enemy = enemies[0]
+	front.health.setup(BigNumber.from_float(1e30))
+	world.hero.target = front
+	world.hero.rng.seed = 7
+	world.hero.perform_attack()
+	var plain: BigNumber = _lost(front)
+	assert_false(world.hero.sword_flame.emitting)
+	world.resolve_skill(_skill(&"burning_sword"))
+	world._process(0.0)
+	assert_true(world.hero.sword_flame.emitting, "the sword burns while the buff lasts")
+	front.health.setup(BigNumber.from_float(1e30))
+	world.hero.rng.seed = 7
+	world.hero.perform_attack()
+	assert_true(_lost(front).is_equal_approx(plain.mul_float(1.5)))
+	world._process(_skill(&"burning_sword").duration_seconds + 0.1)
+	assert_false(world.hero.sword_flame.emitting, "the fire goes out with the buff")
+
+
 func test_shield_protects_the_hero() -> void:
 	var skill: SkillDefinition = _skill(&"shield")
 	world.resolve_skill(skill)

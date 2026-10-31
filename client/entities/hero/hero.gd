@@ -11,6 +11,12 @@ const ATTACK_RANGE: float = 30.0
 const HURT_SECONDS: float = 0.3
 const HURT_KNOCKBACK: float = 6.0
 const HURT_TINT: Color = Color(1.0, 0.45, 0.45)
+## Burning sword: fire pixels rise along the blade held over the shoulder, from its
+## hilt to its tip, in palette fire colors (Amarillo vivo, Naranja 2, Rojo vivo).
+const FLAME_HILT: Vector2 = Vector2(-11.0, -27.0)
+const FLAME_TIP: Vector2 = Vector2(-19.0, -35.0)
+const FLAME_POINTS: int = 5
+const FLAME_COLORS: Array[Color] = [Color8(253, 229, 4), Color8(240, 133, 13), Color8(244, 23, 11)]
 
 @export var animation_set: AnimationSet
 
@@ -19,6 +25,8 @@ var target: Enemy
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 ## The chest damage boost on the hero's own hits, set by BattleWorld each frame.
 var damage_multiplier: float = 1.0
+## Emits while the burning sword buff lasts; BattleWorld switches it each frame.
+var sword_flame: CPUParticles2D
 
 var _hurt_left: float = 0.0
 var _sprite_home: Vector2
@@ -36,6 +44,8 @@ func _ready() -> void:
 	sprite.animation_finished.connect(_on_animation_finished)
 	health.died.connect(_on_died)
 	health.damaged.connect(_on_damaged)
+	sword_flame = _build_sword_flame()
+	add_child(sword_flame)
 
 
 func setup(hero_stats: StatBlock, max_health: BigNumber) -> void:
@@ -84,7 +94,7 @@ func has_target_in_range() -> bool:
 
 
 func perform_attack() -> void:
-	var hit: DamageResult = DamageCalculator.compute(stats, rng)
+	var hit: DamageResult = DamageCalculator.compute(stats, rng, stats.get_rate(StatBlock.SWORD_DAMAGE))
 	if damage_multiplier != 1.0:
 		hit.amount = hit.amount.mul_float(damage_multiplier)
 	target.health.take_damage(hit)
@@ -136,3 +146,27 @@ func _on_died() -> void:
 	target = null
 	state_machine.transition_to(&"Dead")
 	died.emit()
+
+
+func _build_sword_flame() -> CPUParticles2D:
+	var flame: CPUParticles2D = CPUParticles2D.new()
+	flame.emitting = false
+	flame.amount = 14
+	flame.lifetime = 0.45
+	flame.emission_shape = CPUParticles2D.EMISSION_SHAPE_POINTS
+	var points: PackedVector2Array = []
+	for index: int in FLAME_POINTS:
+		points.append(FLAME_HILT.lerp(FLAME_TIP, index / float(FLAME_POINTS - 1)))
+	flame.emission_points = points
+	flame.direction = Vector2.UP
+	flame.spread = 20.0
+	flame.gravity = Vector2(0.0, -30.0)
+	flame.initial_velocity_min = 8.0
+	flame.initial_velocity_max = 18.0
+	flame.scale_amount_min = 2.0
+	flame.scale_amount_max = 3.0
+	var ramp: Gradient = Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+	ramp.colors = PackedColorArray(FLAME_COLORS)
+	flame.color_ramp = ramp
+	return flame

@@ -48,7 +48,7 @@ func test_spirit_attack_plays_spirit() -> void:
 
 func test_every_catalog_skill_has_a_sound() -> void:
 	for skill: SkillDefinition in ABILITIES.skills:
-		assert_true(SfxPlayer.SOUNDS.has(skill.id), "%s has a sound" % skill.id)
+		assert_true(SfxPlayer.SOUNDS.has(skill.sound_id()), "%s has a sound" % skill.id)
 
 
 func test_each_skill_cast_plays_its_own_sound() -> void:
@@ -56,8 +56,18 @@ func test_each_skill_cast_plays_its_own_sound() -> void:
 	for slot_index: int in ABILITIES.skills.size():
 		var skill: SkillDefinition = ABILITIES.skills[slot_index]
 		GameState.session.skills.cast.emit(slot_index, skill)
-		expected.append(skill.id)
+		expected.append(skill.sound_id())
 	assert_eq(_played(), expected)
+
+
+## New skills borrow an existing sound until their own is made.
+func test_a_skill_without_its_own_sound_borrows_one() -> void:
+	var skill: SkillDefinition = SkillDefinition.new()
+	skill.id = &"thunder"
+	assert_eq(skill.sound_id(), &"thunder", "named after its id by default")
+	skill.id = &"speed_sword"
+	skill.sound = &"fury"
+	assert_eq(skill.sound_id(), &"fury")
 
 
 func test_buying_each_gold_upgrade_plays_upgrade() -> void:

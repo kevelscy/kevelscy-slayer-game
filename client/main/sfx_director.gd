@@ -43,9 +43,9 @@ func _on_spirit_attacked(_slot_index: int, _spirit: SpiritDefinition) -> void:
 	sfx.play(&"spirit")
 
 
-## Every skill's sound is named after its id.
+## A skill's sound is named after its id unless it borrows another one.
 func _on_skill_cast(_slot_index: int, skill: SkillDefinition) -> void:
-	sfx.play(skill.id)
+	sfx.play(skill.sound_id())
 
 
 func _on_upgrade_leveled_up(_level: int) -> void:

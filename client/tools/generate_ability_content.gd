@@ -16,6 +16,10 @@ func _init() -> void:
 		_skill(&"shield", "Escudo", SkillDefinition.Effect.SHIELD, SkillDefinition.Branch.DEFENSIVE, 12, 25.0, 0.5, 8.0, Color(1.0, 0.85, 0.3), 1200.0),
 		# Faster than thunder but a little weaker, and on one enemy only (L1 bonuses).
 		_skill(&"wind", "Viento", SkillDefinition.Effect.DASH, SkillDefinition.Branch.AIR, 15, 5.0, 2.5, 0.0, Color("#13ccbd"), 2400.0),
+		# skill-branches S6.3: +40% attack speed only.
+		_buff(_skill(&"speed_sword", "Espada Veloz", SkillDefinition.Effect.BUFF, SkillDefinition.Branch.BOOST, 18, 22.0, 0.4, 8.0, Color8(232, 189, 75), 4800.0), [StatBlock.ATTACK_SPEED], &"fury"),
+		# skill-branches S6.1: +50% on the hero's own sword hits only.
+		_buff(_skill(&"burning_sword", "Espada Ardiente", SkillDefinition.Effect.BUFF, SkillDefinition.Branch.FIRE, 25, 25.0, 0.5, 10.0, Color8(240, 133, 13), 38400.0), [StatBlock.SWORD_DAMAGE], &"meteor"),
 	]
 	catalog.spirits = [
 		_spirit(&"wisp", "Fuego fatuo", 2, StatBlock.ATTACK, StatModifier.Kind.PERCENT, 0.1, 3.0, 1.0, Color("#13ccbd")),
@@ -46,6 +50,12 @@ func _skill(
 	skill.duration_seconds = duration
 	skill.color = color
 	skill.base_cost = base_cost
+	return skill
+
+
+func _buff(skill: SkillDefinition, stats: Array[StringName], sound: StringName) -> SkillDefinition:
+	skill.buff_stats = stats
+	skill.sound = sound
 	return skill
 
 

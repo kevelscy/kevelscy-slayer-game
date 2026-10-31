@@ -118,10 +118,9 @@ func shield_amount(skill: SkillDefinition) -> BigNumber:
 ## Fury-style buff: the skill power raises both attack and attack speed.
 func activate_buff(skill: SkillDefinition) -> void:
 	var power: float = _skill_power(skill)
-	var modifiers: Array[StatModifier] = [
-		StatModifier.percent(StatBlock.ATTACK, power),
-		StatModifier.percent(StatBlock.ATTACK_SPEED, power),
-	]
+	var modifiers: Array[StatModifier] = []
+	for stat: StringName in skill.buff_stats:
+		modifiers.append(StatModifier.percent(stat, power))
 	buffs.apply(skill.id, modifiers, skill.duration_seconds)
 
 

@@ -90,6 +90,7 @@ func _process(delta: float) -> void:
 	hero.target = null if enemies.is_empty() or hero.health.is_dead() else enemies[0]
 	session.tick_combat(delta, hero.target != null)
 	hero.damage_multiplier = session.damage_boost.multiplier()
+	hero.sword_flame.emitting = session.hero_stats.get_rate(StatBlock.SWORD_DAMAGE) > 1.0
 	hero.sprite.self_modulate = Color.WHITE if session.buffs.is_empty() else BUFF_TINT
 	_set_world_speed((RUN_SPEED if hero.is_running() else 0.0) + _dash_step_speed(delta))
 	_move_enemies(delta, enemies)
